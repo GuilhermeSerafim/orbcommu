@@ -54,7 +54,7 @@
   padding-left: 12px;
   text-align: right;
   vertical-align: middle;
-  font: 640 clamp(24px, 2vw, 30px)/1 var(--titulo);
+  font: 640 clamp(24px, 2vw, 30px)/1 var(--corpo);
   font-variant-numeric: tabular-nums;
   color: #504956;
 }

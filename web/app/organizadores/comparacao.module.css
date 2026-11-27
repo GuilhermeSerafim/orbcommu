@@ -28,14 +28,14 @@
 }
 .faixa dt {
   color: #42394d;
-  font: 650 clamp(16px, 1.3vw, 19px)/1.25 var(--corpo);
+  font: 650 clamp(16px, 1.3vw, 19px)/1.25 var(--titulo);
   letter-spacing: -.025em;
 }
 .numero {
   display: block;
   margin: 16px 0;
   color: #31283d;
-  font: 560 clamp(54px, 6.3vw, 88px)/1.05 var(--titulo);
+  font: 560 clamp(54px, 6.3vw, 88px)/1.05 var(--corpo);
   font-variant-numeric: lining-nums tabular-nums;
   letter-spacing: -.06em;
   white-space: nowrap;

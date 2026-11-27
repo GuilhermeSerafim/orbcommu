@@ -4,9 +4,12 @@
   }
 }
 
-.abertura,
-.dialogo {
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+.pagina :where(h1, h2, h3, h4, h5, h6), .dialogo h2, .painel > strong {
+  font-family: var(--titulo);
+}
+
+:is(.pagina, .dialogo) :where(button, input, select, textarea, summary) {
+  font-family: var(--corpo);
 }
 
 .abertura {
@@ -425,7 +428,6 @@
   background: #f7f6fc;
   color: #191a24;
   scroll-margin-top: 70px;
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
 }
 
 .distribuicaoConteudo {
@@ -561,10 +563,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .distribuicaoMedidor i { transition: none; }
-}
-
-.comoFunciona, .fechamento, .rodape {
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
 }
 
 .comoFunciona {
