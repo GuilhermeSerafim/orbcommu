@@ -1,0 +1,12 @@
+{
+  "name": "orbcommu",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:unit": "playwright test tests/unit",
+    "test:e2e": "playwright test tests/e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}
