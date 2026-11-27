@@ -47,13 +47,40 @@ test("todos os caminhos levam ao destino indicado", async ({ page, caso }) => {
   }
 
   await expect(page.getByText("Sob consulta", { exact: true })).toBeVisible()
-  const perguntas = page.locator("#duvidas details")
-  await expect(perguntas).toHaveCount(6)
-  for (const pergunta of await perguntas.all()) {
-    await expect(pergunta.locator("p")).toBeHidden()
-    await pergunta.locator("summary").press("Enter")
-    await expect(pergunta.locator("p")).toBeVisible()
+  const faq = page.locator("#duvidas")
+  const perguntas = [
+    "Serve para um workshop de 20 vagas?",
+    "Quem decide quem recebe o convite?",
+    "E se o grupo já estiver lotado?",
+    "Como sei qual divulgação trouxe cliques?",
+    "Quanto custa uma edição?",
+    "Quando vou ver a demonstração?",
+  ]
+  await expect(faq.getByRole("button")).toHaveCount(perguntas.length)
+  await expect(faq.getByRole("region")).toHaveCount(0)
+  await faq.getByRole("button", { name: perguntas[0], exact: true }).focus()
+  for (const [indice, nome] of perguntas.entries()) {
+    if (indice > 0) await page.keyboard.press("ArrowDown")
+    const pergunta = faq.getByRole("button", { name: nome, exact: true })
+    await expect(pergunta).toBeFocused()
+    await expect(pergunta).toHaveAttribute("aria-expanded", "false")
+    await page.keyboard.press("Enter")
+    await expect(pergunta).toHaveAttribute("aria-expanded", "true")
+    await expect(pergunta).toHaveAttribute("aria-controls", /\S+/)
+    const resposta = faq.getByRole("region", { name: nome, exact: true })
+    await expect(resposta).toBeVisible()
+    await expect(resposta).toHaveAttribute("id", (await pergunta.getAttribute("aria-controls"))!)
+    await expect(resposta).toContainText(/\S/)
   }
+  await expect(faq.getByRole("region")).toHaveCount(perguntas.length)
+  await page.keyboard.press("ArrowUp")
+  const nomeParaFechar = perguntas[perguntas.length - 2]
+  const perguntaParaFechar = faq.getByRole("button", { name: nomeParaFechar, exact: true })
+  await expect(perguntaParaFechar).toBeFocused()
+  await page.keyboard.press("Space")
+  await expect(perguntaParaFechar).toHaveAttribute("aria-expanded", "false")
+  await expect(faq.getByRole("region", { name: nomeParaFechar, exact: true })).toBeHidden()
+  await expect(faq.getByRole("region")).toHaveCount(perguntas.length - 1)
 
   const dialogo = page.getByRole("dialog")
   const demonstracoes = page.getByRole("button", { name: chamadaDemonstracao, exact: true })

@@ -719,47 +719,100 @@
   gap: clamp(36px, 8vw, 110px);
 }
 
-.duvidas details {
+.itemDuvida {
   border-top: 1px solid #dad7e3;
+  border-bottom: 0;
 }
 
-.duvidas details:last-child {
+.itemDuvida:last-child {
   border-bottom: 1px solid #dad7e3;
 }
 
-.duvidas summary {
+.acordeaoDuvidas .itemDuvida {
+  display: grid;
+  grid-template-rows: max-content 0fr;
+  align-content: start;
+}
+
+.acordeaoDuvidas .itemDuvida[data-state="open"] {
+  grid-template-rows: max-content 1fr;
+}
+
+.pergunta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+  width: 100%;
   min-height: 64px;
   padding-block: 13px;
   list-style: none;
+  text-align: start;
   font-size: 17px;
   font-weight: 620;
   line-height: 1.4;
   cursor: pointer;
 }
 
-.duvidas summary::-webkit-details-marker {
+.pergunta::-webkit-details-marker {
   display: none;
 }
 
-.duvidas summary::after {
-  content: "+" / "";
-  color: #584ac8;
-  font-size: 24px;
+.pergunta svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: var(--violeta);
 }
 
-.duvidas details[open] > summary::after {
-  content: "−" / "";
+.pergunta svg path:last-child {
+  transform-origin: center;
 }
 
-.duvidas details p {
+.pergunta[aria-expanded="true"] svg path:last-child,
+.itemDuvida[open] .pergunta svg path:last-child {
+  transform: scaleY(0);
+}
+
+.painelResposta {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.resposta {
   max-width: 60ch;
   padding: 0 36px 18px 0;
   color: #534f61;
   line-height: 1.65;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .acordeaoDuvidas .itemDuvida {
+    transition: grid-template-rows 260ms cubic-bezier(.3, 0, .45, 1);
+  }
+
+  .acordeaoDuvidas .itemDuvida[data-state="open"] {
+    transition-timing-function: cubic-bezier(.25, .8, .25, 1);
+  }
+
+  .painelResposta .resposta {
+    transition: opacity 180ms ease-out, transform 220ms ease-out;
+  }
+
+  .painelResposta[data-state="closed"] .resposta {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  .pergunta svg path:last-child {
+    transition: transform 220ms ease-out;
+  }
+}
+
+@media (scripting: none) {
+  .acordeaoDuvidas {
+    display: none;
+  }
 }
 
 .chamadaFinal {

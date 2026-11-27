@@ -1,5 +1,7 @@
 import { BotaoDemonstracao } from "./inscricao"
+import { AcordeaoDuvidas } from "./acordeao-duvidas"
 import { SimboloOrbCommu } from "@/components/marca-orbcommu"
+import { PlusIcon } from "lucide-react"
 import estilos from "./landing.module.css"
 
 export const secoes = [
@@ -23,7 +25,7 @@ const perguntas = [
   ["Como sei qual divulgação trouxe cliques?", "Cada canal pode ter um link identificado ou um QR. Quando alguém abre esse link, o clique fica associado à divulgação de origem."],
   ["Quanto custa uma edição?", "O valor é sob consulta. A proposta reúne uma campanha com a comunidade parceira e um resumo de cliques, pedidos e entradas confirmadas."],
   ["Quando vou ver a demonstração?", "Ao enviar seu e-mail ou WhatsApp, você recebe a confirmação na tela e aguarda na fila. A inscrição não marca uma data."],
-]
+] as const
 
 export function ComoFunciona() {
   return (
@@ -80,14 +82,15 @@ export function Fechamento() {
       <section id="duvidas" className={estilos.duvidas} aria-labelledby="titulo-duvidas">
         <div className={estilos.larguraFechamento}>
           <h2 id="titulo-duvidas">Dúvidas frequentes</h2>
-          <div>
+          <AcordeaoDuvidas perguntas={perguntas} />
+          <noscript>
             {perguntas.map(([pergunta, resposta]) => (
-              <details key={pergunta}>
-                <summary>{pergunta}</summary>
-                <p>{resposta}</p>
+              <details key={pergunta} className={estilos.itemDuvida}>
+                <summary className={estilos.pergunta}>{pergunta}<PlusIcon aria-hidden="true" /></summary>
+                <p className={estilos.resposta}>{resposta}</p>
               </details>
             ))}
-          </div>
+          </noscript>
         </div>
       </section>
       <section className={estilos.chamadaFinal} aria-labelledby="titulo-chamada-final">
