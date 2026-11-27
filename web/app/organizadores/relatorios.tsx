@@ -9,7 +9,6 @@ const GraficoEdicao = dynamic(() => import("./grafico-edicao"), { ssr: false })
 const percentual = new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 })
 
 export function Relatorios() {
-  const [edicao, selecionarEdicao] = useState<keyof typeof edicoes>("nov")
   const areaGraficos = useRef<HTMLDivElement>(null)
   const [mostrarGraficos, definirMostrarGraficos] = useState(false)
 
@@ -26,12 +25,12 @@ export function Relatorios() {
     return () => observador.disconnect()
   }, [])
 
-  const { periodo, primeiroDia, dias, origens: cliquesPorOrigem, pedidos, entradas } = edicoes[edicao]
+  const { primeiroDia, dias, origens: cliquesPorOrigem, pedidos, entradas } = edicoes.nov
   const aberturas = dias.reduce((total, cliques) => total + cliques, 0)
   const conversao = percentual.format(entradas / pedidos)
   const porOrigem = origens.map((nome, i) => ({ nome, valor: cliquesPorOrigem[i] }))
     .sort((a, b) => b.valor - a.valor)
-  const porDia = dias.map((valor, i) => ({ nome: `${primeiroDia + i} ${edicao}`, valor }))
+  const porDia = dias.map((valor, i) => ({ nome: `${primeiroDia + i} nov`, valor }))
   const destaque = porOrigem[0]
   const pico = porDia.reduce((maior, dia) => dia.valor > maior.valor ? dia : maior)
 
@@ -39,16 +38,8 @@ export function Relatorios() {
     <section id="relatorios" aria-labelledby="relatorios-titulo" className={estilos.secao}>
       <div className={estilos.conteudo}>
         <header className={estilos.cabecalho}>
-          <div>
-            <h2 id="relatorios-titulo">De onde vêm os cliques?</h2>
-            <p>Compare os canais de divulgação e veja em quais dias o link do evento recebeu mais acessos.</p>
-          </div>
-          <label>
-            Edição de exemplo
-            <select value={edicao} onChange={evento => selecionarEdicao(evento.target.value as keyof typeof edicoes)}>
-              {Object.entries(edicoes).map(([id, { nome }]) => <option key={id} value={id}>{nome}</option>)}
-            </select>
-          </label>
+          <h2 id="relatorios-titulo">De onde vêm os cliques?</h2>
+          <p>Compare os canais de divulgação e veja em quais dias o link do evento recebeu mais acessos.</p>
         </header>
 
         <div className={estilos.graficos} ref={areaGraficos}>
@@ -69,10 +60,7 @@ export function Relatorios() {
         </div>
 
         <div className={estilos.resumo}>
-          <div className={estilos.tituloResumo}>
-            <h3>Da abertura à entrada</h3>
-            <p>{periodo}</p>
-          </div>
+          <h3>Da abertura à entrada</h3>
           <dl className={estilos.metricas}>
             {[
               { nome: "Aberturas do link", valor: aberturas },

@@ -1,26 +1,9 @@
 import { expect, test, type Locator } from "@playwright/test"
 
 const origens = ["QR do encontro", "Link da comunidade", "Bio do evento", "Origem desconhecida"]
-const novembro = {
-  edicao: "nov",
-  periodo: "16 a 22 de novembro",
-  primeiroDia: 16,
-  dias: [4, 6, 10, 16, 21, 15, 8],
-  origens: [32, 25, 20, 3],
-  participacao: "40%",
-  totais: ["80", "20", "12"],
-  conversao: "12 de 20 pedidos resultaram em entrada (60%)",
-}
-const outubro = {
-  edicao: "out",
-  periodo: "19 a 25 de outubro",
-  primeiroDia: 19,
-  dias: [3, 8, 12, 9, 15, 12, 5],
-  origens: [24, 20, 16, 4],
-  participacao: "37,5%",
-  totais: ["64", "16", "8"],
-  conversao: "8 de 16 pedidos resultaram em entrada (50%)",
-}
+const aberturasPorOrigem = [32, 25, 20, 3]
+const aberturasPorDia = [4, 6, 10, 16, 21, 15, 8]
+const datas = ["16 nov", "17 nov", "18 nov", "19 nov", "20 nov", "21 nov", "22 nov"]
 
 async function conferirTabela(tabela: Locator, rotulos: string[], valores: number[]) {
   await expect(tabela.getByRole("row")).toHaveCount(rotulos.length + 1)
@@ -49,13 +32,16 @@ async function conferirLinha(svg: Locator, datas: string[], valores: number[]) {
   await expect(valor).toHaveCount(ocorrenciasNoEixo + 1)
 }
 
-test("trocar a edição atualiza os totais, os gráficos e as tabelas", async ({ page }) => {
+test("o relatório apresenta os totais, os gráficos e as tabelas de novembro", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 })
   await page.emulateMedia({ reducedMotion: "reduce" })
   await page.goto("/organizadores")
   const relatorio = page.getByRole("region", { name: "De onde vêm os cliques?" })
-  const seletor = relatorio.getByRole("combobox", { name: "Edição de exemplo" })
-  await expect(seletor).toHaveValue("nov")
+  await expect(relatorio.getByRole("combobox")).toHaveCount(0)
+  await expect(relatorio).not.toContainText("Edição de exemplo")
+  await expect(relatorio).not.toContainText("16 a 22 de novembro")
+  await expect(relatorio.getByRole("definition")).toHaveText(["80", "20", "12"])
+  await expect(relatorio).toContainText("12 de 20 pedidos resultaram em entrada (60%)")
 
   const porOrigem = relatorio.getByRole("figure", { name: "Aberturas por origem", exact: true })
   const porDia = relatorio.getByRole("figure", { name: "Aberturas por dia", exact: true })
@@ -64,25 +50,16 @@ test("trocar a edição atualiza os totais, os gráficos e as tabelas", async ({
   await expect(tabelaOrigens).toBeHidden()
   await relatorio.locator("summary").filter({ hasText: "Ver dados dos gráficos" }).press("Enter")
 
-  for (const dados of [novembro, outubro, novembro]) {
-    await page.mouse.move(0, 0)
-    await seletor.selectOption(dados.edicao)
-    await expect(relatorio).toContainText(dados.periodo)
-    await expect(relatorio.getByRole("definition")).toHaveText(dados.totais)
-    await expect(relatorio).toContainText(dados.conversao)
+  await conferirTabela(tabelaOrigens, origens, aberturasPorOrigem)
+  await conferirTabela(tabelaDias, datas, aberturasPorDia)
 
-    const datas = dados.dias.map((_, indice) => `${dados.primeiroDia + indice} ${dados.edicao}`)
-    await conferirTabela(tabelaOrigens, origens, dados.origens)
-    await conferirTabela(tabelaDias, datas, dados.dias)
-
-    await porOrigem.scrollIntoViewIfNeeded()
-    const ranking = porOrigem.locator("svg")
-    await expect(ranking).toBeVisible()
-    await expect(porOrigem).toContainText(`QR do encontro respondeu por ${dados.participacao} das aberturas.`)
-    for (const valor of dados.origens) {
-      await expect(ranking.getByText(String(valor), { exact: true })).toBeVisible()
-    }
-    await conferirLinha(porDia.locator("svg"), datas, dados.dias)
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await porOrigem.scrollIntoViewIfNeeded()
+  const ranking = porOrigem.locator("svg")
+  await expect(ranking).toBeVisible()
+  await expect(porOrigem).toContainText("QR do encontro respondeu por 40% das aberturas.")
+  for (const valor of aberturasPorOrigem) {
+    await expect(ranking.getByText(String(valor), { exact: true })).toBeVisible()
   }
+  await conferirLinha(porDia.locator("svg"), datas, aberturasPorDia)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })

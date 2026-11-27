@@ -7,13 +7,6 @@
 
 .conteudo { max-width: 1120px; margin-inline: auto; }
 
-.cabecalho {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 24px;
-}
-
 .cabecalho h2 {
   margin: 0 0 12px;
   font: 650 clamp(35px, 4.3vw, 60px)/1.02 var(--titulo);
@@ -27,19 +20,7 @@
   line-height: 1.5;
 }
 
-.cabecalho label { display: grid; gap: 6px; color: #56525f; font-size: 13px; }
-.cabecalho select {
-  appearance: auto;
-  min-height: 44px;
-  padding: 9px 12px;
-  border: 1px solid #ccc8d7;
-  border-radius: 8px;
-  background: white;
-  color: #292431;
-  font: 600 15px var(--corpo);
-}
-
-.secao :is(select, summary):focus-visible { outline: 3px solid #6652ce; outline-offset: 3px; }
+.dados summary:focus-visible { outline: 3px solid #6652ce; outline-offset: 3px; }
 
 .graficos {
   display: grid;
@@ -57,12 +38,12 @@
   background: white;
 }
 
-.graficos h3, .tituloResumo h3 {
+.graficos h3, .resumo h3 {
   font: 650 clamp(21px, 2vw, 27px)/1.15 var(--titulo);
   letter-spacing: -.035em;
 }
 
-.graficos figcaption p, .tituloResumo p {
+.graficos figcaption p {
   margin-top: 7px;
   color: #5d5968;
   font-size: 15px;
@@ -106,7 +87,6 @@
 .tabelas :is(th, td):last-child { text-align: right; font-variant-numeric: tabular-nums; }
 
 @media (max-width: 760px) {
-  .cabecalho { align-items: start; flex-direction: column; gap: 16px; }
   .graficos, .tabelas { grid-template-columns: 1fr; }
   .graficos { margin-top: 22px; }
   .plotagem { height: 204px; margin-top: 12px; }

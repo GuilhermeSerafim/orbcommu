@@ -83,7 +83,8 @@ test("percorrer as simulações não envia pedidos", async ({ page }) => {
   for (const nome of controlesRemovidos) {
     await expect(page.getByRole("button", { name: nome, exact: true })).toHaveCount(0)
   }
-  await expect(page.locator("#relatorios").getByText(/A origem acompanha o link da divulgação/)).toHaveCount(0)
+  const relatorio = page.getByRole("region", { name: "De onde vêm os cliques?" })
+  await expect(relatorio.getByText(/A origem acompanha o link da divulgação/)).toHaveCount(0)
   const abertura = page.locator("#inicio")
   await expect(abertura.locator("[data-animada]")).toHaveAttribute("data-animada", "true")
   await page.clock.runFor(3300)
@@ -94,7 +95,9 @@ test("percorrer as simulações não envia pedidos", async ({ page }) => {
   await distribuicao.scrollIntoViewIfNeeded()
   await page.clock.runFor(2400)
   await expect(grupoA).toHaveAttribute("aria-valuenow", /^[45]$/)
-  await page.getByRole("combobox", { name: "Edição de exemplo" }).selectOption("out")
+  await relatorio.locator("summary").filter({ hasText: "Ver dados dos gráficos" }).press("Enter")
+  const tabelaDias = relatorio.getByRole("table", { name: "Aberturas por dia", exact: true })
+  await expect(tabelaDias.getByRole("rowheader", { name: "16 nov", exact: true })).toBeVisible()
 
   await expect(page.getByText("Conversa de exemplo · Ana", { exact: true })).toHaveCount(0)
   const operacao = page.getByRole("region", { name: "A operação da sua comunidade", exact: true })

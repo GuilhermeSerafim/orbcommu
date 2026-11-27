@@ -161,7 +161,6 @@ export function InkOrbitFeatures() {
         <h2 id="titulo-operacao">A operação da <span>sua comunidade</span></h2>
         <FluxoDaEdicao />
         <div className={estilos.par}><MapaDeOrigens automatico={automatico} /><CurvaDeEntradas /></div>
-        <small className={estilos.rodape}>Edição de exemplo · {edicoes.nov.periodo}</small>
       </div>
     </section>
   )

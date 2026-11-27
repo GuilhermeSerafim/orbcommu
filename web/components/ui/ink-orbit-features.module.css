@@ -213,7 +213,6 @@
 .grafico input { position: absolute; z-index: 2; inset: 0 5.88%; width: 88.24%; height: 100%; margin: 0; opacity: 0; cursor: crosshair; touch-action: pan-y; }
 .grafico:has(input:focus-visible), .secao button:focus-visible { outline: 2px solid var(--acento); outline-offset: 4px; }
 .eixo { position: absolute; inset: auto 3% -10px; display: flex; justify-content: space-between; color: var(--suave); font: 11px/1.25 monospace; }
-.rodape { display: block; margin-top: 20px; color: var(--suave); font-size: 13px; }
 
 @media (max-width: 740px) {
   .par { grid-template-columns: 1fr; gap: 24px; margin-top: 24px; }
