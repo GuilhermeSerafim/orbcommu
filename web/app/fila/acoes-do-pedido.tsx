@@ -5,7 +5,7 @@ import type { AcaoPedido, ResultadoAcao } from "../../lib/operacao"
 import { agirNoPedido } from "./acoes"
 
 const mensagens = {
-  sem_convite: "Configure o link do grupo para chamar esta pessoa.",
+  sem_convite: "Para chamar esta pessoa, salve o convite em “Link do grupo”, no topo da fila.",
   acesso: "Esta sessão não tem permissão para alterar pedidos.",
   acao_invalida: "Não foi possível identificar a ação deste pedido.",
   pedido_alterado: "Este pedido mudou. Confira a situação atualizada.",
@@ -30,7 +30,6 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
   const [pendente, setPendente] = useState(false)
   const [erro, setErro] = useState<string | undefined>(chamadaIncerta ? avisoChamada : undefined)
   const [alternativa, setAlternativa] = useState(alternativaInicial)
-  const [semConvite, setSemConvite] = useState(false)
 
   async function agir(acao: AcaoPedido, botao: HTMLButtonElement) {
     if (emAndamento.current) return
@@ -41,14 +40,12 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
     setPendente(true)
     setErro(undefined)
     setAlternativa(undefined)
-    setSemConvite(false)
 
     try {
       const resultado = await agirNoPedido(id, acao, reservaId ?? undefined)
       if (!resultado.ok) {
         conversa?.close()
         setErro(mensagens[resultado.motivo])
-        setSemConvite(resultado.motivo === "sem_convite")
         if (resultado.motivo === "pedido_alterado" || resultado.motivo === "acesso") atualizar()
         return
       }
@@ -96,12 +93,6 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
       <Button variant="outline" type="button" aria-disabled={pendente} onClick={e => void agir("desistir", e.currentTarget)}>Registrar desistência</Button>
       {situacao === "A conferir" && <Button variant="ghost" type="button" aria-disabled={pendente} onClick={e => void agir("encerrar_sem_aceite", e.currentTarget)}>Encerrar sem aceite</Button>}
     </>}
-    {semConvite && <Button type="button" variant="outline" onClick={() => {
-      const campo = document.getElementById("convite-do-grupo")
-      const detalhes = campo?.closest("details")
-      if (detalhes) detalhes.open = true
-      campo?.focus()
-    }}>Configurar link do grupo</Button>}
     {erro && <p className="aviso-acao" role="alert">{erro}</p>}
     {alternativa && (alternativa.reservaId ? situacao === "Chamada iniciada" && alternativa.reservaId === reservaId : situacao === "Para analisar") && <p className="aviso-acao">
       A abertura automática foi bloqueada. <a href={alternativa.url} target="_blank" rel="noopener noreferrer">Abrir a conversa</a>
