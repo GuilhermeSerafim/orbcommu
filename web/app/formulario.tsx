@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { PedidoValido } from "../lib/entrada"
+import type { FilaPublica } from "@/lib/filas-publicas"
 
 type Campos = Partial<Record<keyof PedidoValido, string>>
 
-export default function Formulario() {
+export default function Formulario({ fila }: { fila: Omit<FilaPublica, "cartaz"> }) {
   const [campos, setCampos] = useState<Campos>({})
   const [pronto, setPronto] = useState(false)
   const [enviando, setEnviando] = useState(false)
@@ -30,7 +31,11 @@ export default function Formulario() {
     setCampos({})
     setEnviando(true)
     try {
-      const resposta = await fetch("/api/pedidos", {
+      const endpoint = new URL(`/api/pedidos/${fila.slug}`, window.location.origin)
+      for (const origem of new URLSearchParams(window.location.search).getAll("origem")) {
+        endpoint.searchParams.append("origem", origem)
+      }
+      const resposta = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pedido),
@@ -54,12 +59,12 @@ export default function Formulario() {
 
   if (recebido) return <section className="formulario-area recibo">
     <div className="secao-simbolo"><Check aria-hidden="true" size={25} /></div>
-    <h1 ref={titulo} tabIndex={-1}>Recebemos seu pedido para entrar na Meet Up Tech SP.</h1>
+    <h1 ref={titulo} tabIndex={-1}>Recebemos seu pedido para entrar {fila.destino}.</h1>
     <p className="introducao">Se seu pedido for aprovado, a equipe vai chamar você pelo WhatsApp quando chegar a sua vez.</p>
   </section>
 
   return <section className="formulario-area">
-    <h1>Pedir entrada na comunidade</h1>
+    <h1>{fila.titulo}</h1>
     <p className="introducao">Se seu pedido for aprovado, a equipe entra em contato pelo WhatsApp.</p>
     <form method="post" className="formulario" noValidate onSubmit={enviar}>
       <noscript><p>Ative o JavaScript no navegador e recarregue esta página para enviar seu pedido.</p></noscript>
@@ -74,7 +79,7 @@ export default function Formulario() {
         {campos.telefone && <small id="erro-telefone" role="alert">{campos.telefone}</small>}
       </div>
       <div className="campo">
-        <div className="rotulo-opcional"><Label htmlFor="motivacao">O que você busca na Meet Up Tech SP?</Label><small id="opcional">Opcional</small></div>
+        <div className="rotulo-opcional"><Label htmlFor="motivacao">O que você busca {fila.destino}?</Label><small id="opcional">Opcional</small></div>
         <Textarea id="motivacao" name="motivacao" rows={2} placeholder="Conte um pouco sobre o seu interesse" aria-invalid={!!campos.motivacao} aria-describedby={campos.motivacao ? "opcional erro-motivacao" : "opcional"} />
         {campos.motivacao && <small id="erro-motivacao" role="alert">{campos.motivacao}</small>}
       </div>

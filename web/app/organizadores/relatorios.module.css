@@ -1,0 +1,100 @@
+.secao {
+  scroll-margin-top: 32px;
+  padding: clamp(56px, 7vw, 100px) max(20px, 5vw);
+  background: #faf9fc;
+  color: #241e31;
+}
+
+.conteudo {
+  max-width: 1120px;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+  align-items: start;
+  gap: clamp(40px, 6vw, 88px);
+}
+
+.cabecalho { padding-top: 20px; }
+.cabecalho h2 {
+  max-width: 12ch;
+  font: 650 clamp(38px, 4.4vw, 64px)/1.02 var(--titulo);
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+.cabecalho p {
+  margin-top: 20px;
+  max-width: 36ch;
+  text-wrap: pretty;
+  color: #585161;
+  font: 400 clamp(16px, 1.35vw, 19px)/1.55 var(--corpo);
+}
+.cabecalho strong { color: #3e3153; font-weight: 650; }
+
+.painel {
+  min-width: 0;
+  padding: 8px clamp(16px, 2.4vw, 34px) 4px;
+  border: 1px solid #dfdae7;
+  border-radius: 20px;
+  background: #fff;
+}
+.canais { width: 100%; border-collapse: collapse; }
+.canais thead th {
+  border-bottom: 1px solid #e4dfeb;
+  padding: 16px 0 12px;
+  color: #615a6b;
+  font-size: 14px;
+  font-weight: 550;
+  text-align: left;
+}
+.canais thead th:last-child { text-align: right; }
+.canais tbody tr + tr { border-top: 1px solid #f0edf4; }
+.canais tbody th { padding: 17px 0; text-align: left; }
+.canais td {
+  width: 5ch;
+  padding-left: 12px;
+  text-align: right;
+  vertical-align: middle;
+  font: 640 clamp(24px, 2vw, 30px)/1 var(--corpo);
+  font-variant-numeric: tabular-nums;
+  color: #504956;
+}
+.canal { display: flex; align-items: center; gap: 14px; }
+.icone {
+  display: grid;
+  flex: 0 0 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 10px;
+  background: #f4f2f7;
+  color: #635b72;
+}
+.canalNome {
+  flex: 1;
+  min-width: 0;
+  color: #393240;
+  font: 550 clamp(16px, 1.35vw, 18px)/1.3 var(--corpo);
+}
+.barra {
+  display: block;
+  margin-top: 8px;
+  height: 7px;
+  border-radius: 10px;
+  background: #a99ccb;
+}
+.canais tbody tr:first-child .icone { background: #ede7fc; color: #6747ad; }
+.canais tbody tr:first-child .barra { background: #7353bc; }
+.canais tbody tr:first-child td { color: #6443a4; }
+
+@media (max-width: 760px) {
+  .conteudo { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .cabecalho { padding-top: 0; }
+  .cabecalho h2 { max-width: none; }
+  .cabecalho p { margin-top: 12px; }
+  .canal { gap: 10px; }
+  .canais tbody th { padding-block: 15px; }
+  .canais td { width: 3ch; }
+}
+
+@media (forced-colors: active) {
+  .barra { background: CanvasText; forced-color-adjust: none; }
+}
