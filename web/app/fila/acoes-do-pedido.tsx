@@ -36,8 +36,13 @@ export function AcoesDoPedido({ id, atualizar }: { id: string; atualizar: () => 
         return
       }
       if (resultado.urlWhatsApp) {
-        if (conversa && !conversa.closed) conversa.location.replace(resultado.urlWhatsApp)
-        else setUrlAlternativa(resultado.urlWhatsApp)
+        try {
+          if (conversa && !conversa.closed) conversa.location.replace(resultado.urlWhatsApp)
+          else setUrlAlternativa(resultado.urlWhatsApp)
+        } catch {
+          conversa?.close()
+          setUrlAlternativa(resultado.urlWhatsApp)
+        }
       } else if (document.activeElement === botao) {
         botao.closest("li")?.querySelector<HTMLElement>(".situacao")?.focus()
       }

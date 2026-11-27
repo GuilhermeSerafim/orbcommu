@@ -37,16 +37,51 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
     await buscaSegunda.fill(ana.pedido.nome)
     const linhaSegunda = segunda.getByRole("listitem")
     await expect(linhaSegunda).toContainText("Marina abriu o WhatsApp")
+    await segunda.bringToFront()
+    const aprovacaoSegunda = linhaSegunda.getByRole("button", { name: "Aprovar" })
+    await aprovacaoSegunda.focus()
+    await expect(aprovacaoSegunda).toBeFocused()
+    await page.bringToFront()
     await linha.getByRole("button", { name: "Aprovar" }).click()
     await expect(linha).toContainText("Aguardando vaga")
     await segunda.bringToFront()
     await segunda.evaluate(() => window.dispatchEvent(new Event("focus")))
     await expect(linhaSegunda).toContainText("Aguardando vaga")
     await expect(linhaSegunda).toContainText("Marina aprovou")
+    await expect(linhaSegunda.getByText("Aguardando vaga", { exact: true })).toBeFocused()
     await expect(buscaSegunda).toHaveValue(ana.pedido.nome)
 
     await page.getByLabel("Pesquisar").fill(bia.pedido.nome)
+    await linha.getByRole("button", { name: "Conversar no WhatsApp" }).waitFor()
+    await page.evaluate(() => {
+      const abrir = window.open
+      window.open = () => {
+        window.open = abrir
+        return {
+          closed: false,
+          close() {},
+          location: { replace() { throw new DOMException("Navegação bloqueada", "SecurityError") } },
+        } as unknown as Window
+      }
+    })
+    await linha.getByRole("button", { name: "Conversar no WhatsApp" }).click()
+    await expect(linha.getByRole("link", { name: "Abrir a conversa" })).toHaveAttribute("href", "https://wa.me/" + bia.pedido.telefone)
+    await expect(linha).toContainText("Marina abriu o WhatsApp")
+    await expect(linha.getByRole("alert")).toHaveCount(0)
+
+    await buscaSegunda.fill(bia.pedido.nome)
+    await segunda.getByLabel("Situação").selectOption("Para analisar")
+    await segunda.bringToFront()
+    const encerramentoSegunda = linhaSegunda.getByRole("button", { name: "Encerrar pedido" })
+    await encerramentoSegunda.focus()
+    await expect(encerramentoSegunda).toBeFocused()
+    await page.bringToFront()
     await linha.getByRole("button", { name: "Encerrar pedido" }).click()
+    await expect(linha).toContainText("Encerrado na vistoria")
+    await segunda.bringToFront()
+    await segunda.evaluate(() => window.dispatchEvent(new Event("focus")))
+    await expect(linhaSegunda).toHaveCount(0)
+    await expect(buscaSegunda).toBeFocused()
     await page.getByLabel("Situação").selectOption("Finalizados")
     await expect(linha).toContainText("Encerrado na vistoria")
     await expect(linha).toContainText("Marina encerrou o pedido")

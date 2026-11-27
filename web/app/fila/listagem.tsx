@@ -4,13 +4,17 @@ import { ChevronDown, ChevronLeft, ChevronRight, Inbox, ListFilter, Search } fro
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import type { FiltroFila, PaginaFila } from "../../lib/fila"
+import type { FiltroFila, ItemFila, PaginaFila } from "../../lib/fila"
 import { AcoesDoPedido } from "./acoes-do-pedido"
 
 const inicial: FiltroFila = { busca: "", situacao: "Todos", pagina: 1, tamanho: 5 }
 const horario = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" })
 
 const hora = new Intl.DateTimeFormat("pt-BR", { timeStyle: "short", timeZone: "America/Sao_Paulo" })
+
+function temAcoesDeVistoria(item: ItemFila) {
+  return item.situacao === "Para analisar" && !item.encerradoEm
+}
 
 export default function Listagem({ podeOperar, situacoes }: {
   podeOperar: boolean
@@ -46,9 +50,15 @@ export default function Listagem({ podeOperar, situacoes }: {
         const dados: PaginaFila = await res.json()
         const ultima = Math.max(1, Math.ceil(dados.total / filtro.tamanho))
         if (controlador.signal.aborted) return
-        const linhaFocada = document.activeElement?.closest<HTMLElement>("li[data-pedido-id]")
-        if (linhaFocada && !dados.itens.some(item => item.id === linhaFocada.dataset.pedidoId)) {
-          busca.current?.focus({ preventScroll: true })
+        const foco = document.activeElement
+        const linhaFocada = foco?.closest<HTMLElement>("li[data-pedido-id]")
+        if (linhaFocada) {
+          const itemAtualizado = dados.itens.find(item => item.id === linhaFocada.dataset.pedidoId)
+          if (!itemAtualizado) {
+            busca.current?.focus({ preventScroll: true })
+          } else if (foco?.closest(".acoes-pedido") && !temAcoesDeVistoria(itemAtualizado)) {
+            linhaFocada.querySelector<HTMLElement>(".situacao")?.focus({ preventScroll: true })
+          }
         }
         if (filtro.pagina > ultima) {
           setFiltro(atual => atual === filtro ? { ...atual, pagina: ultima } : atual)
@@ -100,7 +110,7 @@ export default function Listagem({ podeOperar, situacoes }: {
             {item.encerradoEm && item.encerradoPorNome && <p>{item.encerradoPorNome} encerrou o pedido em{" "}
               <time dateTime={item.encerradoEm}>{horario.format(new Date(item.encerradoEm))}</time></p>}
           </div>}
-          {podeOperar && item.situacao === "Para analisar" && !item.encerradoEm
+          {podeOperar && temAcoesDeVistoria(item)
             && <AcoesDoPedido id={item.id} atualizar={atualizar} />}
         </li>)}</ul>
       </> : <div className="lista-estado">
