@@ -9,7 +9,7 @@ const confirmacao = "Você entrou na fila da demonstração do OrbCommu. Agora �
 
 test("reenviar após perder a resposta preserva a primeira inscrição", async ({ page, caso }) => {
   await page.goto("/organizadores")
-  await page.getByRole("button", { name: "Solicitar demonstração" }).first().click()
+  await page.getByRole("button", { name: "Entrar na fila da demonstração", exact: true }).first().click()
   const dialogo = page.getByRole("dialog")
   const contato = dialogo.getByRole("textbox", { name: "E-mail" })
   const enviar = dialogo.getByRole("button", { name: "Entrar na fila" })
@@ -32,7 +32,7 @@ test("reenviar após perder a resposta preserva a primeira inscrição", async (
 
 test("trocar para WhatsApp envia apenas o telefone e Escape devolve o foco", async ({ page, caso }) => {
   await page.goto("/organizadores")
-  const botaoDeOrigem = page.getByRole("button", { name: "Solicitar demonstração" }).first()
+  const botaoDeOrigem = page.getByRole("button", { name: "Entrar na fila da demonstração", exact: true }).first()
   await botaoDeOrigem.click()
   const dialogo = page.getByRole("dialog")
   const email = dialogo.getByRole("textbox", { name: "E-mail" })

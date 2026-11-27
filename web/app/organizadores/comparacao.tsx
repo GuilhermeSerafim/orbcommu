@@ -15,7 +15,7 @@ const indicadores = [
     titulo: "Pedidos de entrada",
     valor: Math.round(100 * (novembro.pedidos - outubro.pedidos) / outubro.pedidos),
     unidade: "%",
-    descricao: `De ${outubro.pedidos} para ${novembro.pedidos} pedidos.`,
+    descricao: `De ${outubro.pedidos} para ${novembro.pedidos} pedidos. A comparação usa duas edições simuladas.`,
   },
   {
     titulo: "Entradas confirmadas",

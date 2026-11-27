@@ -23,6 +23,8 @@ test("a abertura mostra a ocupação inicial dos três grupos no celular", async
     await expect(abertura.getByText(texto, { exact: true })).toHaveCount(0)
   }
   await expect(abertura.getByText("1.284", { exact: true })).toBeVisible()
+  await expect(abertura.getByText("Simulação de vagas", { exact: true })).toBeVisible()
+  await expect(abertura.getByText("cliques no link", { exact: true })).toBeVisible()
   await expect(abertura.getByRole("meter")).toHaveCount(3)
   for (const [indice, ocupadas] of [20, 17, 0].entries()) {
     const grupo = abertura.getByRole("meter", { name: `Grupo ${indice + 1}`, exact: true })

@@ -5,7 +5,7 @@ const termos = ["Pedidos de entrada", "Entradas confirmadas", "Conversão de ped
 const visuais = ["+25%", "+4", "+10 p.p."]
 const anunciados = ["+25%", "+4", "+10 pontos percentuais"]
 const descricoes = [
-  "De 16 para 20 pedidos.",
+  "De 16 para 20 pedidos. A comparação usa duas edições simuladas.",
   "De 8 para 12 pessoas na comunidade.",
   "Em outubro, 5 de cada 10 pedidos viraram entrada. Em novembro, foram 6 de cada 10.",
 ]

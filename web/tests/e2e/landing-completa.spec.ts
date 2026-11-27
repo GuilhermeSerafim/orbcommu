@@ -14,10 +14,29 @@ const links = {
   Dúvidas: "duvidas",
 }
 
+const chamadaDemonstracao = "Entrar na fila da demonstração"
+const notaEdicao = "Ao enviar, você entra na fila da demonstração e registra seu interesse por edição, sem agendar uma data nem contratar o serviço."
+
 test("todos os caminhos levam ao destino indicado", async ({ page, caso }) => {
   await page.goto("/organizadores")
   const cabecalho = page.getByRole("navigation", { name: "Seções" })
   const rodape = page.getByRole("navigation", { name: "Rodapé" })
+
+  const percurso = ["inicio", "como-funciona", "distribuicao", "relatorios", "operacao",
+    "comparacao-edicoes", "planos", "duvidas", "titulo-chamada-final"]
+  const destinos = page.locator(percurso.map(id => `#${id}`).join(", "))
+  expect(await destinos.evaluateAll(elementos => elementos.map(elemento => elemento.id))).toEqual(percurso)
+  const chamadaFinal = page.locator('section[aria-labelledby="titulo-chamada-final"]')
+  await expect(chamadaFinal.getByRole("button", { name: chamadaDemonstracao, exact: true })).toBeVisible()
+  await expect(chamadaFinal.getByRole("link")).toHaveCount(0)
+
+  const entender = page.locator("#inicio").getByRole("link", { name: "Ver como funciona", exact: true })
+  await expect(entender).toHaveAttribute("href", "#como-funciona")
+  await entender.click()
+  expect(new URL(page.url()).hash).toBe("#como-funciona")
+  const comoFunciona = page.locator("#como-funciona")
+  await expect(comoFunciona).toBeInViewport()
+  await expect(comoFunciona.locator("p").last()).toContainText(/três dias/i)
 
   for (const [nome, id] of Object.entries(links)) {
     for (const nav of nome === "Como funciona" ? [cabecalho] : [cabecalho, rodape]) {
@@ -27,10 +46,6 @@ test("todos os caminhos levam ao destino indicado", async ({ page, caso }) => {
     }
   }
 
-  for (const comparar of await page.getByRole("link", { name: "Comparar planos" }).all()) {
-    await comparar.click()
-    expect(new URL(page.url()).hash).toBe("#planos")
-  }
   await expect(page.getByText("Sob consulta", { exact: true })).toBeVisible()
   const perguntas = page.locator("#duvidas details")
   await expect(perguntas).toHaveCount(6)
@@ -41,19 +56,20 @@ test("todos os caminhos levam ao destino indicado", async ({ page, caso }) => {
   }
 
   const dialogo = page.getByRole("dialog")
-  const demonstracoes = page.getByRole("button", { name: "Solicitar demonstração" })
+  const demonstracoes = page.getByRole("button", { name: chamadaDemonstracao, exact: true })
   await expect(demonstracoes).toHaveCount(4)
   for (const botao of await demonstracoes.all()) {
     await botao.click()
-    await expect(dialogo.getByRole("heading", { name: "Solicitar demonstração" })).toBeVisible()
-    await expect(dialogo.getByText("Você selecionou a opção Por edição.", { exact: false })).toHaveCount(0)
+    await expect(dialogo.getByRole("heading", { name: "Fila da demonstração", exact: true })).toBeVisible()
+    await expect(dialogo.getByText(notaEdicao, { exact: true })).toHaveCount(0)
     await page.keyboard.press("Escape")
     await expect(botao).toBeFocused()
   }
 
-  const edicao = page.getByRole("button", { name: "Tenho interesse por edição" })
+  const edicao = page.getByRole("button", { name: "Tenho interesse nesta edição", exact: true })
   await edicao.click()
-  await expect(dialogo.getByText("Você selecionou a opção Por edição.", { exact: false })).toBeVisible()
+  await expect(dialogo.getByRole("heading", { name: "Interesse por edição", exact: true })).toBeVisible()
+  await expect(dialogo.getByText(notaEdicao, { exact: true })).toBeVisible()
   await dialogo.getByRole("textbox", { name: "E-mail" }).fill(caso.email)
   await dialogo.getByRole("button", { name: "Entrar na fila" }).click()
   await expect(dialogo.getByText("Você entrou na fila da demonstração do OrbCommu. Agora é só aguardar.")).toBeVisible()
@@ -100,7 +116,8 @@ test("percorrer as simulações não envia pedidos", async ({ page }) => {
   await expect(ranking.getByRole("rowheader", { name: "QR do encontro", exact: true })).toBeInViewport()
 
   await expect(page.getByText("Conversa de exemplo · Ana", { exact: true })).toHaveCount(0)
-  const operacao = page.getByRole("region", { name: "A operação da sua comunidade", exact: true })
+  const operacao = page.getByRole("region", { name: "Saiba quem chamar e onde divulgar", exact: true })
+  await expect(operacao.getByRole("heading", { name: "Saiba quem chamar e onde divulgar", level: 2 })).toBeVisible()
   await expect(operacao.getByText("OrbCommu", { exact: true })).toBeVisible()
   const origem = operacao.getByRole("button", { name: "Link da comunidade, 25 aberturas" })
   await origem.click()
@@ -133,7 +150,7 @@ test("reabrir imediatamente mantém o novo formulário quando o envio anterior t
   }, { times: 1 })
 
   await page.goto("/organizadores")
-  const inicial = page.getByRole("button", { name: "Solicitar demonstração" }).first()
+  const inicial = page.getByRole("button", { name: chamadaDemonstracao, exact: true }).first()
   await inicial.click()
   const dialogo = page.getByRole("dialog")
   await dialogo.getByRole("textbox", { name: "E-mail" }).fill(caso.email)
@@ -154,7 +171,7 @@ test("reabrir imediatamente mantém o novo formulário quando o envio anterior t
     liberarResposta()
     await tentativaDeEntrega
     await expect(novoContato).toHaveValue(`novo-${caso.email}`)
-    await expect(dialogo.getByRole("heading", { name: "Solicitar demonstração" })).toBeVisible()
+    await expect(dialogo.getByRole("heading", { name: "Fila da demonstração", exact: true })).toBeVisible()
   } finally {
     liberarResposta()
   }

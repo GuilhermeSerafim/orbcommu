@@ -56,7 +56,9 @@ export function InscricaoProvider({ children }: { children: ReactNode }) {
       {children}
       <dialog ref={dialogo} className={estilos.dialogo} aria-labelledby="inscricao-titulo" onClose={aoFechar}>
         <header className={estilos.cabecalhoDialogo}>
-          <h2 id="inscricao-titulo">{confirmado ? "Inscrição confirmada" : "Solicitar demonstração"}</h2>
+          <h2 id="inscricao-titulo">
+            {confirmado ? "Inscrição confirmada" : abertura?.interesse === "edicao" ? "Interesse por edição" : "Fila da demonstração"}
+          </h2>
           <Button type="button" variant="ghost" size="icon" className={estilos.fechar} aria-label="Fechar" onClick={fechar}>
             ×
           </Button>
@@ -89,7 +91,7 @@ export function BotaoDemonstracao({ interesse = "demonstracao" }: { interesse?: 
       aria-haspopup="dialog"
       onClick={evento => abrir({ interesse, disparador: evento.currentTarget })}
     >
-      {interesse === "edicao" ? "Tenho interesse por edição" : "Solicitar demonstração"}
+      {interesse === "edicao" ? "Tenho interesse nesta edição" : "Entrar na fila da demonstração"}
       <span aria-hidden="true">↗</span>
     </Button>
   )
@@ -149,8 +151,9 @@ function Formulario({ interesse, aoConfirmar }: { interesse: Interesse; aoConfir
   return (
     <>
       <p className={estilos.textoDialogo}>
-        {interesse === "edicao" && "Você selecionou a opção Por edição. "}
-        Deixe um contato para entrar na fila da demonstração.
+        {interesse === "edicao"
+          ? "Ao enviar, você entra na fila da demonstração e registra seu interesse por edição, sem agendar uma data nem contratar o serviço."
+          : "Deixe um contato para entrar na fila da demonstração."}
       </p>
       <form onSubmit={enviar} noValidate>
         <fieldset className={estilos.canais} disabled={pendente}>

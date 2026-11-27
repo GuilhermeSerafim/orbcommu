@@ -53,12 +53,12 @@ export function Abertura({ chamada, navegacao }: { chamada: ReactNode; navegacao
       <section className={`${estilos.largura} ${estilos.hero}`} aria-labelledby="organizadores-titulo">
         <div>
           <h1 id="organizadores-titulo">Organize inscrições e filas de espera para turmas e eventos<span>.</span></h1>
-          <p className={estilos.textoHero}>Receba os pedidos em ordem de chegada e convide pelo WhatsApp quando surgir uma vaga.</p>
+          <p className={estilos.textoHero}>Seu workshop tem 20 vagas. Alguém desistiu. Quem você chama? Com o OrbCommu, sua equipe consulta a fila e envia o próximo convite pelo WhatsApp.</p>
           <div className={estilos.acoesHero}>
             {chamada}
-            <a href="#planos">Comparar planos</a>
+            <a href="#como-funciona">Ver como funciona</a>
           </div>
-          <p className={estilos.nota}>Deixe seu contato para entrar na fila da demonstração.</p>
+          <p className={estilos.nota}>Basta deixar um e-mail ou WhatsApp.</p>
         </div>
         <Painel automatico={automatico} />
       </section>

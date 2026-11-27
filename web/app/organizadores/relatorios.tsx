@@ -16,7 +16,7 @@ export function Relatorios() {
       <div className={estilos.conteudo}>
         <header className={estilos.cabecalho}>
           <h2 id="relatorios-titulo">De onde vêm os cliques?</h2>
-          <p>O canal <strong>{lider.nome}</strong> liderou na demonstração, com <strong>{lider.cliques} dos {total} cliques</strong> ({percentual.format(lider.cliques / total)}).</p>
+          <p>O canal <strong>{lider.nome}</strong> liderou na demonstração, com <strong>{lider.cliques} dos {total} cliques</strong> ({percentual.format(lider.cliques / total)}). Compare os canais para decidir onde vale voltar a divulgar.</p>
         </header>
 
         <div className={estilos.painel}>

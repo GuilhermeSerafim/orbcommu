@@ -8,8 +8,8 @@ import { Relatorios } from "./relatorios"
 import { ComoFunciona, Fechamento, Rodape, secoes } from "./secoes"
 
 export const metadata: Metadata = {
-  title: "OrbCommu · Para organizadores",
-  description: "Receba os pedidos em ordem de chegada e convide pelo WhatsApp quando surgir uma vaga.",
+  title: "Inscrições e filas de espera para turmas e eventos | OrbCommu",
+  description: "Com o OrbCommu, escolas e organizadoras de eventos acompanham as vagas, consultam a fila de espera e enviam o próximo convite pelo WhatsApp.",
 }
 
 export default function Organizadores() {

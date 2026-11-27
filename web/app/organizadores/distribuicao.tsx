@@ -64,7 +64,7 @@ export function Distribuicao() {
       <div className={estilos.distribuicaoConteudo}>
         <header className={estilos.distribuicaoIntroducao}>
           <h2 id="titulo-distribuicao">Como os grupos enchem?</h2>
-          <p>Compare três formas de distribuir as mesmas chegadas. Cada barra mostra quantas das cinco vagas de um grupo estão ocupadas.</p>
+          <p>A simulação compara três maneiras de distribuir as mesmas chegadas, com cinco vagas por grupo. No piloto, a equipe decide quem convidar.</p>
         </header>
         <div className={estilos.distribuicaoSimulacao}>
           <div className={estilos.distribuicaoQuadro}>

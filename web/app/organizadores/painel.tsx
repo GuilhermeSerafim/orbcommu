@@ -54,8 +54,8 @@ export function Painel({ automatico }: { automatico: boolean }) {
 
   return (
     <div className={estilos.painel}>
-      <strong>Fila da comunidade</strong>
-      <p className={estilos.metricaPainel}><strong>{numero.format(simulacao.cliques)}</strong><span>cliques hoje</span></p>
+      <strong>Simulação de vagas</strong>
+      <p className={estilos.metricaPainel}><strong>{numero.format(simulacao.cliques)}</strong><span>cliques no link</span></p>
       {simulacao.grupos.map((ocupadas, indice) => (
         <div key={indice} className={estilos.linhaPainel} data-recebeu={simulacao.ultimoGrupo === indice}>
           <div className={estilos.nivelPainel}>

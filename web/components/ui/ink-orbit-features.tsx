@@ -68,8 +68,8 @@ function FluxoDaEdicao() {
         </div>
       </div>
       <div className={estilos.legendas}>
-        <div><h3>Pedidos em uma só fila</h3><p>A equipe vê quem chegou primeiro e quem já pode receber o convite para o grupo.</p></div>
-        <div><h3>Resumo por edição</h3><p>Quem organiza acompanha quantos pedidos viraram entradas na comunidade.</p></div>
+        <div><h3>Quem chamar quando abre uma vaga</h3><p>Consulte a ordem dos pedidos e decida quem convidar para o grupo.</p></div>
+        <div><h3>Balanço para a equipe do evento</h3><p>Veja no exemplo quantos pedidos viraram entradas e leve esse resultado à conversa sobre a próxima edição.</p></div>
       </div>
     </article>
   )
@@ -108,7 +108,7 @@ function MapaDeOrigens({ automatico }: { automatico: boolean }) {
         ))}
         <p aria-hidden="true" className={estilos.leituraOrigem}>{origens[ativa].nome}<br /><b>{origens[ativa].cliques} aberturas</b></p>
       </div>
-      <div className={estilos.legenda}><h3>Origem das aberturas</h3><p>Explore os pontos para ver quantas aberturas vieram de cada divulgação.</p></div>
+      <div className={estilos.legenda}><h3>Onde voltar a divulgar</h3><p>Compare as aberturas do exemplo por canal para decidir onde divulgar a próxima edição.</p></div>
     </article>
   )
 }
@@ -143,7 +143,7 @@ function CurvaDeEntradas() {
           onChange={evento => selecionar(Number(evento.target.value))} />
         <div className={estilos.eixo} aria-hidden="true"><span>16 nov</span><span>22 nov</span></div>
       </div>
-      <div className={estilos.legenda}><h3>Entradas confirmadas</h3><p>Percorra os dias para ver quantas pessoas já tinham entrado nos grupos até aquela data.</p></div>
+      <div className={estilos.legenda}><h3>Entradas ao longo da edição</h3><p>Percorra os dias da demonstração para ver como as entradas se acumularam até o encerramento.</p></div>
     </article>
   )
 }
@@ -155,7 +155,7 @@ export function InkOrbitFeatures() {
   return (
     <section ref={ref} id="operacao" aria-labelledby="titulo-operacao" className={estilos.secao} data-animar={automatico}>
       <div className={estilos.painel}>
-        <h2 id="titulo-operacao">A operação da <span>sua comunidade</span></h2>
+        <h2 id="titulo-operacao">Saiba quem chamar <span>e onde divulgar</span></h2>
         <FluxoDaEdicao />
         <div className={estilos.par}><MapaDeOrigens automatico={automatico} /><CurvaDeEntradas /></div>
       </div>
