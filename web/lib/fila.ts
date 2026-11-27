@@ -45,6 +45,7 @@ export async function listarPedidos(operador: Extract<Acesso, { tipo: "operador"
        cross join lateral (select case when situacao = 'Convite enviado' and encerrado_em is null
          then enviado_em + interval '24 hours' end as prazo) limite
        where comunidade = $1
+         and (encerrado_em is null or encerrado_em > now() - interval '2160 hours')
          and ($7::bigint is null or id = $7)
          and (strpos(lower(nome), lower($3)) > 0 or ($4 <> '' and strpos(telefone, $4) > 0))
      ), filtrados as (
@@ -59,8 +60,10 @@ export async function listarPedidos(operador: Extract<Acesso, { tipo: "operador"
        from filtrados order by recebido_em, filtrados.id limit $5 offset $6
      )
      select (select count(*)::int from filtrados) as total,
-            (select ceil(extract(epoch from min(prazo) - statement_timestamp()) * 1000)::float8 from candidatos
-             where prazo > statement_timestamp() and $2 in ('Todos','Convite enviado','A conferir')) as "atualizarEmMs",
+            least((select ceil(extract(epoch from min(prazo) - statement_timestamp()) * 1000)::float8 from candidatos
+             where prazo > statement_timestamp() and $2 in ('Todos','Convite enviado','A conferir')),
+              (select ceil(extract(epoch from min(encerrado_em) + interval '2160 hours' - now()) * 1000)::float8
+               from filtrados)) as "atualizarEmMs",
             coalesce((select json_agg(p order by "recebidoEm", id::bigint) from pagina p), '[]') as itens`,
     [operador.comunidade, situacao === "Envio a confirmar" ? "Chamada iniciada" : situacao, busca.trim(), digitos, tamanho, (BigInt(pagina - 1) * BigInt(tamanho)).toString(), filtro.pedidoId ?? null],
   )
