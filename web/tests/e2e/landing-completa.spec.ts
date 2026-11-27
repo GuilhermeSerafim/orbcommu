@@ -95,8 +95,9 @@ test("percorrer as simulações não envia pedidos", async ({ page }) => {
   await distribuicao.scrollIntoViewIfNeeded()
   await page.clock.runFor(2400)
   await expect(grupoA).toHaveAttribute("aria-valuenow", /^[45]$/)
-  await relatorio.locator("summary").filter({ hasText: "Ver dados dos gráficos" }).press("Enter")
-  const tabelaDias = relatorio.getByRole("table", { name: "Aberturas por dia", exact: true })
+  await relatorio.locator("summary").filter({ hasText: "Cliques por dia" }).press("Enter")
+  await relatorio.locator("summary").filter({ hasText: /^Ver valores por dia$/ }).press("Enter")
+  const tabelaDias = relatorio.getByRole("table", { name: "Cliques por dia", exact: true })
   await expect(tabelaDias.getByRole("rowheader", { name: "16 nov", exact: true })).toBeVisible()
 
   await expect(page.getByText("Conversa de exemplo · Ana", { exact: true })).toHaveCount(0)

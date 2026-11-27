@@ -2,74 +2,43 @@
 
 import { useEffect, useRef } from "react"
 import { init, use, type ComposeOption, type EChartsType } from "echarts/core"
-import { BarChart, LineChart, type BarSeriesOption, type LineSeriesOption } from "echarts/charts"
+import { LineChart, type LineSeriesOption } from "echarts/charts"
 import { GridComponent, TooltipComponent, type GridComponentOption, type TooltipComponentOption } from "echarts/components"
 import { SVGRenderer } from "echarts/renderers"
 
-use([BarChart, LineChart, GridComponent, TooltipComponent, SVGRenderer])
+use([LineChart, GridComponent, TooltipComponent, SVGRenderer])
 
-type Opcoes = ComposeOption<BarSeriesOption | LineSeriesOption | GridComponentOption | TooltipComponentOption>
-type Props = { tipo: "origens" | "dias"; itens: { nome: string; valor: number }[] }
+type Opcoes = ComposeOption<LineSeriesOption | GridComponentOption | TooltipComponentOption>
+type Dia = { nome: string; valor: number }
 
 const numero = new Intl.NumberFormat("pt-BR")
 const roxo = "#6652ce"
 const texto = "#454456"
 const grade = "#e7e5ef"
 
-function opcoesDosDados({ tipo, itens }: Props): Opcoes {
-  const nomes = itens.map(item => item.nome)
-  const eixoDeContagem = {
-    type: "value" as const,
-    min: 0,
-    minInterval: 1,
-    splitNumber: 4,
-    axisLabel: { color: texto, formatter: (valor: number) => numero.format(valor) },
-    splitLine: { lineStyle: { color: grade, type: "dashed" as const } },
-  }
-
-  if (tipo === "origens") {
-    const digitos = Math.max(1, ...itens.map(item => numero.format(item.valor).length))
-    return {
-      grid: { left: 112, right: 14 + digitos * 8, top: 6, bottom: 6 },
-      xAxis: { ...eixoDeContagem, show: false },
-      yAxis: {
-        type: "category",
-        data: nomes,
-        inverse: true,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { interval: 0, color: texto, width: 100, overflow: "break", lineHeight: 16, margin: 10 },
-      },
-      series: [{
-        id: "origens",
-        type: "bar",
-        name: "Aberturas",
-        data: itens.map(({ nome, valor }) => ({ name: nome, value: valor })),
-        barMaxWidth: 17,
-        itemStyle: { color: roxo, borderRadius: [0, 4, 4, 0] },
-        label: {
-          show: true, position: "right", distance: 6, color: texto, fontWeight: 600,
-          formatter: ponto => numero.format(Number(ponto.value)),
-        },
-      }],
-    }
-  }
-
+function opcoesDosDados(itens: Dia[]): Opcoes {
   return {
     grid: { left: 36, right: 22, top: 16, bottom: 30 },
     xAxis: {
       type: "category",
-      data: nomes,
+      data: itens.map(item => item.nome),
       boundaryGap: false,
       axisLine: { lineStyle: { color: grade } },
       axisTick: { show: false },
       axisLabel: { color: texto, hideOverlap: true, margin: 10, showMinLabel: true, showMaxLabel: true },
     },
-    yAxis: eixoDeContagem,
+    yAxis: {
+      type: "value",
+      min: 0,
+      minInterval: 1,
+      splitNumber: 4,
+      axisLabel: { color: texto, formatter: (valor: number) => numero.format(valor) },
+      splitLine: { lineStyle: { color: grade, type: "dashed" } },
+    },
     series: [{
       id: "dias",
       type: "line",
-      name: "Aberturas",
+      name: "Cliques",
       data: itens.map(({ nome, valor }, indice) => ({ id: String(indice), name: nome, value: valor })),
       smooth: 0.25,
       smoothMonotone: "x",
@@ -83,7 +52,7 @@ function opcoesDosDados({ tipo, itens }: Props): Opcoes {
   }
 }
 
-export default function GraficoEdicao({ tipo, itens }: Props) {
+export default function GraficoEdicao({ itens }: { itens: Dia[] }) {
   const elemento = useRef<HTMLDivElement>(null)
   const grafico = useRef<EChartsType | null>(null)
 
@@ -110,9 +79,8 @@ export default function GraficoEdicao({ tipo, itens }: Props) {
         borderColor: grade,
         textStyle: { color: texto, fontSize: 12 },
         axisPointer: {
-          type: tipo === "origens" ? "shadow" : "line",
+          type: "line",
           snap: true,
-          shadowStyle: { color: "rgba(102, 82, 206, 0.06)" },
           lineStyle: { color: "#aaa1d4" },
         },
         valueFormatter: valor => numero.format(Number(valor)),
@@ -128,11 +96,11 @@ export default function GraficoEdicao({ tipo, itens }: Props) {
       instancia.dispose()
       grafico.current = null
     }
-  }, [tipo])
+  }, [])
 
   useEffect(() => {
-    grafico.current?.setOption<Opcoes>(opcoesDosDados({ tipo, itens }))
-  }, [tipo, itens])
+    grafico.current?.setOption<Opcoes>(opcoesDosDados(itens))
+  }, [itens])
 
   return <div ref={elemento} aria-hidden="true" style={{ width: "100%", height: "100%" }} />
 }
