@@ -90,7 +90,7 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
     </>}
     {erro && <p className="aviso-acao" role="alert">{erro}</p>}
     {alternativa && (alternativa.reservaId ? situacao === "Chamada iniciada" && alternativa.reservaId === reservaId : situacao === "Para analisar") && <p className="aviso-acao">
-      <a href={alternativa.url} target="_blank" rel="noopener noreferrer" onClick={evento => {
+      A conversa não abriu automaticamente. <a href={alternativa.url} target="_blank" rel="noopener noreferrer" onClick={evento => {
         if (!evento.ctrlKey && !evento.metaKey && !evento.shiftKey && !evento.altKey && prepararAba().abrir(alternativa.url)) evento.preventDefault()
       }}>Abrir a conversa</a>
     </p>}

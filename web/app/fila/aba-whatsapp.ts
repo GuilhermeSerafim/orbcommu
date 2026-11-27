@@ -40,7 +40,11 @@ export function useAbaWhatsApp() {
         return false
       }
       vazia.current = false
-      alvo.focus()
+      try {
+        alvo.focus()
+      } catch {
+        // A navegação já ocorreu mesmo se o navegador impedir a mudança de foco.
+      }
       return true
     }
 
