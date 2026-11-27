@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import estilos from "./landing.module.css"
 
 const capacidade = 20
+const limiteRecentes = 3
 const numero = new Intl.NumberFormat("pt-BR", { useGrouping: "always" })
 const etapasAna = [
   ["Para analisar", "Aprovar Ana"],
@@ -13,6 +14,8 @@ const etapasAna = [
   ["Entrada confirmada", null],
 ] as const
 
+type Pedido = { id: number; grupo: number | null }
+
 type Simulacao = {
   cliques: number
   grupos: number[]
@@ -20,6 +23,8 @@ type Simulacao = {
   etapaAna: number
   proximoEvento: number
   evento: string
+  ultimoPedido: number
+  recentes: Pedido[]
 }
 
 const inicial: Simulacao = {
@@ -29,35 +34,59 @@ const inicial: Simulacao = {
   etapaAna: 0,
   proximoEvento: 0,
   evento: "",
+  ultimoPedido: 0,
+  recentes: [],
 }
 
-function confirmarEntrada(atual: Simulacao) {
-  const indice = atual.grupos.findIndex(ocupadas => ocupadas < capacidade)
-  if (indice < 0) return { ...atual, evento: "Grupos lotados · pedido aguardando vaga" }
+function primeiroGrupoComVaga(atual: Simulacao) {
+  return atual.grupos.findIndex(ocupadas => ocupadas < capacidade)
+}
 
+function confirmarEntrada(atual: Simulacao, grupo: number): Simulacao {
   return {
     ...atual,
-    grupos: atual.grupos.map((ocupadas, grupo) => ocupadas + Number(grupo === indice)),
-    ultimoGrupo: indice,
-    evento: `Entrada confirmada no Grupo ${indice + 1}`,
+    grupos: atual.grupos.map((ocupadas, indice) => ocupadas + Number(indice === grupo)),
+    ultimoGrupo: grupo,
+    evento: `Entrada confirmada no Grupo ${grupo + 1}`,
   }
 }
 
+function estadoPedido(grupo: number | null, lotado: boolean) {
+  if (grupo !== null) return `Entrada confirmada · Grupo ${grupo + 1}`
+  return lotado ? "Aguardando vaga" : "Para analisar"
+}
+
 function avancar(atual: Simulacao): Simulacao {
+  const grupo = primeiroGrupoComVaga(atual)
+  if (grupo < 0) return atual
+
   const proximo = { ...atual, proximoEvento: (atual.proximoEvento + 1) % 3 }
   switch (atual.proximoEvento) {
-    case 0: return { ...proximo, cliques: atual.cliques + 1, evento: "Novo clique no link" }
-    case 1: return { ...proximo, evento: "Novo pedido de entrada" }
-    default: return confirmarEntrada(proximo)
+    case 0:
+      return { ...proximo, cliques: atual.cliques + 1, evento: "Novo clique no link" }
+    case 1: {
+      const id = atual.ultimoPedido + 1
+      return {
+        ...proximo,
+        evento: "Novo pedido de entrada",
+        ultimoPedido: id,
+        recentes: [{ id, grupo: null }, ...atual.recentes].slice(0, limiteRecentes),
+      }
+    }
+    default:
+      return confirmarEntrada({
+        ...proximo,
+        recentes: atual.recentes.map(pedido => pedido.id === atual.ultimoPedido ? { ...pedido, grupo } : pedido),
+      }, grupo)
   }
 }
 
 function avancarAna(atual: Simulacao): Simulacao {
   if (atual.etapaAna >= etapasAna.length - 1) return atual
+  const grupo = primeiroGrupoComVaga(atual)
+  if (grupo < 0 && atual.etapaAna >= 1) return atual
   const seguinte = { ...atual, etapaAna: atual.etapaAna + 1 }
-  if (seguinte.etapaAna < etapasAna.length - 1) return seguinte
-  if (atual.grupos.every(ocupadas => ocupadas >= capacidade)) return atual
-  return confirmarEntrada(seguinte)
+  return seguinte.etapaAna === etapasAna.length - 1 ? confirmarEntrada(seguinte, grupo) : seguinte
 }
 
 export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
@@ -69,13 +98,14 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
   const [simulacao, atualizar] = useState(inicial)
   const [mostrarFila, escolherFila] = useState(false)
   const [estadoAna, acaoAna] = etapasAna[simulacao.etapaAna]
-  const podeAgir = simulacao.etapaAna !== 3 || simulacao.grupos.some(ocupadas => ocupadas < capacidade)
+  const lotado = primeiroGrupoComVaga(simulacao) < 0
+  const aguardaVaga = lotado && simulacao.etapaAna >= 1 && simulacao.etapaAna < etapasAna.length - 1
 
   useEffect(() => {
-    if (!automatico) return
+    if (!automatico || lotado) return
     const intervalo = window.setInterval(() => atualizar(avancar), 1100)
     return () => window.clearInterval(intervalo)
-  }, [automatico])
+  }, [automatico, lotado])
 
   return (
     <div className={estilos.painel}>
@@ -86,11 +116,25 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
       </div>
       {mostrarFila ? (
         <div>
-          <div className={estilos.linhaPainel}><b>Ana</b><span role="status">{estadoAna}</span></div>
-          <div className={estilos.linhaPainel}><b>Ravi</b><span>Aguardando vaga</span></div>
-          <div className={estilos.linhaPainel}><b>Lia</b><span>Convite enviado</span></div>
-          <button type="button" className={estilos.controlePainel} aria-disabled={!acaoAna || !podeAgir}
+          <div className={estilos.linhaPainel}><b>Ana</b><span role="status">
+            {estadoAna}{aguardaVaga && simulacao.etapaAna > 1 ? " · Aguardando vaga" : ""}
+          </span></div>
+          <button type="button" className={estilos.controlePainel} aria-disabled={!acaoAna || aguardaVaga}
             onClick={() => atualizar(avancarAna)}>{acaoAna ?? "Concluído"}</button>
+          <div className={estilos.filaPainel}>
+            <div className={estilos.linhaPainel}><b>Ravi</b><span>Aguardando vaga</span></div>
+            <div className={estilos.linhaPainel}><b>Lia</b><span>Convite enviado</span></div>
+            {simulacao.recentes.length > 0 && (
+              <ul aria-label="Pedidos recentes" role="list">
+                {simulacao.recentes.map(({ id, grupo }) => (
+                  <li className={estilos.linhaPainel} key={id}>
+                    <b>Pedido {id}</b>
+                    <span>{estadoPedido(grupo, lotado)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       ) : (
         <div>
@@ -100,11 +144,15 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
               <div className={estilos.nivelPainel}>
                 <b>Grupo {indice + 1}</b>
                 <div className={estilos.trilhoPainel} role="meter" aria-label={`Grupo ${indice + 1}`}
-                  aria-valuemin={0} aria-valuemax={capacidade} aria-valuenow={ocupadas}>
+                  aria-valuemin={0} aria-valuemax={capacidade} aria-valuenow={ocupadas}
+                  aria-valuetext={`${ocupadas} de ${capacidade} vagas ocupadas${ocupadas === capacidade ? ", lotado" : ""}`}>
                   <span style={{ width: `${100 * ocupadas / capacidade}%` }} />
                 </div>
               </div>
-              <small aria-hidden="true">{ocupadas} / {capacidade}</small>
+              <small aria-hidden="true">
+                {ocupadas} / {capacidade}
+                {ocupadas === capacidade && <span className={estilos.grupoLotado}>Lotado</span>}
+              </small>
             </div>
           ))}
         </div>
@@ -115,9 +163,12 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
             {pausado ? "Retomar animação" : "Pausar animação"}
           </button>
         )}
-        <button type="button" className={estilos.controlePainel} onClick={() => atualizar(avancar)}>Avançar</button>
+        <button type="button" className={estilos.controlePainel} aria-disabled={lotado} onClick={() => atualizar(avancar)}>
+          Avançar
+        </button>
+        <button type="button" className={estilos.controlePainel} onClick={() => atualizar(inicial)}>Reiniciar</button>
       </div>
-      <p className={estilos.eventoPainel}>{simulacao.evento}</p>
+      <p className={estilos.eventoPainel}>{lotado ? "Grupos lotados. Os pedidos aguardam vaga." : simulacao.evento}</p>
     </div>
   )
 }
