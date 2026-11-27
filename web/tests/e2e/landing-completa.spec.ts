@@ -18,6 +18,7 @@ const chamadaDemonstracao = "Entrar na fila da demonstração"
 const notaEdicao = "Ao enviar, você entra na fila da demonstração e registra seu interesse por edição, sem agendar uma data nem contratar o serviço."
 
 test("todos os caminhos levam ao destino indicado", async ({ page, caso }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto("/organizadores")
   const cabecalho = page.getByRole("navigation", { name: "Seções" })
   const rodape = page.getByRole("navigation", { name: "Rodapé" })
