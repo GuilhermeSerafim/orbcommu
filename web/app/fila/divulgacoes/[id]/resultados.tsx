@@ -26,17 +26,15 @@ export default function Resultados({ dados }: Readonly<{ dados: ResultadoDivulga
       <div><dt>Entradas confirmadas</dt><dd>{confirmados}</dd></div>
     </dl>
     <div className="graficos-edicao">
-      <section className="grafico-edicao"><h3>Aberturas por dia</h3><p>Últimos 14 dias com aberturas, em São Paulo.</p>
-        {dias.length ? <><ChartContainer config={config} className="chart-aberturas">
+      <section className="grafico-edicao"><h3>Aberturas por dia</h3>
+        {dias.length ? <ChartContainer config={config} className="chart-aberturas">
           <BarChart data={dias} accessibilityLayer margin={{ left: 0, right: 12, top: 12, bottom: 0 }}>
             <CartesianGrid vertical={false} stroke="var(--linha)" />
             <XAxis dataKey="data" tickFormatter={data => String(data).slice(0, 5)} tickLine={false} axisLine={false} minTickGap={18} />
             <YAxis allowDecimals={false} width={30} tickLine={false} axisLine={false} />
             <ChartTooltip formatter={valor => [valor, "Aberturas"]} />
             <Bar dataKey="aberturas" fill="var(--color-aberturas)" maxBarSize={40} radius={[4,4,0,0]} isAnimationActive={false} />
-          </BarChart></ChartContainer>
-          <details className="dados-grafico"><summary>Ver valores por dia</summary><dl>{dias.map(d =>
-            <div key={d.dia}><dt>{d.data}</dt><dd>{d.aberturas}</dd></div>)}</dl></details></> :
+          </BarChart></ChartContainer> :
           <p className="grafico-vazio">Os dias aparecem conforme o público abre o link ou o QR.</p>}
       </section>
       <section className="grafico-edicao"><h3>Entrada na comunidade</h3>
