@@ -1,6 +1,6 @@
 export function normalizarTelefone(valor: string): string | null {
   const texto = valor.trim()
-  if (!/^\+?[\d\s().-]+$/.test(texto)) return null
+  if (!/^[+\d\s().-]+$/.test(texto)) return null
 
   let digitos = texto.replace(/\D/g, "")
   if (texto.startsWith("+") || digitos.length > 11) {

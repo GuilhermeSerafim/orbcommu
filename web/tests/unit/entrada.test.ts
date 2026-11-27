@@ -6,6 +6,10 @@ it("normaliza DDD 55 sem perder dígitos", () => {
   expect(normalizarTelefone("+55 55 91234-5678")).toBe("5555912345678")
 })
 
+it("normaliza número colado com sinal de mais entre DDD e assinante", () => {
+  expect(normalizarTelefone("(11) +91234-5678")).toBe("5511912345678")
+})
+
 it("valida a inscrição mínima", () => {
   expect(validarEntrada({ nome: " Ana ", telefone: "(11) 91234-5678" })).toEqual({
     ok: true,
