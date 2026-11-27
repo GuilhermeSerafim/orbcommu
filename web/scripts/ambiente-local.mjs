@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process"
-import { mkdirSync, writeFileSync } from "node:fs"
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { parseEnv } from "node:util"
 
@@ -15,11 +15,23 @@ function run(args) {
   }
 }
 function save(path, vars) {
-  const content = Object.entries(vars).map(([k, v]) => {
+  const file = new URL(path, import.meta.url)
+  let previous = ""
+  try {
+    previous = readFileSync(file, "utf8")
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error
+  }
+
+  // Consume complete dotenv assignments so a line inside a quoted value stays untouched.
+  const assignment = /^[\t ]*(?:export[\t ]+)?([\w.-]+)[\t ]*=[\t ]*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|`(?:\\`|[^`])*`|[^\r\n]*)[^\r\n]*(?:\r?\n|$)/gm
+  const preserved = previous.replace(assignment, (entry, key) => Object.hasOwn(vars, key) ? "" : entry)
+  const managed = Object.entries(vars).map(([k, v]) => {
     if (!v || /[\r\n"]/.test(v)) throw new Error(`Valor local inválido para ${k}.`)
     return `${k}="${v}"\n`
   }).join("")
-  writeFileSync(new URL(path, import.meta.url), content, { mode: 0o600 })
+  const separator = preserved.length && !preserved.endsWith("\n") ? "\n" : ""
+  writeFileSync(file, preserved + separator + managed, { mode: 0o600 })
 }
 
 run(["start", "-x", "realtime,storage-api,imgproxy,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor"])
