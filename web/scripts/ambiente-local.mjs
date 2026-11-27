@@ -23,15 +23,28 @@ function save(path, vars) {
     if (error.code !== "ENOENT") throw error
   }
 
-  // Consume complete dotenv assignments so a line inside a quoted value stays untouched.
-  const assignment = /^[\t ]*(?:export[\t ]+)?([\w.-]+)[\t ]*=[\t ]*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|`(?:\\`|[^`])*`|[^\r\n]*)[^\r\n]*(?:\r?\n|$)/gm
-  const preserved = previous.replace(assignment, (entry, key) => Object.hasOwn(vars, key) ? "" : entry)
+  const begin = "# >>> OrbCommu local:prepare (gerado) >>>\n"
+  const end = "# <<< OrbCommu local:prepare (gerado) <<<\n"
+  const start = previous.lastIndexOf(begin)
+  let preserved = previous
+  if (start >= 0 && (start === 0 || previous[start - 1] === "\n") && previous.endsWith(end)) {
+    const block = previous.slice(start + begin.length, -end.length)
+    const parsed = parseEnv(block)
+    const canonical = Object.keys(vars).map(key => `${key}="${parsed[key]}"\n`).join("")
+    if (block === canonical) preserved = previous.slice(0, start)
+  }
+
   const managed = Object.entries(vars).map(([k, v]) => {
     if (!v || /[\r\n"]/.test(v)) throw new Error(`Valor local inválido para ${k}.`)
     return `${k}="${v}"\n`
   }).join("")
   const separator = preserved.length && !preserved.endsWith("\n") ? "\n" : ""
-  writeFileSync(file, preserved + separator + managed, { mode: 0o600 })
+  const content = preserved + separator + begin + managed + end
+  const effective = parseEnv(content)
+  for (const [key, value] of Object.entries(vars)) {
+    if (effective[key] !== value) throw new Error(`O arquivo local impede a configuração de ${key}.`)
+  }
+  if (content !== previous) writeFileSync(file, content, { mode: 0o600 })
 }
 
 run(["start", "-x", "realtime,storage-api,imgproxy,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor"])

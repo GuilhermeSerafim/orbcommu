@@ -23,13 +23,15 @@ it("dois preparos preservam configurações extras, comentários e valores multi
 
     const path = join(root, ".env.local")
     const extra = '# preferência local\r\nEXTRA="linha 1\r\nDATABASE_URL=texto dentro da variável\r\nlinha 3"\r\n'
-    writeFileSync(path, extra + 'export DATABASE_URL="endereço\nantigo"\n')
+    const original = extra + 'DATABASE_URL="old\\"\nOTHER="keep"\n'
+    writeFileSync(path, original)
     let primeira = ""
     for (let i = 0; i < 2; i++) {
       execFileSync(process.execPath, [script])
       const content = readFileSync(path, "utf8")
       expect(content).toContain(extra)
-      expect(content).not.toContain("endereço")
+      expect(parseEnv(content).OTHER).toBe("keep")
+      expect(content.startsWith(original)).toBe(true)
       expect(parseEnv(content).DATABASE_URL).toBe("postgresql://127.0.0.1:55422/postgres")
       if (i === 0) primeira = content
       else expect(content).toBe(primeira)
