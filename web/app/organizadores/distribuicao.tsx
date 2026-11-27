@@ -13,7 +13,14 @@ const modos = [
 
 const capacidade = 5
 const nomes = ["Grupo A", "Grupo B", "Grupo C", "Grupo D"]
-const segmentos = [0, 1, 2, 3, 4]
+const estados = ["Livre", "Médio", "Lotado"] as const
+
+function estadoOcupacao(ocupadas: number): typeof estados[number] {
+  if (ocupadas >= capacidade) return "Lotado"
+  if (ocupadas >= capacidade * 0.8) return "Médio"
+  return "Livre"
+}
+
 const statusInicial = "Simulação · 4 vagas já ocupadas"
 const statusFinal = "Grupos lotados · 1 pessoa aguardando"
 const statusChegadas = (chegadas: number) => `Chegadas simuladas · ${chegadas}`
@@ -67,9 +74,43 @@ export function Distribuicao() {
   return (
     <section className={estilos.distribuicao} id="distribuicao" aria-labelledby="titulo-distribuicao" ref={ref}>
       <div className={estilos.distribuicaoConteudo}>
-        <h2 id="titulo-distribuicao">Como os grupos enchem?</h2>
-        <p>Acompanhe as mesmas chegadas em três modos de distribuição previstos para o OrbCommu. Cada segmento representa uma vaga.</p>
+        <header className={estilos.distribuicaoIntroducao}>
+          <h2 id="titulo-distribuicao">Como os grupos enchem?</h2>
+          <p>Compare três formas de distribuir as mesmas chegadas. Cada barra mostra quantas das cinco vagas de um grupo estão ocupadas.</p>
+        </header>
         <div className={estilos.distribuicaoSimulacao}>
+          <div className={estilos.distribuicaoQuadro}>
+            {linhas.map(({ id, titulo, descricao, grupos, ultimo }) => (
+              <article key={id} className={estilos.distribuicaoModo}>
+                <div className={estilos.distribuicaoGrupos}>
+                  {grupos.map(({ membros, reservas }, indice) => {
+                    const ocupadas = membros + reservas
+                    const estado = estadoOcupacao(ocupadas)
+                    const recebeu = ultimo === indice
+                    const leitura = `${estado} · ${ocupadas} de ${capacidade} vagas ocupadas`
+                    return (
+                      <div key={nomes[indice]} className={estilos.distribuicaoGrupo} data-estado={estado}
+                        data-recebeu={recebeu} title={`${nomes[indice]} · ${leitura}`}>
+                        <div className={estilos.distribuicaoMedidor} role="meter" aria-label={nomes[indice]}
+                          aria-valuemin={0} aria-valuemax={capacidade} aria-valuenow={ocupadas}
+                          aria-valuetext={`${leitura}${recebeu ? ", recebeu a última chegada" : ""}`}>
+                          <i style={{ transform: `scaleY(${ocupadas / capacidade})` }} />
+                        </div>
+                        <span aria-hidden="true">{ocupadas}/{capacidade}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div>
+                  <h3>{titulo}</h3>
+                  <p>{descricao}</p>
+                </div>
+              </article>
+            ))}
+            <ul className={estilos.distribuicaoLegenda} aria-label="Legenda de ocupação">
+              {estados.map(estado => <li key={estado} data-estado={estado}>{estado}</li>)}
+            </ul>
+          </div>
           <div className={estilos.distribuicaoStatus}>
             <b>{status}</b>
             <span className="sr-only" role="status">{anuncio}</span>
@@ -93,31 +134,6 @@ export function Distribuicao() {
                 if (pausado) alternarPausa()
               }}>Recomeçar</button>
             </div>
-          </div>
-          <div className={estilos.distribuicaoModos}>
-            {linhas.map(({ id, titulo, descricao, grupos, ultimo }) => (
-              <article key={id} className={estilos.distribuicaoModo}>
-                <h3>{titulo}</h3>
-                <p>{descricao}</p>
-                <div className={estilos.distribuicaoGrupos}>
-                  {grupos.map(({ membros, reservas }, indice) => {
-                    const ocupadas = membros + reservas
-                    const recebeu = ultimo === indice
-                    return (
-                      <div key={nomes[indice]} className={estilos.distribuicaoGrupo} data-recebeu={recebeu}>
-                        <div className={estilos.distribuicaoMedidor} role="meter" aria-label={nomes[indice]}
-                          aria-valuemin={0} aria-valuemax={capacidade} aria-valuenow={ocupadas}
-                          aria-valuetext={`${ocupadas} de ${capacidade} vagas ocupadas${recebeu ? ", recebeu a última chegada" : ""}`}>
-                          {segmentos.map(segmento => <i key={segmento} data-ocupado={segmento < ocupadas} />)}
-                        </div>
-                        <small aria-hidden="true">{nomes[indice]}</small>
-                        <span aria-hidden="true">{ocupadas}/{capacidade}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </article>
-            ))}
           </div>
         </div>
       </div>
