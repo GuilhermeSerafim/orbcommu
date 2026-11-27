@@ -246,26 +246,38 @@
 
 .multidao {
   position: relative;
-  height: clamp(85px, 11vw, 178px);
-  overflow: hidden;
-  border-bottom: 1px solid #413953;
+  isolation: isolate;
+  container-type: inline-size;
+  height: clamp(170px, 32svh, 365px);
+  overflow: clip;
+  background: linear-gradient(transparent, #100f1c);
+  pointer-events: none;
 }
 
 .multidao img {
   position: absolute;
-  left: var(--posicao);
-  bottom: var(--altura);
-  width: calc(var(--largura) * 1%);
-  animation: caminhar 10s ease-in-out var(--atraso) infinite alternate paused;
+  left: 0;
+  bottom: var(--base);
+  height: var(--altura);
+  width: auto;
+  animation: atravessar var(--duracao) linear var(--atraso) infinite var(--sentido) both paused;
 }
 
 .multidao[data-animada="true"] img {
   animation-play-state: running;
 }
 
-@keyframes caminhar {
-  from { transform: translateX(-16%); }
-  to { transform: translateX(19%); }
+/* A troca de ciclo acontece só quando a ilustração já saiu por inteiro. */
+@keyframes atravessar {
+  from { transform: translate3d(calc(-100% - 4px), 0, 0) scaleX(var(--face)); }
+  to { transform: translate3d(calc(100cqw + 4px), 0, 0) scaleX(var(--face)); }
+}
+
+@media (min-width: 761px) {
+  .abertura { min-height: 100svh; display: flex; flex-direction: column; }
+  .cabecalho, .hero { width: 100%; }
+  .hero { flex: 1; padding-block: clamp(16px, 3.2svh, 46px) 14px; }
+  .hero h1 { font-size: clamp(42px, min(5.4vw, 8.2svh), 81px); }
 }
 
 @media (max-width: 900px) {
@@ -305,17 +317,15 @@
   }
 
   .multidao {
-    height: 74px;
+    height: clamp(125px, 30vw, 180px);
   }
 
-  .multidao img {
-    width: calc(var(--largura) * 2%);
-  }
+  .multidao img:nth-child(n + 19) { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .multidao img {
-    animation: none;
+    animation-play-state: paused;
   }
 
   .trilhoPainel span {
