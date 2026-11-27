@@ -41,10 +41,9 @@
 .metricas-edicao dd, .taxa-edicao { font: 720 clamp(32px, 4vw, 48px)/1.15 var(--titulo); }
 .graficos-edicao { display: grid; grid-template-columns: 1.45fr 1fr; gap: 16px; }
 .grafico-edicao { min-width: 0; }
-.grafico-edicao p, .dados-grafico { font-size: 14px; margin-top: 8px; }
+.grafico-edicao p { font-size: 14px; margin-top: 8px; }
 .chart-aberturas { height: 180px; margin-top: 18px; }
-.dados-grafico summary, .confirmar-edicao button { cursor: pointer; }
-.dados-grafico dl div { display: flex; justify-content: space-between; border-bottom: 1px solid var(--linha); padding-block: 4px; }
+.confirmar-edicao button { cursor: pointer; }
 .taxa-edicao { display: block; margin-top: 18px; }
 .grafico-edicao progress { appearance: none; display: block; width: 100%; height: 12px; border: 0; border-radius: 99px; overflow: hidden; background: var(--lavanda); margin-top: 10px; }
 .grafico-edicao progress::-webkit-progress-bar { background: var(--lavanda); }
