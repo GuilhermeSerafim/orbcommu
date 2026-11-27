@@ -5,7 +5,6 @@ export function normalizarConvite(valor: string): string | null {
 }
 
 export function conversaDeConvite(telefone: string, convite: string): string {
-  const url = new URL("https://wa.me/" + telefone)
-  url.searchParams.set("text", "Chegou a sua vez! Solicite entrada no grupo pelo WhatsApp em até 24 horas usando este convite: " + convite + "\nSe você não solicitar dentro do prazo, perde a vez.")
-  return url.toString()
+  const mensagem = `Chegou a sua vez! Solicite entrada no grupo pelo WhatsApp em até 24 horas usando este convite: ${convite} Se você não solicitar dentro do prazo, perde a vez.`
+  return `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`
 }
