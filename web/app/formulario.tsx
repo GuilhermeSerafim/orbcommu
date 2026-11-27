@@ -7,11 +7,13 @@ type Campos = Partial<Record<keyof PedidoValido, string>>
 
 export default function Formulario() {
   const [campos, setCampos] = useState<Campos>({})
+  const [pronto, setPronto] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [recebido, setRecebido] = useState(false)
   const [falhou, setFalhou] = useState(false)
   const titulo = useRef<HTMLHeadingElement>(null)
 
+  useEffect(() => { setPronto(true) }, [])
   useEffect(() => { if (recebido) titulo.current?.focus() }, [recebido])
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
@@ -52,7 +54,8 @@ export default function Formulario() {
 
   return <section>
     <h1>Pedir entrada na comunidade</h1>
-    <form noValidate onSubmit={enviar}>
+    <form method="post" noValidate onSubmit={enviar}>
+      <noscript><p>Ative o JavaScript no navegador e recarregue esta página para enviar seu pedido.</p></noscript>
       <div>
         <label htmlFor="nome">Como você quer ser chamado?</label>
         <input id="nome" name="nome" autoComplete="given-name" required aria-invalid={!!campos.nome} aria-describedby={campos.nome ? "erro-nome" : undefined} />
@@ -70,7 +73,7 @@ export default function Formulario() {
         {campos.motivacao && <small id="erro-motivacao" role="alert">{campos.motivacao}</small>}
       </div>
       {falhou && <p role="alert">Não foi possível guardar seu pedido. Tente enviar novamente.</p>}
-      <button disabled={enviando}>Enviar pedido</button>
+      <button type="submit" disabled={!pronto || enviando}>Enviar pedido</button>
     </form>
   </section>
 }
