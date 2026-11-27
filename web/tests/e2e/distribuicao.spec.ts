@@ -14,6 +14,7 @@ test("dezesseis vagas e uma pessoa aguardando", async ({ page }) => {
   const legenda = secao.getByRole("list", { name: "Legenda de ocupação" })
   await expect(legenda).toBeVisible()
   await expect(legenda.getByRole("listitem")).toHaveText(["Livre", "Médio", "Lotado"])
+  await expect(secao.getByText("Simulação · 4 vagas já ocupadas", { exact: true })).toHaveCount(0)
 
   const conferirGrupos = async (ocupacao: number[]) => {
     const modos = secao.getByRole("article")
@@ -43,7 +44,7 @@ test("dezesseis vagas e uma pessoa aguardando", async ({ page }) => {
     await page.clock.runFor(200)
     return grupoA.getAttribute("aria-valuenow")
   }, { intervals: [50] }).toBe("4")
-  await expect(secao.getByText("Chegadas simuladas · 1", { exact: true })).toBeVisible()
+  await expect(secao.getByText(/Chegadas simuladas/i)).toHaveCount(0)
   await expect(grupoA).toHaveAttribute("aria-valuetext", /Médio/i)
   await expect(preenchimento).toHaveCSS("background-color", "rgb(233, 162, 59)")
   await page.clock.runFor(1200)
@@ -78,24 +79,30 @@ test("o avanço respeita o movimento reduzido e a visibilidade da seção", asyn
     const fimDosMedidores = await medidores.evaluateAll(barras => Math.max(...barras.map(barra => barra.getBoundingClientRect().right)))
     expect(fimDosMedidores).toBeLessThanOrEqual(inicioDaDescricao)
   }
-  const contagem = secao.locator("b").filter({ hasText: /^(Simulação · 4 vagas já ocupadas|Chegadas simuladas · \d+)$/ })
-  const inicial = await contagem.innerText()
+  const ocupacoes = () => modos.getByRole("meter").evaluateAll(barras =>
+    barras.map(barra => Number(barra.getAttribute("aria-valuenow"))),
+  )
+  const aguardarChegada = async (antes: number[]) => {
+    await expect.poll(async () => {
+      await page.clock.runFor(200)
+      return ocupacoes()
+    }, { intervals: [50] }).not.toEqual(antes)
+  }
+  const inicial = await ocupacoes()
   await page.clock.runFor(3600)
-  await expect(contagem).toHaveText(inicial)
+  expect(await ocupacoes()).toEqual(inicial)
 
   await page.emulateMedia({ reducedMotion: "no-preference" })
-  await page.clock.runFor(2400)
-  await expect(contagem).not.toHaveText(inicial)
+  await aguardarChegada(inicial)
   await page.locator("#inicio").scrollIntoViewIfNeeded()
   await page.evaluate(() => window.scrollTo(0, 0))
   await expect(secao).not.toBeInViewport()
-  const antesDeSair = await contagem.innerText()
+  const foraDaTela = await ocupacoes()
   await page.clock.runFor(3600)
-  await expect(contagem).toHaveText(antesDeSair)
+  expect(await ocupacoes()).toEqual(foraDaTela)
 
   await secao.scrollIntoViewIfNeeded()
   await expect(secao).toBeInViewport()
-  await page.clock.runFor(2400)
-  await expect(contagem).not.toHaveText(antesDeSair)
-  await expect(secao.getByRole("status")).toBeEmpty()
+  await aguardarChegada(foraDaTela)
+  await expect(secao.getByRole("status").filter({ hasText: /\S/ })).toHaveCount(0)
 })

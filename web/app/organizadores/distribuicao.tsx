@@ -21,12 +21,7 @@ function estadoOcupacao(ocupadas: number): typeof estados[number] {
   return "Livre"
 }
 
-const statusInicial = "Simulação · 4 vagas já ocupadas"
-const statusFinal = "Grupos lotados · 1 pessoa aguardando"
-const statusChegadas = (chegadas: number) => `Chegadas simuladas · ${chegadas}`
-
 const inicial = {
-  chegadas: 0,
   aguardando: false,
   linhas: modos.map(modo => ({
     ...modo,
@@ -46,15 +41,14 @@ function avancar(atual: typeof inicial, sorteio: number): typeof inicial {
     return { ...linha, grupos, ultimo }
   })
 
-  const chegadas = atual.chegadas + 1
   const aguardando = linhas[0].ultimo === null
-  return { chegadas, aguardando, linhas }
+  return { aguardando, linhas }
 }
 
 export function Distribuicao() {
   const ref = useRef<HTMLElement>(null)
   const automatico = useMovimento(ref)
-  const [{ chegadas, aguardando, linhas }, atualizar] = useState(inicial)
+  const [{ aguardando, linhas }, atualizar] = useState(inicial)
 
   useEffect(() => {
     if (!automatico || aguardando) return
@@ -64,8 +58,6 @@ export function Distribuicao() {
     }, 1200)
     return () => window.clearInterval(intervalo)
   }, [automatico, aguardando])
-
-  const status = aguardando ? statusFinal : chegadas ? statusChegadas(chegadas) : statusInicial
 
   return (
     <section className={estilos.distribuicao} id="distribuicao" aria-labelledby="titulo-distribuicao" ref={ref}>
@@ -107,9 +99,8 @@ export function Distribuicao() {
               {estados.map(estado => <li key={estado} data-estado={estado}>{estado}</li>)}
             </ul>
           </div>
-          <div className={estilos.distribuicaoStatus}>
-            <b>{status}</b>
-            <span className="sr-only" role="status">{aguardando ? statusFinal : ""}</span>
+          <div role="status">
+            {aguardando && <p className={estilos.distribuicaoStatus}><b>Grupos lotados · 1 pessoa aguardando</b></p>}
           </div>
         </div>
       </div>

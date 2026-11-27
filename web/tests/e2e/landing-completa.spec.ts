@@ -89,9 +89,11 @@ test("percorrer as simulações não envia pedidos", async ({ page }) => {
   await page.clock.runFor(3300)
   await expect(abertura.getByRole("meter", { name: "Grupo 2", exact: true })).toHaveAttribute("aria-valuenow", /^(18|19|20)$/)
   const distribuicao = page.getByRole("region", { name: "Como os grupos enchem?" })
+  const sequencia = distribuicao.getByRole("article").filter({ has: page.getByRole("heading", { name: "Em sequência" }) })
+  const grupoA = sequencia.getByRole("meter", { name: "Grupo A", exact: true })
   await distribuicao.scrollIntoViewIfNeeded()
   await page.clock.runFor(2400)
-  await expect(distribuicao.getByText(/^Chegadas simuladas · \d+$/)).toBeVisible()
+  await expect(grupoA).toHaveAttribute("aria-valuenow", /^[45]$/)
   await page.getByRole("combobox", { name: "Edição de exemplo" }).selectOption("out")
 
   await expect(page.getByText("Conversa de exemplo · Ana", { exact: true })).toHaveCount(0)
