@@ -50,6 +50,7 @@
 }
 
 .acoesCabecalho {
+  flex-shrink: 0;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -842,39 +843,33 @@
   color: #d2cfe0;
 }
 
-.rodape .larguraFechamento, .rodape nav {
+.rodape .larguraFechamento {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-}
-
-.rodape .larguraFechamento {
   justify-content: space-between;
-  gap: 24px;
-}
-
-.rodape nav {
-  gap: 16px;
+  gap: 6px 24px;
   font-size: 14px;
 }
 
-.marcaRodape {
-  color: #fff;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -.06em;
+.rodape a {
+  color: var(--lilas);
+  text-decoration: underline;
+  text-underline-offset: .2em;
 }
+
+.rodape a:hover { color: white; }
 
 .comoFunciona, .planos, .duvidas {
   scroll-margin-top: 20px;
 }
 
-.fechamento :focus-visible, .rodape :focus-visible {
+.fechamento :focus-visible {
   outline: 3px solid #7964e7;
   outline-offset: 3px;
 }
 
-.cabecalho nav a, .acoesHero a, .acoesFinais a, .rodape nav a {
+.cabecalho nav a, .acoesHero a, .acoesFinais a {
   text-decoration: none;
   background-image:
     linear-gradient(90deg, #ad96ff, #e4ddff),
@@ -890,7 +885,7 @@
 }
 
 .cabecalho nav a:is(:hover, :focus-visible), .acoesHero a:is(:hover, :focus-visible),
-.acoesFinais a:is(:hover, :focus-visible), .rodape nav a:is(:hover, :focus-visible) {
+.acoesFinais a:is(:hover, :focus-visible) {
   background-size: 100% 2px, 100% 1px;
   color: #fff;
 }
@@ -902,14 +897,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cabecalho nav a, .acoesHero a, .acoesFinais a, .rodape nav a {
+  .cabecalho nav a, .acoesHero a, .acoesFinais a {
     transition: none;
   }
 }
 
 @media (forced-colors: active) {
   .acoesHero a, .acoesFinais a,
-  .cabecalho nav a:is(:hover, :focus-visible), .rodape nav a:is(:hover, :focus-visible) {
+  .cabecalho nav a:is(:hover, :focus-visible) {
     text-decoration: underline;
   }
 }
@@ -950,7 +945,6 @@
   .painelMenu {
     display: grid;
     grid-column: 1 / -1;
-    gap: 14px;
     margin-top: 10px;
     padding: 8px 0 4px;
     border-top: 1px solid #ffffff38;
@@ -987,13 +981,7 @@
 
   .cabecalho nav a:active { background-color: #ffffff12; }
 
-  .abertura .acoesCabecalho .botaoDemonstracao {
-    width: 100%;
-    min-height: 46px;
-    background: var(--violeta);
-    color: white;
-    font-size: 15px;
-  }
+  .acoesCabecalho { display: none; }
 }
 
 @media (max-width: 900px) and (prefers-reduced-motion: no-preference) {

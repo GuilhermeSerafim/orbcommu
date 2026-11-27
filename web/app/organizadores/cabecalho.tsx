@@ -52,8 +52,8 @@ export function CabecalhoLanding({ navegacao }: { navegacao: ReactNode }) {
       </button>
       <div id="menu-cabecalho" className={estilos.painelMenu} data-aberto={aberto}>
         {navegacao}
-        <div className={estilos.acoesCabecalho}><BotaoDemonstracao /></div>
       </div>
+      <div className={estilos.acoesCabecalho}><BotaoDemonstracao /></div>
     </header>
   )
 }

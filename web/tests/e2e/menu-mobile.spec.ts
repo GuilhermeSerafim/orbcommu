@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test"
 
 const links = ["Como funciona", "Distribuição", "Relatórios", "Planos", "Dúvidas", "Entrar como equipe"]
+const demonstracao = { name: "Entrar na fila da demonstração", exact: true }
 
 for (const largura of [390, 900]) {
   test(`menu recolhido navega pelas seções e dá acesso à equipe em ${largura}px`, async ({ page }) => {
@@ -12,9 +13,16 @@ for (const largura of [390, 900]) {
     await expect(botao).toHaveAttribute("aria-expanded", "false")
     await expect(botao).toHaveAttribute("aria-controls", /^\S+$/)
     await expect(secoes).toBeHidden()
+    const abertura = page.getByRole("region", { name: /Organize inscrições e filas de espera/ })
+    const chamada = abertura.getByRole("button", demonstracao)
+    await chamada.click()
+    await expect(page.getByRole("dialog", { name: "Fila da demonstração" })).toBeVisible()
+    await page.keyboard.press("Escape")
+    await expect(chamada).toBeFocused()
 
     await botao.press("Enter")
     await expect(botao).toHaveAttribute("aria-expanded", "true")
+    await expect(page.locator("#inicio header").getByRole("button", demonstracao)).toBeHidden()
     for (const nome of links) {
       await expect(secoes.getByRole("link", { name: nome, exact: true })).toBeVisible()
     }
@@ -51,6 +59,9 @@ for (const largura of [901, 1440]) {
     await page.setViewportSize({ width: largura, height: 900 })
     await page.goto("/")
     await expect(page.getByRole("button", { name: /\bmenu\b/i })).toBeHidden()
+    const chamada = page.locator("#inicio header").getByRole("button", demonstracao)
+    await expect(chamada).toBeVisible()
+    expect(await chamada.evaluate(botao => botao.getBoundingClientRect().right)).toBeLessThanOrEqual(largura)
     const secoes = page.getByRole("navigation", { name: "Seções", exact: true })
     for (const nome of links) {
       await expect(secoes.getByRole("link", { name: nome, exact: true })).toBeVisible()

@@ -21,7 +21,6 @@ test("todos os caminhos levam ao destino indicado", async ({ page, caso }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto("/organizadores")
   const cabecalho = page.getByRole("navigation", { name: "Seções" })
-  const rodape = page.getByRole("navigation", { name: "Rodapé" })
 
   const percurso = ["inicio", "como-funciona", "distribuicao", "relatorios", "operacao",
     "comparacao-edicoes", "planos", "duvidas", "titulo-chamada-final"]
@@ -40,11 +39,9 @@ test("todos os caminhos levam ao destino indicado", async ({ page, caso }) => {
   await expect(comoFunciona.locator("p").last()).toContainText(/três dias/i)
 
   for (const [nome, id] of Object.entries(links)) {
-    for (const nav of nome === "Como funciona" ? [cabecalho] : [cabecalho, rodape]) {
-      await nav.getByRole("link", { name: nome, exact: true }).click()
-      expect(new URL(page.url()).hash).toBe(`#${id}`)
-      await expect(page.locator(`#${id}`)).toBeInViewport()
-    }
+    await cabecalho.getByRole("link", { name: nome, exact: true }).click()
+    expect(new URL(page.url()).hash).toBe(`#${id}`)
+    await expect(page.locator(`#${id}`)).toBeInViewport()
   }
 
   await expect(page.getByText("Sob consulta", { exact: true })).toBeVisible()
@@ -105,11 +102,21 @@ test("todos os caminhos levam ao destino indicado", async ({ page, caso }) => {
   await dialogo.getByRole("button", { name: "Voltar à página" }).click()
   await expect(edicao).toBeFocused()
 
-  await page.getByRole("contentinfo").getByRole("link", { name: "OrbCommu", exact: true }).click()
+  await page.locator("#inicio header").getByRole("link", { name: "OrbCommu", exact: true }).click()
   expect(new URL(page.url()).hash).toBe("#inicio")
-  await expect(rodape.getByRole("link", { name: "Entrar como equipe" })).toHaveAttribute("href", "/entrar")
   await cabecalho.getByRole("link", { name: "Entrar como equipe" }).click()
   await expect(page).toHaveURL(/\/entrar$/)
+})
+
+test("rodapé credita Guiler e apresenta os direitos reservados", async ({ page }) => {
+  await page.goto("/")
+  const rodape = page.getByRole("contentinfo")
+  await expect(rodape.locator("a")).toHaveCount(1)
+  await expect(rodape).toContainText("Criado por Guiler")
+  await expect(rodape).toContainText("Todos os direitos reservados.")
+  const autor = rodape.getByRole("link", { name: "Guiler", exact: true })
+  await expect(autor).toBeVisible()
+  await expect(autor).toHaveAttribute("href", "https://guiler.vercel.app/")
 })
 
 test("percorrer as simulações não envia pedidos", async ({ page }) => {
