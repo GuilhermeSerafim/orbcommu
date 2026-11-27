@@ -1,4 +1,4 @@
-﻿.abertura,
+.abertura,
 .dialogo {
   font-family: Inter, "Segoe UI", Arial, sans-serif;
 }
@@ -671,5 +671,379 @@
 @media (prefers-reduced-motion: reduce) {
   .distribuicaoMedidor {
     transition: none;
+  }
+}
+
+.comoFunciona, .convite, .fechamento, .rodape {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+.comoFunciona {
+  padding-block: clamp(58px, 7vw, 100px);
+  background: #fff;
+  color: #191a24;
+}
+
+.comoFunciona h2, .convite h2, .fechamento h2 {
+  font-size: clamp(38px, 4.3vw, 62px);
+  font-weight: 650;
+  line-height: 1.02;
+  letter-spacing: -.062em;
+  text-wrap: balance;
+}
+
+.comoFunciona p, .convite p {
+  color: #575666;
+  line-height: 1.6;
+}
+
+.etapas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  margin-block: 33px 42px;
+}
+
+.etapas article {
+  padding-top: 22px;
+  border-top: 2px solid #c2b6f1;
+}
+
+.etapas small {
+  display: block;
+  margin-bottom: 11px;
+  color: #6854ae;
+  font-size: 13px;
+}
+
+.etapas h3 {
+  margin-bottom: 8px;
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -.045em;
+}
+
+.responsabilidades {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.responsabilidades article {
+  padding: 24px;
+  border-radius: 15px;
+  background: #f4f1fb;
+}
+
+.responsabilidades h3 {
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.convite {
+  padding-block: 64px;
+  background: #211d36;
+  color: #fbf9ff;
+}
+
+.conviteLayout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: 9%;
+}
+
+.convite h2 {
+  margin-bottom: 20px;
+}
+
+.convite p {
+  color: #d6d0e7;
+}
+
+.mensagem {
+  padding: 24px;
+  border-radius: 16px;
+  background: #faf8ff;
+  color: #211b33;
+}
+
+.mensagem small {
+  color: #625775;
+}
+
+.mensagem p {
+  max-width: 390px;
+  margin-block: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #e8e1ff;
+  color: #342845;
+}
+
+.mensagem strong {
+  display: block;
+}
+
+.mensagem button {
+  margin-top: 14px;
+  padding: 8px 12px;
+  border: 1px solid #bdb0d8;
+  border-radius: 9px;
+  color: #3c2e61;
+  font-size: 13px;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.mensagem button:hover {
+  background: #eeebfa;
+}
+
+.larguraFechamento {
+  width: min(1120px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+.fechamento {
+  color: #191a24;
+}
+
+.fechamento section {
+  padding-block: clamp(64px, 8vw, 110px);
+}
+
+.fechamento h2 {
+  font-size: clamp(36px, 4.5vw, 62px);
+  line-height: 1.04;
+}
+
+.planos {
+  background: #f7f6fb;
+}
+
+.introducaoPlanos {
+  max-width: 54ch;
+  margin-block: 18px 30px;
+  color: #595767;
+  line-height: 1.55;
+}
+
+.opcoesPlanos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid #d9d6e6;
+  border-radius: 19px;
+  background: #fff;
+}
+
+.opcoesPlanos article {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(22px, 3.5vw, 47px);
+}
+
+.opcoesPlanos article + article {
+  border-left: 1px solid #d9d6e6;
+  background: #eeebfa;
+}
+
+.opcoesPlanos h3 {
+  font-size: clamp(24px, 2.6vw, 36px);
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -.045em;
+}
+
+.opcoesPlanos p {
+  max-width: 41ch;
+  margin-block: 14px 18px;
+  color: #514e61;
+  line-height: 1.55;
+}
+
+.opcoesPlanos dl {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin-block: auto 24px;
+}
+
+.opcoesPlanos dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #d6d2e3;
+}
+
+.opcoesPlanos dt {
+  color: #5a566c;
+}
+
+.opcoesPlanos dd {
+  font-weight: 600;
+  text-align: right;
+}
+
+.duvidas {
+  background: #fff;
+}
+
+.duvidas .larguraFechamento {
+  display: grid;
+  grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr);
+  gap: clamp(36px, 8vw, 110px);
+}
+
+.duvidas details {
+  border-top: 1px solid #dad7e3;
+}
+
+.duvidas details:last-child {
+  border-bottom: 1px solid #dad7e3;
+}
+
+.duvidas summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 64px;
+  padding-block: 13px;
+  list-style: none;
+  font-size: 17px;
+  font-weight: 620;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.duvidas summary::-webkit-details-marker {
+  display: none;
+}
+
+.duvidas summary::after {
+  content: "+" / "";
+  color: #584ac8;
+  font-size: 24px;
+}
+
+.duvidas details[open] > summary::after {
+  content: "−" / "";
+}
+
+.duvidas details p {
+  max-width: 60ch;
+  padding: 0 36px 18px 0;
+  color: #534f61;
+  line-height: 1.65;
+}
+
+.chamadaFinal {
+  background: radial-gradient(ellipse at 85% 100%, #39345e, transparent 60%), #171622;
+  color: #f9f8ff;
+}
+
+.chamadaFinal h2 {
+  max-width: 17ch;
+}
+
+.chamadaFinal p {
+  margin-block: 17px 28px;
+  color: #d2cfe0;
+}
+
+.acoesFinais {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.acoesFinais a {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+
+.chamadaFinal .botaoDemonstracao {
+  background: #bdb4ff;
+  color: #201b40;
+}
+
+.chamadaFinal .botaoDemonstracao:hover {
+  background: #d1cbff;
+}
+
+.rodape {
+  padding-block: 25px;
+  border-top: 1px solid #4c465e;
+  background: #171622;
+  color: #d2cfe0;
+}
+
+.rodape .larguraFechamento, .rodape nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.rodape .larguraFechamento {
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.rodape nav {
+  gap: 16px;
+  font-size: 14px;
+}
+
+.rodape a:hover {
+  text-decoration: underline;
+}
+
+.marcaRodape {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -.06em;
+}
+
+.comoFunciona, .planos, .duvidas {
+  scroll-margin-top: 20px;
+}
+
+.convite :focus-visible, .fechamento :focus-visible, .rodape :focus-visible {
+  outline: 3px solid #7964e7;
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .etapas, .responsabilidades, .conviteLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .etapas, .conviteLayout {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 680px) {
+  .larguraFechamento {
+    width: calc(100% - 36px);
+  }
+
+  .opcoesPlanos, .duvidas .larguraFechamento {
+    grid-template-columns: 1fr;
+  }
+
+  .opcoesPlanos article + article {
+    border-top: 1px solid #d9d6e6;
+    border-left: 0;
+  }
+
+  .opcoesPlanos dl div {
+    font-size: 14px;
   }
 }

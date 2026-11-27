@@ -6,16 +6,9 @@ import { Painel } from "@/app/organizadores/painel"
 import { useMovimento } from "@/app/organizadores/use-movimento"
 import estilos from "@/app/organizadores/landing.module.css"
 
-const secoes = [
-  ["como-funciona", "Como funciona"],
-  ["distribuicao", "Distribuição"],
-  ["relatorios", "Relatórios"],
-  ["planos", "Planos"],
-  ["duvidas", "Dúvidas"],
-]
 const alturas = [0, -8, -17, 0, -14]
 
-export function Abertura({ chamada }: { chamada: ReactNode }) {
+export function Abertura({ chamada, navegacao }: { chamada: ReactNode; navegacao: ReactNode }) {
   const abertura = useRef<HTMLDivElement>(null)
   const movimento = useMovimento(abertura)
 
@@ -23,10 +16,7 @@ export function Abertura({ chamada }: { chamada: ReactNode }) {
     <div className={estilos.abertura} id="inicio" ref={abertura}>
       <header className={`${estilos.largura} ${estilos.cabecalho}`}>
         <a href="#inicio" className={estilos.marca}><span aria-hidden="true" />OrbCommu</a>
-        <nav aria-label="Seções">
-          {secoes.map(([id, nome]) => <a key={id} href={`#${id}`}>{nome}</a>)}
-          <a href="/entrar">Entrar como equipe</a>
-        </nav>
+        {navegacao}
         <div className={estilos.acoesCabecalho}>
           <BotaoDemonstracao />
         </div>

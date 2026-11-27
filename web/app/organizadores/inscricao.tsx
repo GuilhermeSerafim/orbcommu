@@ -10,17 +10,20 @@ import estilos from "./landing.module.css"
 
 type Interesse = Inscricao["interesse"]
 type Abertura = { interesse: Interesse; disparador: HTMLButtonElement }
+type Sessao = Abertura & { id: number }
 
 const AbrirInscricao = createContext<((abertura: Abertura) => void) | null>(null)
 
 export function InscricaoProvider({ children }: { children: ReactNode }) {
-  const [abertura, abrir] = useState<Abertura | null>(null)
+  const [abertura, definirAbertura] = useState<Sessao | null>(null)
+  const sessaoAtual = useRef<Sessao | null>(null)
+  const sequencia = useRef(0)
   const dialogo = useRef<HTMLDialogElement>(null)
   const voltar = useRef<HTMLButtonElement>(null)
   const [confirmado, confirmar] = useState(false)
 
   useLayoutEffect(() => {
-    if (abertura) dialogo.current?.showModal()
+    if (abertura && !dialogo.current?.open) dialogo.current?.showModal()
   }, [abertura])
 
   useEffect(() => {
@@ -31,10 +34,21 @@ export function InscricaoProvider({ children }: { children: ReactNode }) {
     dialogo.current?.close()
   }
 
-  function aoFechar() {
-    abertura?.disparador.focus()
-    abrir(null)
+  function abrir(dados: Abertura) {
+    const sessao = { ...dados, id: ++sequencia.current }
+    sessaoAtual.current = sessao
     confirmar(false)
+    definirAbertura(sessao)
+  }
+
+  function aoFechar() {
+    // O evento close pode chegar depois de uma nova abertura.
+    if (dialogo.current?.open) return
+    const sessao = sessaoAtual.current
+    sessaoAtual.current = null
+    definirAbertura(null)
+    confirmar(false)
+    sessao?.disparador.focus()
   }
 
   return (
@@ -55,8 +69,8 @@ export function InscricaoProvider({ children }: { children: ReactNode }) {
             Voltar à página
           </Button>
         ) : abertura && (
-          <Formulario interesse={abertura.interesse} aoConfirmar={() => {
-            if (dialogo.current?.open) confirmar(true)
+          <Formulario key={abertura.id} interesse={abertura.interesse} aoConfirmar={() => {
+            if (sessaoAtual.current === abertura && dialogo.current?.open) confirmar(true)
           }} />
         )}
       </dialog>
