@@ -19,3 +19,7 @@ Abra [o ensaio local](http://127.0.0.1:4173/), selecione **Link geral** e envie 
 3. **Divulgação por evento.** O link e o QR identificam a edição. O painel distingue aberturas, pedidos e entradas confirmadas.
 
 A stack prevista para o piloto é Next.js com TypeScript no Render, PostgreSQL e autenticação no Supabase. A fila compartilhada entre aparelhos faz parte da primeira entrega da aplicação.
+
+## Desenvolvimento
+
+O GitHub Actions roda a suíte em pull requests e na `main`. Os comandos locais e os critérios de regressão de cada funcionalidade estão no [guia de testes e entrega](docs/qualidade-e-entrega.md).
