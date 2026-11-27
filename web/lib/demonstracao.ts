@@ -7,8 +7,17 @@ export type Inscricao = {
 }
 
 function normalizarEmail(valor: string): string | null {
+  if (/\p{Cc}/u.test(valor)) return null
   const email = valor.trim().toLowerCase()
-  return email.length <= 254 && /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(email) ? email : null
+  if (email.length > 254 || /\s/.test(email)) return null
+
+  const partes = email.split("@")
+  const [local, dominio] = partes
+  if (partes.length !== 2 || !local) return null
+
+  const rotulos = dominio.split(".")
+  const rotuloDns = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
+  return rotulos.length >= 2 && rotulos.every(rotulo => rotuloDns.test(rotulo)) ? email : null
 }
 
 export function validarInscricao(raw: unknown): Inscricao | null {

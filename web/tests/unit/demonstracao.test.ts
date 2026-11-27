@@ -63,3 +63,21 @@ it("devolve 503 sem expor detalhes da falha de gravação", async () => {
   expect(resposta.status).toBe(503)
   expect(await resposta.json()).toEqual({ erro: "indisponivel" })
 })
+
+it.each([
+  "ana@ex/ample.org",
+  "a\u0000na@example.org",
+  "ana@example.-org",
+  "ana@example.org-",
+  "ana@ex_ample.org",
+])("devolve 422 sem tentar gravar o e-mail inválido %j", async contato => {
+  const gravar = vi.fn()
+  const resposta = await receberInscricao(requisicao(JSON.stringify({ ...inscricao, contato })), gravar)
+  expect(resposta.status).toBe(422)
+  expect(gravar).not.toHaveBeenCalled()
+})
+
+it("preserva caracteres usuais da parte local", () => {
+  expect(validarInscricao({ ...inscricao, contato: "Ana.silva+evento@Sub.Example.org" }))
+    .toEqual({ ...inscricao, contato: "ana.silva+evento@sub.example.org" })
+})
