@@ -2,6 +2,14 @@ import { expect } from "@playwright/test"
 import { test } from "../support/playwright"
 import { criarOperadores, fazerLogin } from "../support/operadores"
 
+test("o login do OrbCommu é independente da comunidade", async ({ page }) => {
+  await page.goto("/entrar")
+  await expect(page).toHaveTitle("Entrar · OrbCommu")
+  await expect(page.getByRole("heading", { name: "Entrar no OrbCommu" })).toBeVisible()
+  await expect(page.locator("main img, a[href^='/participar/']")).toHaveCount(0)
+  await expect(page.locator("body")).not.toContainText(/Meet Up|Tech SP/i)
+})
+
 test("isola a leitura entre sessões", async ({ browser, page }) => {
   test.setTimeout(90_000)
   const contas = await criarOperadores()

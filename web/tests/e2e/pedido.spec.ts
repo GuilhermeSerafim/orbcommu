@@ -12,9 +12,7 @@ test("a landing encaminha o participante ao formulário da comunidade", async ({
   await expect(participar).toHaveAttribute("href", "/participar/meet-up-tech-sp")
   await participar.click()
   await expect(page.getByRole("heading", { name: "Pedir entrada na Meet Up Tech SP" })).toBeVisible()
-  await page.getByRole("link", { name: "Acesso da equipe" }).click()
-  await page.getByRole("link", { name: "Voltar à comunidade" }).click()
-  await expect(page).toHaveURL(/\/participar\/meet-up-tech-sp$/)
+  await expect(page.locator('a[href="/entrar"]')).toHaveCount(0)
 })
 
 test("o pedido pelo link do evento registra a origem na fila da comunidade", async ({ page, caso }) => {
