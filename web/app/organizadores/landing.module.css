@@ -1,0 +1,173 @@
+.abertura,
+.dialogo {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+.abertura {
+  background: radial-gradient(ellipse at 45% -45%, #483f86, #19182e 55%, #100f1c 92%);
+  color: #f9f7ff;
+}
+
+.hero {
+  max-width: 1172px;
+  margin-inline: auto;
+  padding: clamp(34px, 6vw, 96px) clamp(20px, 3vw, 26px);
+}
+
+.hero h1 {
+  max-width: 16ch;
+  font-size: clamp(40px, 5.4vw, 81px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -.062em;
+  text-wrap: balance;
+}
+
+.hero h1 span {
+  color: #b3a3ff;
+}
+
+.hero p {
+  max-width: 510px;
+  margin-block: 24px;
+  color: #d1cedf;
+  font-size: clamp(16px, 1.45vw, 20px);
+  line-height: 1.5;
+}
+
+.hero .nota {
+  margin-block: 12px 0;
+  color: #c3bed5;
+  font-size: 13px;
+}
+
+.botaoDemonstracao,
+.acaoDialogo {
+  min-height: 45px;
+  border-radius: 8px;
+  background: #584ac8;
+  color: white;
+  padding-inline: 19px;
+  font-size: 15px;
+  font-weight: 650;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.botaoDemonstracao:hover,
+.acaoDialogo:hover {
+  background: #4033a3;
+}
+
+.abertura .botaoDemonstracao {
+  background: #c3b4ff;
+  color: #1c143f;
+}
+
+.abertura .botaoDemonstracao:hover {
+  background: #d3caff;
+}
+
+.botaoDemonstracao:focus-visible,
+.dialogo :focus-visible {
+  outline: 3px solid #7964e7;
+  outline-offset: 3px;
+}
+
+.abertura .botaoDemonstracao:focus-visible {
+  outline-color: #c3b4ff;
+}
+
+.dialogo {
+  width: min(460px, calc(100% - 28px));
+  max-height: 94dvh;
+  margin: auto;
+  overflow: auto;
+  border: 1px solid #d9d6e6;
+  border-radius: 20px;
+  padding: clamp(20px, 5vw, 32px);
+  background: white;
+  color: #191a24;
+  box-shadow: 0 28px 100px #0e0c2040;
+}
+
+.dialogo::backdrop {
+  background: #151122ab;
+}
+
+.cabecalhoDialogo {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cabecalhoDialogo h2 {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -.05em;
+  line-height: 1.13;
+}
+
+.fechar {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #ddd9e7;
+  border-radius: 50%;
+  background: #f7f6fa;
+  color: #32303d;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.textoDialogo {
+  margin-block: 14px 19px;
+  color: #565264;
+  line-height: 1.55;
+}
+
+.canais {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.canais legend,
+.rotuloContato {
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.canais label {
+  min-height: 24px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.canais input {
+  accent-color: #584ac8;
+}
+
+.dialogo .contato {
+  height: 48px;
+  border-color: #918b9f;
+  border-radius: 7px;
+  background: white;
+  font-size: 16px;
+}
+
+.dialogo .contato[aria-invalid="true"] {
+  border-color: #ae2734;
+}
+
+.erro {
+  margin-top: 8px;
+  color: #ae2734;
+  font-size: 14px;
+}
+
+.acaoDialogo {
+  width: 100%;
+  margin-top: 16px;
+}
