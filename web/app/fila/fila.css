@@ -1,4 +1,7 @@
 .painel { padding-block: clamp(32px, 6vw, 76px); }
+.nav-equipe { display: flex; flex-wrap: wrap; gap: 6px 22px; border-bottom: 1px solid var(--linha); margin-bottom: 28px; }
+.nav-equipe a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cinza); border-bottom: 3px solid transparent; }
+.nav-equipe a[aria-current="page"] { color: var(--violeta); font-weight: 700; border-color: var(--violeta); }
 .painel-titulo { display: grid; gap: 12px; margin-bottom: 30px; }
 .comunidade-id { color: var(--cinza); }
 .comunidade-id::before { background: var(--violeta); }

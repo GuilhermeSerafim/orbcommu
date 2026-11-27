@@ -1,6 +1,7 @@
 import { LogOut, LockKeyhole } from "lucide-react"
 import { redirect } from "next/navigation"
 import { Cabecalho } from "@/components/cabecalho"
+import { NavegacaoEquipe } from "@/components/navegacao-equipe"
 import { Button } from "@/components/ui/button"
 import { obterAcesso } from "../../lib/acesso"
 import { situacoesFila } from "../../lib/fila"
@@ -25,6 +26,7 @@ export default async function Fila({ searchParams }: { searchParams: Promise<{ p
         ? <section className="painel-recusado"><div className="secao-simbolo"><LockKeyhole aria-hidden="true" /></div>
             <h1>Acesso recusado</h1><p>Esta conta não tem acesso à fila desta comunidade.</p></section>
         : <>
+            <NavegacaoEquipe atual="fila" />
             <header className="painel-titulo">
               <span className="comunidade-id">Meet Up Tech SP</span>
               <h1>Fila de entrada</h1>
