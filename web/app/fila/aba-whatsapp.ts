@@ -1,5 +1,8 @@
 "use client"
 import { useRef } from "react"
+import { usarWhatsAppWeb } from "../../lib/convite"
+
+export type AberturaWhatsApp = { abrir: (url: string) => boolean; cancelar: () => void }
 
 export function useAbaWhatsApp() {
   const origem = useRef<HTMLIFrameElement>(null)
@@ -8,8 +11,19 @@ export function useAbaWhatsApp() {
   const vazia = useRef(false)
   const ultimaTentativa = useRef(0)
 
-  function preparar() {
+  function preparar(guardarPedido: () => void): AberturaWhatsApp {
     const tentativa = ++ultimaTentativa.current
+    if (usarWhatsAppWeb(navigator)) {
+      return {
+        abrir(url) {
+          if (tentativa !== ultimaTentativa.current) return false
+          guardarPedido()
+          window.location.assign(url)
+          return true
+        },
+        cancelar() {},
+      }
+    }
     if (!aba.current || aba.current.closed) {
       nome.current ||= "orbcommu-whatsapp-" + crypto.randomUUID()
       try {
