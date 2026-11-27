@@ -87,6 +87,11 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, aoC
       <Button variant="outline" type="button" aria-disabled={pendente} onClick={e => void agir("reabrir", e.currentTarget)}>Reabrir conversa</Button>
       <Button variant="ghost" type="button" aria-disabled={pendente} onClick={e => void agir("desfazer", e.currentTarget)}>Desfazer chamada</Button>
     </>}
+    {(situacao === "Convite enviado" || situacao === "A conferir") && <>
+      <Button type="button" aria-disabled={pendente} onClick={e => void agir("confirmar_entrada", e.currentTarget)}>Confirmar entrada</Button>
+      <Button variant="outline" type="button" aria-disabled={pendente} onClick={e => void agir("desistir", e.currentTarget)}>Registrar desist?ncia</Button>
+      {situacao === "A conferir" && <Button variant="ghost" type="button" aria-disabled={pendente} onClick={e => void agir("encerrar_sem_aceite", e.currentTarget)}>Encerrar sem aceite</Button>}
+    </>}
     {semConvite && <Button type="button" variant="outline" onClick={() => {
       const campo = document.getElementById("convite-do-grupo")
       const detalhes = campo?.closest("details")
@@ -94,7 +99,7 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, aoC
       campo?.focus()
     }}>Configurar link do grupo</Button>}
     {erro && <p className="aviso-acao" role="alert">{erro}</p>}
-    {alternativa && (alternativa.reservaId ? alternativa.reservaId === reservaId : situacao === "Para analisar") && <p className="aviso-acao">
+    {alternativa && (alternativa.reservaId ? situacao === "Chamada iniciada" && alternativa.reservaId === reservaId : situacao === "Para analisar") && <p className="aviso-acao">
       A abertura automática foi bloqueada. <a href={alternativa.url} target="_blank" rel="noopener noreferrer">Abrir a conversa</a>
     </p>}
   </div>

@@ -95,3 +95,41 @@ test("chama a pessoa escolhida, recupera a reserva e confirma o envio", async ({
     await contas.limpar()
   }
 })
+test("Cris confere a reserva quando o filtro aberto alcança 24 horas", async ({ page }) => {
+  const contas = await criarOperadores()
+  const busca = randomUUID()
+  const pessoas = [criarCasoPedido(busca), criarCasoPedido(busca)]
+  try {
+    await fazerLogin(page, contas.segunda)
+    for (const { pedido } of pessoas) {
+      await banco.query(`insert into orbcommu.pedidos (comunidade,nome,telefone,origem,situacao,reserva_id,enviado_em,enviado_por_nome)
+        values ('meet-up-tech-sp',$1,$2,'Link geral','Convite enviado',gen_random_uuid(),statement_timestamp()-interval '24 hours'+interval '4 seconds','Joana')`, [pedido.nome, pedido.telefone])
+    }
+    await page.getByLabel("Pesquisar").fill(busca)
+    const filtro = page.getByLabel("Situação")
+    await filtro.selectOption("A conferir")
+    await expect(page.getByText("0 de 0")).toBeVisible()
+    const linhas = page.getByRole("listitem")
+    await expect(linhas).toHaveCount(2, { timeout: 12_000 })
+    await linhas.first().getByRole("button", { name: "Confirmar entrada" }).click()
+    await expect(linhas).toHaveCount(1)
+    await linhas.first().getByRole("button", { name: "Encerrar sem aceite" }).click()
+    await expect(page.getByText("0 de 0")).toBeVisible()
+    await filtro.selectOption("Prazo encerrado")
+    await expect(linhas).toHaveCount(1)
+    await filtro.selectOption("Finalizados")
+    await expect(linhas).toHaveCount(2)
+    await expect(linhas.first()).toContainText("Entrada confirmada")
+    await expect(linhas.last()).toContainText("Prazo encerrado")
+    await expect(linhas.getByRole("button")).toHaveCount(0)
+    const { nome, telefone } = pessoas[1].pedido
+    expect((await page.request.post("/api/pedidos", { data: { nome, telefone } })).ok()).toBe(true)
+    await filtro.selectOption("Todos")
+    await expect(linhas).toHaveCount(3)
+    await expect(linhas.last()).toContainText("Para analisar")
+    expect((await pessoas[1].linhas())[0].encerrado_por).toBe(contas.segunda.id)
+  } finally {
+    await Promise.all(pessoas.map(caso => caso.limpar()))
+    await contas.limpar()
+  }
+})

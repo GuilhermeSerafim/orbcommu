@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { afterAll, beforeAll, expect, it, vi } from "vitest"
 import { banco } from "../support/banco"
 import { criarOperadores } from "../support/operadores"
+import { listarPedidos } from "../../lib/fila"
 import { executarVistoria } from "../../lib/operacao"
 import { getPool } from "../../lib/db"
 
@@ -70,4 +71,32 @@ it("confirmação antiga não altera a nova reserva", async () => {
   for (const acao of ["reabrir", "desfazer", "confirmar_envio"] as const) {
     expect(await executarVistoria(acesso, id, acao, anterior)).toEqual({ ok: false, motivo: "pedido_alterado" })
   }
+})
+it("deriva a conferência no prazo do envio e só encerra pela reserva atual", async () => {
+  const acesso = operadora(contas.segunda.id)
+  const ids: string[] = []
+  for (const idade of ["23 hours 59 minutes", "24 hours", "25 hours"]) {
+    const id = await pedido()
+    ids.push(id)
+    await banco.query("update orbcommu.pedidos set situacao='Convite enviado', reserva_id=gen_random_uuid(), enviado_em=statement_timestamp()-$2::interval, nome='Conferencia' where id=$1", [id, idade])
+  }
+  const filtro = { busca: "Conferencia", pagina: 1, tamanho: 5 } as const
+  const todos = await listarPedidos(acesso, { ...filtro, situacao: "Todos" })
+  expect(todos.itens.map(item => item.situacao)).toEqual(["Convite enviado", "A conferir", "A conferir"])
+  const conferir = await listarPedidos(acesso, { ...filtro, situacao: "A conferir" })
+  expect(conferir.total).toBe(2)
+  expect(conferir.itens.every(item => item.reservaId && !item.encerradoEm)).toBe(true)
+  for (const acao of ["confirmar_entrada", "desistir", "encerrar_sem_aceite"] as const) {
+    expect(await executarVistoria(acesso, ids[1], acao, randomUUID())).toEqual({ ok: false, motivo: "pedido_alterado" })
+  }
+  const agir = (i: number, acao: "confirmar_entrada" | "desistir" | "encerrar_sem_aceite") =>
+    executarVistoria(acesso, ids[i], acao, todos.itens[i].reservaId!)
+  expect((await agir(0, "encerrar_sem_aceite")).ok).toBe(false)
+  expect((await agir(0, "desistir")).ok).toBe(true)
+  expect((await agir(1, "confirmar_entrada")).ok).toBe(true)
+  const respostas = await Promise.all([agir(2, "encerrar_sem_aceite"), agir(2, "confirmar_entrada")])
+  expect(respostas.filter(r => r.ok)).toHaveLength(1)
+  const finais = await listarPedidos(acesso, { ...filtro, situacao: "Finalizados" })
+  expect(finais.total).toBe(3)
+  expect(finais.itens.map(item => item.situacao).slice(0, 2)).toEqual(["Desistiu", "Entrada confirmada"])
 })

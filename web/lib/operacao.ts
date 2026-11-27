@@ -10,7 +10,13 @@ const atualizacoes = {
   encerrar: "situacao = 'Encerrado na vistoria', encerrado_em = statement_timestamp(), encerrado_por = $3, encerrado_por_nome = $4",
 } as const
 
-export type AcaoPedido = keyof typeof atualizacoes | "chamar" | "reabrir" | "desfazer" | "confirmar_envio"
+const desfechos = {
+  confirmar_entrada: "Entrada confirmada",
+  desistir: "Desistiu",
+  encerrar_sem_aceite: "Prazo encerrado",
+} as const
+
+export type AcaoPedido = keyof typeof atualizacoes | keyof typeof desfechos | "chamar" | "reabrir" | "desfazer" | "confirmar_envio"
 export type ResultadoAcao = { ok: true; urlWhatsApp?: string; reservaId?: string } | {
   ok: false
   motivo: "sem_convite" | "acesso" | "acao_invalida" | "pedido_alterado" | "indisponivel"
@@ -26,9 +32,20 @@ export async function executarVistoria(acesso: Acesso, id: string, acao: AcaoPed
   const vinculo = `p.id = $1 and p.comunidade = $2 and p.encerrado_em is null
     and o.comunidade = p.comunidade and o.usuario_id = $3 and o.perfil = 'operacao'`
   const parametros = [id, acesso.comunidade, acesso.usuarioId]
-  if (acao === "chamar" || acao === "reabrir" || acao === "desfazer" || acao === "confirmar_envio") {
+  if (acao === "confirmar_entrada" || acao === "desistir" || acao === "encerrar_sem_aceite"
+    || acao === "chamar" || acao === "reabrir" || acao === "desfazer" || acao === "confirmar_envio") {
     if (acao !== "chamar" && (typeof reservaId !== "string" || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(reservaId))) {
       return { ok: false, motivo: "acao_invalida" }
+    }
+    if (acao === "confirmar_entrada" || acao === "desistir" || acao === "encerrar_sem_aceite") {
+      const { rowCount } = await getPool().query(
+        `update orbcommu.pedidos p set situacao = $5, encerrado_em = statement_timestamp(),
+           encerrado_por = $3, encerrado_por_nome = $6 from orbcommu.operadores o
+         where ${vinculo} and p.reserva_id = $4 and p.situacao = 'Convite enviado' and p.enviado_em is not null
+           ${acao === "encerrar_sem_aceite" ? "and p.enviado_em + interval '24 hours' <= statement_timestamp()" : ""}`,
+        [...parametros, reservaId, desfechos[acao], acesso.nomeExibicao ?? "Operador da equipe"],
+      )
+      return rowCount ? { ok: true } : { ok: false, motivo: "pedido_alterado" }
     }
     if (acao === "chamar" || acao === "reabrir") {
       const convite = await consultarConvite(acesso)

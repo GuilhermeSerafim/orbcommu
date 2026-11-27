@@ -13,7 +13,7 @@ const horario = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle
 const hora = new Intl.DateTimeFormat("pt-BR", { timeStyle: "short", timeZone: "America/Sao_Paulo" })
 
 function temAcoes(item: ItemFila) {
-  return ["Para analisar", "Aguardando vaga", "Chamada iniciada"].includes(item.situacao) && !item.encerradoEm
+  return ["Para analisar", "Aguardando vaga", "Chamada iniciada", "Convite enviado", "A conferir"].includes(item.situacao) && !item.encerradoEm
 }
 
 export default function Listagem({ podeOperar, situacoes }: {
@@ -40,6 +40,7 @@ export default function Listagem({ podeOperar, situacoes }: {
   }, [atualizar])
   useEffect(() => {
     const controlador = new AbortController()
+    let prazo: ReturnType<typeof setTimeout> | undefined
     async function consultar() {
       const parametros = new URLSearchParams({ ...filtro, pagina: String(filtro.pagina), tamanho: String(filtro.tamanho) })
       try {
@@ -52,6 +53,7 @@ export default function Listagem({ podeOperar, situacoes }: {
         const dados: PaginaFila = await res.json()
         const ultima = Math.max(1, Math.ceil(dados.total / filtro.tamanho))
         if (controlador.signal.aborted) return
+        if (dados.atualizarEmMs != null) prazo = setTimeout(atualizar, Math.min(dados.atualizarEmMs, 2_147_483_647))
         const foco = document.activeElement
         const linhaFocada = foco?.closest<HTMLElement>("li[data-pedido-id]")
         if (linhaFocada) {
@@ -70,8 +72,11 @@ export default function Listagem({ podeOperar, situacoes }: {
       }
     }
     void consultar()
-    return () => controlador.abort()
-  }, [filtro, revisao])
+    return () => {
+      controlador.abort()
+      clearTimeout(prazo)
+    }
+  }, [filtro, revisao, atualizar])
   const resposta = resultado?.filtro === filtro ? resultado : undefined
   const dados = resposta?.dados
   function alterar(campos: Partial<FiltroFila>) {
