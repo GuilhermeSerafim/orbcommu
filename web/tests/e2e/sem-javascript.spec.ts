@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test"
 test.use({ javaScriptEnabled: false })
 
 test("explica como enviar sem expor o pedido na URL quando o JavaScript está desativado", async ({ page }) => {
-  await page.goto("/")
+  await page.goto("/participar/meet-up-tech-sp")
   const enviar = page.getByRole("button", { name: "Enviar pedido" })
   await expect(enviar).toBeDisabled()
   const aviso = page.locator("noscript p")

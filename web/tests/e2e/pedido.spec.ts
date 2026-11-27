@@ -5,9 +5,46 @@ import { usarCasoPedido, type CasoPedido } from "../support/pedidos"
 const test = base.extend<{ caso: CasoPedido }>({ caso: async ({}, usar) => usarCasoPedido(usar) })
 const confirmacao = "Recebemos seu pedido para entrar na Meet Up Tech SP."
 
+test("a landing encaminha o participante ao formulário da comunidade", async ({ page }) => {
+  expect((await page.request.get("/organizadores", { maxRedirects: 0 })).headers().location).toBe("/")
+  await page.goto("/")
+  const participar = page.getByRole("link", { name: "Pedir entrada na Meet Up Tech SP" })
+  await expect(participar).toHaveAttribute("href", "/participar/meet-up-tech-sp")
+  await participar.click()
+  await expect(page.getByRole("heading", { name: "Pedir entrada na Meet Up Tech SP" })).toBeVisible()
+  await page.getByRole("link", { name: "Acesso da equipe" }).click()
+  await page.getByRole("link", { name: "Voltar à comunidade" }).click()
+  await expect(page).toHaveURL(/\/participar\/meet-up-tech-sp$/)
+})
+
+test("o pedido pelo link do evento registra a origem na fila da comunidade", async ({ page, caso }) => {
+  await page.goto("/participar/meet-up-tech-sp?origem=workshop-ia-novembro")
+  await page.getByLabel("Como você quer ser chamado?").fill(caso.pedido.nome)
+  await page.getByLabel("WhatsApp com DDD").fill(caso.pedido.telefone)
+  await page.getByRole("button", { name: "Enviar pedido" }).click()
+  await expect(page.getByText(confirmacao)).toBeVisible()
+  expect(await caso.linhas()).toEqual([expect.objectContaining({
+    comunidade: "meet-up-tech-sp", origem: "workshop-ia-novembro",
+  })])
+  await page.request.post("/api/pedidos/meet-up-tech-sp?origem=outra-edicao", { data: caso.pedido })
+  expect(await caso.linhas()).toEqual([expect.objectContaining({ origem: "workshop-ia-novembro" })])
+})
+
+test("uma origem ambígua mantém o pedido no link geral", async ({ request, caso }) => {
+  const resposta = await request.post("/api/pedidos/meet-up-tech-sp?origem=evento-a&origem=evento-b", { data: caso.pedido })
+  expect(resposta.ok()).toBe(true)
+  expect(await caso.linhas()).toEqual([expect.objectContaining({ comunidade: "meet-up-tech-sp", origem: "Link geral" })])
+})
+
+test("um endereço de fila desconhecido não recebe pedidos", async ({ request, caso }) => {
+  expect((await request.get("/participar/sem-cadastro")).status()).toBe(404)
+  expect((await request.post("/api/pedidos/sem-cadastro", { data: caso.pedido })).status()).toBe(404)
+  expect(await caso.linhas()).toHaveLength(0)
+})
+
 test("envia pelo link geral no celular", async ({ page, caso }) => {
   const { nome, telefone } = caso.pedido
-  await page.goto("/")
+  await page.goto("/participar/meet-up-tech-sp")
   await page.getByLabel("Como você quer ser chamado?").fill(nome)
   await page.getByLabel("WhatsApp com DDD").fill(telefone)
   await page.getByRole("button", { name: "Enviar pedido" }).click()
@@ -18,7 +55,7 @@ test("envia pelo link geral no celular", async ({ page, caso }) => {
 
 test("recupera a confirmação após perder a resposta", async ({ page, caso }) => {
   const { nome, telefone } = caso.pedido
-  await page.goto("/")
+  await page.goto("/participar/meet-up-tech-sp")
   const campoNome = page.getByLabel("Como você quer ser chamado?")
   const campoTelefone = page.getByLabel("WhatsApp com DDD")
   const campoMotivacao = page.getByLabel("O que você busca na Meet Up Tech SP?")
@@ -26,7 +63,7 @@ test("recupera a confirmação após perder a resposta", async ({ page, caso }) 
   await campoNome.fill(nome)
   await campoTelefone.fill(telefone)
   await campoMotivacao.fill("Aprender")
-  await page.route("**/api/pedidos", async route => {
+  await page.route("**/api/pedidos/meet-up-tech-sp", async route => {
     const resposta = await route.fetch()
     expect(resposta.status()).toBe(200)
     await route.abort("failed")
@@ -59,10 +96,10 @@ test("API rejeita entrada inválida e confirma reenvios com o mesmo corpo", asyn
 })
 
 test("503 conserva o pedido para uma nova tentativa", async ({ page, caso }) => {
-  await page.goto("/")
+  await page.goto("/participar/meet-up-tech-sp")
   await page.getByLabel("Como você quer ser chamado?").fill(caso.pedido.nome)
   await page.getByLabel("WhatsApp com DDD").fill(caso.pedido.telefone)
-  await page.route("**/api/pedidos", route => route.fulfill({ status: 503, json: { erro: "indisponivel" } }), { times: 1 })
+  await page.route("**/api/pedidos/meet-up-tech-sp", route => route.fulfill({ status: 503, json: { erro: "indisponivel" } }), { times: 1 })
   const enviar = page.getByRole("button", { name: "Enviar pedido" })
   await enviar.click()
   await expect(page.locator("form").getByRole("alert")).toHaveText("Não foi possível guardar seu pedido. Tente enviar novamente.")
@@ -72,7 +109,7 @@ test("503 conserva o pedido para uma nova tentativa", async ({ page, caso }) => 
 
 test("mostra o erro junto ao WhatsApp no desktop", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
-  await page.goto("/")
+  await page.goto("/participar/meet-up-tech-sp")
   await page.getByLabel("Como você quer ser chamado?").fill("Ana")
   const campo = page.getByLabel("WhatsApp com DDD")
   await campo.fill("abc")

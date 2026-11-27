@@ -118,7 +118,7 @@ test("compartilha o pedido entre dois operadores", async ({ browser, page }) => 
   const nome = "Ana " + marcador
   try {
     for (const entrada of [nome, "Bea " + marcador]) {
-      await page.goto("/")
+      await page.goto("/participar/meet-up-tech-sp")
       await page.getByLabel("Como você quer ser chamado?").fill(entrada)
       await page.getByLabel("WhatsApp com DDD").fill(telefone)
       await page.getByRole("button", { name: "Enviar pedido" }).click()
