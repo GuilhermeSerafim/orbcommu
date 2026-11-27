@@ -17,6 +17,15 @@ function temAcoes(item: ItemFila) {
   return ["Para analisar", "Aguardando vaga", "Chamada iniciada", "Convite enviado", "A conferir"].includes(item.situacao) && !item.encerradoEm
 }
 
+function limparRetornoDoWhatsApp() {
+  const url = new URL(window.location.href)
+  if (!url.searchParams.has("pedido")) return
+  url.searchParams.delete("pedido")
+  const estado = { ...window.history.state }
+  delete estado.filtroAntesDoWhatsApp
+  window.history.replaceState(estado, "", url)
+}
+
 export default function Listagem({ podeOperar, situacoes }: {
   podeOperar: boolean
   situacoes: readonly FiltroFila["situacao"][]
@@ -24,11 +33,24 @@ export default function Listagem({ podeOperar, situacoes }: {
   const [filtro, setFiltro] = useState(inicial)
   const [resultado, setResultado] = useState<{ filtro: FiltroFila; dados?: PaginaFila; erro?: string }>()
   const [revisao, setRevisao] = useState(0)
-  const [retomada, setRetomada] = useState<{ id: string; reservaId?: string; url?: string; filtroAnterior: FiltroFila }>()
+  const [retomada, setRetomada] = useState<{ id: string; reservaId?: string; url?: string; incerta?: boolean; filtroAnterior: FiltroFila }>()
   const focoRetomada = useRef<string | null>(null)
   const busca = useRef<HTMLInputElement>(null)
   const abaWhatsApp = useAbaWhatsApp()
   const atualizar = useCallback(() => setRevisao(atual => atual + 1), [])
+  useEffect(() => {
+    function restaurarPedido() {
+      const id = new URL(window.location.href).searchParams.get("pedido")
+      if (!id || !/^[1-9]\d{0,18}$/.test(id)) return
+      const anterior: FiltroFila = window.history.state?.filtroAntesDoWhatsApp ?? inicial
+      focoRetomada.current = id
+      setRetomada({ id, filtroAnterior: anterior })
+      setFiltro({ ...inicial, tamanho: anterior.tamanho, pedidoId: id })
+    }
+    restaurarPedido()
+    window.addEventListener("pageshow", restaurarPedido)
+    return () => window.removeEventListener("pageshow", restaurarPedido)
+  }, [])
   useEffect(() => {
     function aoVoltar() {
       if (document.visibilityState === "visible") atualizar()
@@ -82,9 +104,17 @@ export default function Listagem({ podeOperar, situacoes }: {
   const resposta = resultado?.filtro === filtro ? resultado : undefined
   const dados = resposta?.dados
   function alterar(campos: Partial<FiltroFila>) {
+    limparRetornoDoWhatsApp()
     setRetomada(undefined)
     focoRetomada.current = null
     setFiltro(atual => ({ busca: atual.busca, situacao: atual.situacao, tamanho: atual.tamanho, pagina: 1, ...campos }))
+  }
+  function guardarPedido(id: string) {
+    const url = new URL(window.location.href)
+    url.searchParams.set("pedido", id)
+    window.history.replaceState({
+      ...window.history.state, filtroAntesDoWhatsApp: retomada?.filtroAnterior ?? filtro,
+    }, "", url)
   }
   return <section className="lista-painel" aria-label="Consulta de pedidos">
     {/* A aba externa tem como opener um quadro vazio sem permissão para executar scripts. */}
@@ -106,11 +136,12 @@ export default function Listagem({ podeOperar, situacoes }: {
       </div>
     </div>
     {retomada && filtro.pedidoId === retomada.id && <Button variant="outline" type="button" onClick={() => {
+      limparRetornoDoWhatsApp()
       setFiltro(retomada.filtroAnterior)
       setRetomada(undefined)
       focoRetomada.current = null
       busca.current?.focus()
-    }}>Voltar para Aguardando vaga</Button>}
+    }}>{retomada.filtroAnterior.situacao === "Aguardando vaga" ? "Voltar para Aguardando vaga" : "Voltar para a fila"}</Button>}
     {!resposta && <p className="lista-estado" role="status">Carregando pedidos…</p>}
     {resposta?.erro && <div className="lista-estado" role="alert"><p>{resposta.erro}</p>
       <Button variant="outline" onClick={() => setFiltro({ ...filtro })}>Tentar novamente</Button></div>}
@@ -143,14 +174,14 @@ export default function Listagem({ podeOperar, situacoes }: {
               <time dateTime={item.encerradoEm}>{horario.format(new Date(item.encerradoEm))}</time></p>}
           </div>}
           {podeOperar && temAcoes(item)
-            && <AcoesDoPedido id={item.id} situacao={item.situacao} reservaId={item.reservaId} atualizar={atualizar} prepararAba={abaWhatsApp.preparar}
-              chamadaIncerta={retomada?.id === item.id && !retomada.reservaId}
+            && <AcoesDoPedido id={item.id} situacao={item.situacao} reservaId={item.reservaId} atualizar={atualizar} prepararAba={() => abaWhatsApp.preparar(() => guardarPedido(item.id))}
+              chamadaIncerta={retomada?.id === item.id && retomada.incerta}
               alternativaInicial={retomada?.id === item.id && retomada.reservaId === item.reservaId && retomada.url
                 ? { url: retomada.url, reservaId: retomada.reservaId } : undefined}
               aoChamar={(reservaId, alternativa) => {
                 if (filtro.situacao !== "Aguardando vaga") return
                 focoRetomada.current = item.id
-                setRetomada({ id: item.id, reservaId, url: alternativa?.url, filtroAnterior: filtro })
+                setRetomada({ id: item.id, reservaId, url: alternativa?.url, incerta: !reservaId, filtroAnterior: filtro })
                 setFiltro(atual => atual === filtro ? { ...atual, situacao: "Todos", pedidoId: item.id, busca: item.telefone, pagina: 1 } : atual)
               }} />}
         </li>)}</ul>

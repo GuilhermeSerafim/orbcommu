@@ -1,5 +1,21 @@
 import { expect, it } from "vitest"
-import { conversaDeConvite, normalizarConvite } from "../../lib/convite"
+import { conversaDeConvite, destinoDaConversa, normalizarConvite } from "../../lib/convite"
+
+const desktop = { userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", maxTouchPoints: 0 }
+
+it("vai direto ao WhatsApp Web no computador e mantém a mensagem intacta", () => {
+  const link = conversaDeConvite("12025550142", "https://chat.whatsapp.com/FixtureAb123")
+  const direto = new URL(destinoDaConversa(link, desktop))
+  expect(direto.origin + direto.pathname).toBe("https://web.whatsapp.com/send")
+  expect(direto.searchParams.get("phone")).toBe("12025550142")
+  expect(direto.searchParams.get("text")).toBe(new URL(link).searchParams.get("text"))
+  expect(destinoDaConversa("https://wa.me/12025550142", desktop)).toBe("https://web.whatsapp.com/send?phone=12025550142")
+})
+
+it.each(["Android", "iPhone", "Macintosh"])("preserva o link universal em %s com tela de toque", dispositivo => {
+  const link = conversaDeConvite("12025550142", "https://chat.whatsapp.com/FixtureAb123")
+  expect(destinoDaConversa(link, { userAgent: dispositivo, maxTouchPoints: 5 })).toBe(link)
+})
 
 it("abre a conversa da pessoa com a mensagem e o convite em uma única linha", () => {
   const link = conversaDeConvite("5511900000101", "https://chat.whatsapp.com/FixtureAb123")

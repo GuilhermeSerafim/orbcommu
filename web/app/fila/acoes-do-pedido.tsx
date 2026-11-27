@@ -3,7 +3,8 @@ import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import type { AcaoPedido, ResultadoAcao } from "../../lib/operacao"
 import { agirNoPedido } from "./acoes"
-import type { useAbaWhatsApp } from "./aba-whatsapp"
+import type { AberturaWhatsApp } from "./aba-whatsapp"
+import { destinoDaConversa } from "../../lib/convite"
 
 const mensagens = {
   sem_convite: "Para chamar esta pessoa, salve o convite em “Link do grupo”, no topo da fila.",
@@ -24,7 +25,7 @@ type Props = {
   chamadaIncerta?: boolean
   aoChamar: (reservaId?: string, alternativa?: Alternativa) => void
   atualizar: () => void
-  prepararAba: ReturnType<typeof useAbaWhatsApp>["preparar"]
+  prepararAba: () => AberturaWhatsApp
 }
 
 export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, chamadaIncerta, aoChamar, atualizar, prepararAba }: Props) {
@@ -51,8 +52,8 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
         return
       }
       if (resultado.urlWhatsApp) {
-        const alternativaBloqueada = conversa?.abrir(resultado.urlWhatsApp) ? undefined
-          : { url: resultado.urlWhatsApp, reservaId: resultado.reservaId }
+        const url = destinoDaConversa(resultado.urlWhatsApp, navigator)
+        const alternativaBloqueada = conversa?.abrir(url) ? undefined : { url, reservaId: resultado.reservaId }
         setAlternativa(alternativaBloqueada)
         if (acao === "chamar" && resultado.reservaId) aoChamar(resultado.reservaId, alternativaBloqueada)
       } else if (document.activeElement === botao) {
@@ -90,7 +91,7 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
     </>}
     {erro && <p className="aviso-acao" role="alert">{erro}</p>}
     {alternativa && (alternativa.reservaId ? situacao === "Chamada iniciada" && alternativa.reservaId === reservaId : situacao === "Para analisar") && <p className="aviso-acao">
-      A conversa não abriu automaticamente. <a href={alternativa.url} target="_blank" rel="noopener noreferrer" onClick={evento => {
+      A conversa não abriu automaticamente. <a href={alternativa.url} target={alternativa.url.startsWith("https://wa.me/") ? "_blank" : "_self"} rel="noopener noreferrer" onClick={evento => {
         if (!evento.ctrlKey && !evento.metaKey && !evento.shiftKey && !evento.altKey && prepararAba().abrir(alternativa.url)) evento.preventDefault()
       }}>Abrir a conversa</a>
     </p>}

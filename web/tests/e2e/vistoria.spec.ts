@@ -1,9 +1,11 @@
-import { expect } from "@playwright/test"
+import { devices, expect } from "@playwright/test"
 import { test } from "../support/playwright"
 import { banco } from "../support/banco"
 import { comFixtureConvite } from "../support/convite"
 import { criarOperadores, fazerLogin } from "../support/operadores"
 import { criarCasoPedido } from "../support/pedidos"
+
+test.use({ userAgent: devices["Pixel 7"].userAgent })
 
 test("compartilha conversa, aprovação e encerramento entre contas", async ({ page, browser }) => {
   test.setTimeout(90_000)
