@@ -33,4 +33,19 @@ npx playwright install chromium
 npm test
 ```
 
-Quando a aplicação em `web/` existir, acrescentar à CI a análise de tipos, os testes unitários, os de integração com o banco local, o build e o percurso E2E contra a aplicação. Para o piloto hospedado, a proposta é conectar a `main` ao Render com **After CI Checks Pass**. A ativação do deploy depende da existência do serviço e das variáveis de ambiente do piloto. [GitHub Actions para Node.js](https://docs.github.com/en/actions/tutorials/build-and-test-code/nodejs) · [Playwright em CI](https://playwright.dev/docs/ci) · [Deploy no Render](https://render.com/docs/deploys)
+O segundo job verifica a aplicação em `web/`. Com Docker em execução, rode a partir da raiz:
+
+```sh
+npm --prefix web ci
+npm --prefix web run local:prepare
+npm --prefix web test
+npm --prefix web run build
+npm --prefix web run typecheck
+cd web
+npx playwright install chromium
+npm run test:e2e
+```
+
+O preparo inicia PostgreSQL e Auth locais, aplica as migrações e gera os arquivos de ambiente de desenvolvimento e de fixtures. O Playwright inicia o servidor de produção na porta 4174. Para repetir só a fila, execute na raiz `npm --prefix web test -- tests/integration/fila.test.ts` e, depois do build, `npm --prefix web run test:e2e -- tests/e2e/fila.spec.ts`. O aceite passa pelo link geral, pelo reenvio do mesmo WhatsApp com outro nome e pela leitura do primeiro pedido, com o mesmo instante de chegada, em duas sessões independentes.
+
+Para o piloto hospedado, a proposta é conectar a `main` ao Render com **After CI Checks Pass**. A ativação depende da existência do serviço e das variáveis de ambiente do piloto. [Deploy no Render](https://render.com/docs/deploys)
