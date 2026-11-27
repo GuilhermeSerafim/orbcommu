@@ -21,7 +21,7 @@ Cada task identifica os arquivos, o comportamento a verificar, o teste que deve 
 3. Refatorar e rodar a suíte completa. A regressão é a repetição dos testes acumulados. Para corrigir um bug, começar com um teste que reproduza o defeito e mantê-lo na suíte.
 4. Registrar a mudança com um commit convencional em inglês, como `test(queue): cover duplicate requests` ou `feat(queue): preserve the first active request`.
 
-## CI atual e CD previsto
+## Regressão local e CI
 
 O GitHub Actions executa `npm test` em pull requests e em pushes na `main`. A suíte inicial cobre a regra de validade das campanhas e o percurso de reenvio no protótipo. Ambos exercitam o comportamento existente com dados fictícios no navegador. [Workflow de CI](../.github/workflows/ci.yml)
 
@@ -48,4 +48,14 @@ npm run test:e2e
 
 O preparo inicia PostgreSQL e Auth locais, aplica as migrações e gera os arquivos de ambiente de desenvolvimento e de fixtures. O Playwright inicia o servidor de produção na porta 4174. Para repetir só a fila, execute na raiz `npm --prefix web test -- tests/integration/fila.test.ts` e, depois do build, `npm --prefix web run test:e2e -- tests/e2e/fila.spec.ts`. O aceite passa pelo link geral, pelo reenvio do mesmo WhatsApp com outro nome e pela leitura do primeiro pedido, com o mesmo instante de chegada, em duas sessões independentes.
 
-Para o piloto hospedado, a proposta é conectar a `main` ao Render com **After CI Checks Pass**. A ativação depende da existência do serviço e das variáveis de ambiente do piloto. [Deploy no Render](https://render.com/docs/deploys)
+## Vistoria, convites e retenção
+
+Os testes locais usam contas e pedidos fictícios. O Playwright intercepta o destino do WhatsApp. Duas sessões verificam a reserva de um pedido, a confirmação de envio, a conferência após 24 horas e a atualização do resultado na fila. A conta de leitura consulta os pedidos e recebe uma negativa ao tentar operar ou acessar a configuração do convite.
+
+Para verificar a retenção, execute `npm --prefix web test -- tests/integration/retencao.test.ts`. Ao completar 2.160 horas desde `encerrado_em`, o pedido sai da consulta, da busca e da contagem. Uma aba aberta solicita nova leitura no próximo vencimento. O job PostgreSQL `orbcommu-retencao` executa a limpeza a cada minuto, inclusive com o painel fechado. O teste verifica que uma segunda limpeza remove zero pedidos e que a nova inscrição do mesmo telefone conserva a autoria.
+
+## Publicação e aceite no piloto
+
+Antes de publicar a aplicação no Render, confirmar o CI, conferir a disponibilidade de `pg_cron`, contar os pedidos elegíveis com `encerrado_em <= now() - interval '2160 hours'` e aplicar as migrações na ordem. Conferir em `cron.job` o agendamento ativo e em `cron.job_run_details` a execução bem-sucedida. Em seguida, verificar o formulário público e o painel com a conta de leitura.
+
+O aceite com a equipe usa um pedido identificado e um WhatsApp controlado. Joana aprova e registra o envio, Cris confere o resultado na própria sessão e ambas validam a autoria e o estado final. Registrar o resultado e a data quando esse percurso for realizado no piloto.

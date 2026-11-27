@@ -1,9 +1,9 @@
 import { randomInt, randomUUID } from "node:crypto"
 import { banco } from "./banco"
 
-export function criarCasoPedido() {
+export function criarCasoPedido(prefixo = "Pessoa A") {
   const marcador = randomUUID()
-  const nome = "Pessoa A " + marcador
+  const nome = prefixo + " " + marcador
   const outroNome = "Pessoa B " + marcador
   const telefone = "55119" + String(randomInt(100_000_000)).padStart(8, "0")
   const filtro = ["meet-up-tech-sp", telefone, [nome, outroNome]]
