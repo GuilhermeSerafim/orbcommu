@@ -1,5 +1,6 @@
 import { randomInt, randomUUID } from "node:crypto"
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "../support/playwright"
 import { banco } from "../support/banco"
 import { criarOperadores, fazerLogin } from "../support/operadores"
 
@@ -22,7 +23,6 @@ async function semear(nome: string) {
 test.afterEach(async () => {
   await banco.query("delete from orbcommu.pedidos where id = any($1::bigint[])", [ids.splice(0)])
 })
-test.afterAll(async () => { await banco.end() })
 
 test("protege também o total filtrado", async ({ page, browser, request }) => {
   await semear("Ana")

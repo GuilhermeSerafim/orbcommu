@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "../support/playwright"
 import { criarOperadores, fazerLogin } from "../support/operadores"
 
 test("isola a leitura entre sessões", async ({ browser, page }) => {
