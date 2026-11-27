@@ -14,7 +14,12 @@ const modos = [
 const capacidade = 5
 const nomes = ["Grupo A", "Grupo B", "Grupo C", "Grupo D"]
 const segmentos = [0, 1, 2, 3, 4]
+const statusInicial = "Simulação · 4 vagas já ocupadas"
+const statusFinal = "Grupos lotados · 1 pessoa aguardando"
+const statusChegadas = (chegadas: number) => `Chegadas simuladas · ${chegadas}`
+
 const inicial = {
+  anuncio: "",
   chegadas: 0,
   aguardando: false,
   linhas: modos.map(modo => ({
@@ -24,7 +29,7 @@ const inicial = {
   })),
 }
 
-function avancar(atual: typeof inicial, sorteio: number): typeof inicial {
+function avancar(atual: typeof inicial, sorteio: number, manual: boolean): typeof inicial {
   if (atual.aguardando) return atual
 
   const linhas = atual.linhas.map(linha => {
@@ -35,28 +40,29 @@ function avancar(atual: typeof inicial, sorteio: number): typeof inicial {
     return { ...linha, grupos, ultimo }
   })
 
-  return { chegadas: atual.chegadas + 1, aguardando: linhas[0].ultimo === null, linhas }
+  const chegadas = atual.chegadas + 1
+  const aguardando = linhas[0].ultimo === null
+  const anuncio = aguardando ? statusFinal : manual ? statusChegadas(chegadas) : atual.anuncio
+  return { chegadas, aguardando, linhas, anuncio }
 }
 
 export function Distribuicao() {
   const ref = useRef<HTMLElement>(null)
   const { automatico, alternarPausa, pausado, reduzido } = useMovimento(ref)
-  const [{ chegadas, aguardando, linhas }, atualizar] = useState(inicial)
+  const [{ chegadas, aguardando, linhas, anuncio }, atualizar] = useState(inicial)
 
-  const avancarUmaPessoa = useCallback(() => {
+  const avancarUmaPessoa = useCallback((manual: boolean) => {
     const sorteio = Math.random()
-    atualizar(atual => avancar(atual, sorteio))
+    atualizar(atual => avancar(atual, sorteio, manual))
   }, [])
 
   useEffect(() => {
     if (!automatico || aguardando) return
-    const intervalo = window.setInterval(avancarUmaPessoa, 1200)
+    const intervalo = window.setInterval(() => avancarUmaPessoa(false), 1200)
     return () => window.clearInterval(intervalo)
   }, [automatico, aguardando, avancarUmaPessoa])
 
-  const status = aguardando
-    ? "Grupos lotados · 1 pessoa aguardando"
-    : chegadas ? `Chegadas simuladas · ${chegadas}` : "Simulação · 4 vagas já ocupadas"
+  const status = aguardando ? statusFinal : chegadas ? statusChegadas(chegadas) : statusInicial
 
   return (
     <section className={estilos.distribuicao} id="distribuicao" aria-labelledby="titulo-distribuicao" ref={ref}>
@@ -65,20 +71,25 @@ export function Distribuicao() {
         <p>Acompanhe as mesmas chegadas em três modos de distribuição previstos para o OrbCommu. Cada segmento representa uma vaga.</p>
         <div className={estilos.distribuicaoSimulacao}>
           <div className={estilos.distribuicaoStatus}>
-            <b role="status">{status}</b>
+            <b>{status}</b>
+            <span className="sr-only" role="status">{anuncio}</span>
             <div className={estilos.distribuicaoAcoes}>
               {!reduzido && (
-                <button type="button" aria-disabled={aguardando} onClick={() => !aguardando && alternarPausa()}>
+                <button type="button" aria-disabled={aguardando} onClick={() => {
+                  if (aguardando) return
+                  alternarPausa()
+                  atualizar(atual => ({ ...atual, anuncio: pausado ? "Simulação retomada" : "Simulação pausada" }))
+                }}>
                   {pausado || aguardando ? "Continuar" : "Pausar"}
                 </button>
               )}
               <button type="button" aria-disabled={aguardando} onClick={() => {
                 if (aguardando) return
                 if (!pausado && !reduzido) alternarPausa()
-                avancarUmaPessoa()
+                avancarUmaPessoa(true)
               }}>Avançar uma pessoa</button>
               <button type="button" onClick={() => {
-                atualizar(inicial)
+                atualizar({ ...inicial, anuncio: "Simulação reiniciada" })
                 if (pausado) alternarPausa()
               }}>Recomeçar</button>
             </div>

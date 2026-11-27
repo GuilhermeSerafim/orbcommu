@@ -21,6 +21,7 @@ type Simulacao = {
   grupos: number[]
   ultimoGrupo: number | null
   etapaAna: number
+  reservaAna: number | null
   proximoEvento: number
   evento: string
   ultimoPedido: number
@@ -32,6 +33,7 @@ const inicial: Simulacao = {
   grupos: [20, 17, 0],
   ultimoGrupo: null,
   etapaAna: 0,
+  reservaAna: null,
   proximoEvento: 0,
   evento: "",
   ultimoPedido: 0,
@@ -39,7 +41,7 @@ const inicial: Simulacao = {
 }
 
 function primeiroGrupoComVaga(atual: Simulacao) {
-  return atual.grupos.findIndex(ocupadas => ocupadas < capacidade)
+  return atual.grupos.findIndex((ocupadas, indice) => ocupadas + Number(indice === atual.reservaAna) < capacidade)
 }
 
 function confirmarEntrada(atual: Simulacao, grupo: number): Simulacao {
@@ -51,9 +53,9 @@ function confirmarEntrada(atual: Simulacao, grupo: number): Simulacao {
   }
 }
 
-function estadoPedido(grupo: number | null, lotado: boolean) {
+function estadoPedido(grupo: number | null, semVaga: boolean) {
   if (grupo !== null) return `Entrada confirmada · Grupo ${grupo + 1}`
-  return lotado ? "Aguardando vaga" : "Para analisar"
+  return semVaga ? "Aguardando vaga" : "Para analisar"
 }
 
 function avancar(atual: Simulacao): Simulacao {
@@ -83,10 +85,15 @@ function avancar(atual: Simulacao): Simulacao {
 
 function avancarAna(atual: Simulacao): Simulacao {
   if (atual.etapaAna >= etapasAna.length - 1) return atual
-  const grupo = primeiroGrupoComVaga(atual)
-  if (grupo < 0 && atual.etapaAna >= 1) return atual
   const seguinte = { ...atual, etapaAna: atual.etapaAna + 1 }
-  return seguinte.etapaAna === etapasAna.length - 1 ? confirmarEntrada(seguinte, grupo) : seguinte
+  if (atual.etapaAna === 1) {
+    const grupo = primeiroGrupoComVaga(atual)
+    return grupo < 0 ? atual : { ...seguinte, reservaAna: grupo }
+  }
+  if (atual.etapaAna === etapasAna.length - 2 && atual.reservaAna !== null) {
+    return confirmarEntrada({ ...seguinte, reservaAna: null }, atual.reservaAna)
+  }
+  return seguinte
 }
 
 export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
@@ -98,14 +105,19 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
   const [simulacao, atualizar] = useState(inicial)
   const [mostrarFila, escolherFila] = useState(false)
   const [estadoAna, acaoAna] = etapasAna[simulacao.etapaAna]
-  const lotado = primeiroGrupoComVaga(simulacao) < 0
-  const aguardaVaga = lotado && simulacao.etapaAna >= 1 && simulacao.etapaAna < etapasAna.length - 1
+  const semVaga = primeiroGrupoComVaga(simulacao) < 0
+  const aguardaVaga = semVaga && simulacao.etapaAna === 1
+  const evento = semVaga
+    ? simulacao.reservaAna === null
+      ? "Grupos lotados. Os pedidos aguardam vaga."
+      : "A última vaga está reservada para Ana. Confirme a entrada na Fila ou reinicie."
+    : simulacao.evento
 
   useEffect(() => {
-    if (!automatico || lotado) return
+    if (!automatico || semVaga) return
     const intervalo = window.setInterval(() => atualizar(avancar), 1100)
     return () => window.clearInterval(intervalo)
-  }, [automatico, lotado])
+  }, [automatico, semVaga])
 
   return (
     <div className={estilos.painel}>
@@ -117,7 +129,7 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
       {mostrarFila ? (
         <div>
           <div className={estilos.linhaPainel}><b>Ana</b><span role="status">
-            {estadoAna}{aguardaVaga && simulacao.etapaAna > 1 ? " · Aguardando vaga" : ""}
+            {estadoAna}
           </span></div>
           <button type="button" className={estilos.controlePainel} aria-disabled={!acaoAna || aguardaVaga}
             onClick={() => atualizar(avancarAna)}>{acaoAna ?? "Concluído"}</button>
@@ -129,7 +141,7 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
                 {simulacao.recentes.map(({ id, grupo }) => (
                   <li className={estilos.linhaPainel} key={id}>
                     <b>Pedido {id}</b>
-                    <span>{estadoPedido(grupo, lotado)}</span>
+                    <span>{estadoPedido(grupo, semVaga)}</span>
                   </li>
                 ))}
               </ul>
@@ -145,13 +157,14 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
                 <b>Grupo {indice + 1}</b>
                 <div className={estilos.trilhoPainel} role="meter" aria-label={`Grupo ${indice + 1}`}
                   aria-valuemin={0} aria-valuemax={capacidade} aria-valuenow={ocupadas}
-                  aria-valuetext={`${ocupadas} de ${capacidade} vagas ocupadas${ocupadas === capacidade ? ", lotado" : ""}`}>
+                  aria-valuetext={`${ocupadas} de ${capacidade} vagas ocupadas${ocupadas === capacidade ? ", lotado" : simulacao.reservaAna === indice ? ", 1 reservada para Ana" : ""}`}>
                   <span style={{ width: `${100 * ocupadas / capacidade}%` }} />
                 </div>
               </div>
               <small aria-hidden="true">
                 {ocupadas} / {capacidade}
                 {ocupadas === capacidade && <span className={estilos.grupoLotado}>Lotado</span>}
+                {simulacao.reservaAna === indice && <span className={estilos.grupoLotado}>1 reservada</span>}
               </small>
             </div>
           ))}
@@ -163,12 +176,12 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
             {pausado ? "Retomar animação" : "Pausar animação"}
           </button>
         )}
-        <button type="button" className={estilos.controlePainel} aria-disabled={lotado} onClick={() => atualizar(avancar)}>
+        <button type="button" className={estilos.controlePainel} aria-disabled={semVaga} onClick={() => atualizar(avancar)}>
           Avançar
         </button>
         <button type="button" className={estilos.controlePainel} onClick={() => atualizar(inicial)}>Reiniciar</button>
       </div>
-      <p className={estilos.eventoPainel}>{lotado ? "Grupos lotados. Os pedidos aguardam vaga." : simulacao.evento}</p>
+      <p className={estilos.eventoPainel}>{evento}</p>
     </div>
   )
 }

@@ -66,6 +66,11 @@ it("devolve 503 sem expor detalhes da falha de gravação", async () => {
 
 it.each([
   "ana@ex/ample.org",
+  "ana,silva@example.org",
+  ".ana@example.org",
+  "ana.@example.org",
+  "ana..silva@example.org",
+  "a".repeat(65) + "@example.org",
   "a\u0000na@example.org",
   "ana@example.-org",
   "ana@example.org-",
@@ -77,7 +82,7 @@ it.each([
   expect(gravar).not.toHaveBeenCalled()
 })
 
-it("preserva caracteres usuais da parte local", () => {
-  expect(validarInscricao({ ...inscricao, contato: "Ana.silva+evento@Sub.Example.org" }))
-    .toEqual({ ...inscricao, contato: "ana.silva+evento@sub.example.org" })
+it.each(["Ana.silva+evento", "Ana_Silva-Jr", "Ana.O'Neil"])("preserva caracteres usuais em %s", local => {
+  expect(validarInscricao({ ...inscricao, contato: `${local}@Sub.Example.org` }))
+    .toEqual({ ...inscricao, contato: `${local.toLowerCase()}@sub.example.org` })
 })

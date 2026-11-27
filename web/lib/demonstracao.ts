@@ -13,7 +13,8 @@ function normalizarEmail(valor: string): string | null {
 
   const partes = email.split("@")
   const [local, dominio] = partes
-  if (partes.length !== 2 || !local) return null
+  const atomoLocal = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+$/
+  if (partes.length !== 2 || local.length > 64 || !local.split(".").every(atomo => atomoLocal.test(atomo))) return null
 
   const rotulos = dominio.split(".")
   const rotuloDns = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
