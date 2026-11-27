@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from "next"
 import { Abertura } from "@/components/ui/modren-and-stunning-hero-section"
+import { Distribuicao } from "./distribuicao"
 import { BotaoDemonstracao, InscricaoProvider } from "./inscricao"
 
 export const metadata: Metadata = {
@@ -12,6 +13,7 @@ export default function Organizadores() {
     <InscricaoProvider>
       <main>
         <Abertura chamada={<BotaoDemonstracao />} />
+        <Distribuicao />
       </main>
     </InscricaoProvider>
   )
