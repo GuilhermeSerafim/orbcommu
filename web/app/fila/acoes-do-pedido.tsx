@@ -12,11 +12,21 @@ const mensagens = {
   indisponivel: "Não foi possível concluir a ação. Tente novamente.",
 } satisfies Record<Extract<ResultadoAcao, { ok: false }>["motivo"], string>
 
-export function AcoesDoPedido({ id, situacao, reservaId, atualizar }: { id: string; situacao: string; reservaId: string | null; atualizar: () => void }) {
+type Alternativa = { url: string; reservaId?: string }
+type Props = {
+  id: string
+  situacao: string
+  reservaId: string | null
+  alternativaInicial?: Alternativa
+  aoChamar: (reservaId: string, alternativa?: Alternativa) => void
+  atualizar: () => void
+}
+
+export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, aoChamar, atualizar }: Props) {
   const emAndamento = useRef(false)
   const [pendente, setPendente] = useState(false)
   const [erro, setErro] = useState<string>()
-  const [alternativa, setAlternativa] = useState<{ url: string; reservaId?: string }>()
+  const [alternativa, setAlternativa] = useState(alternativaInicial)
   const [semConvite, setSemConvite] = useState(false)
 
   async function agir(acao: AcaoPedido, botao: HTMLButtonElement) {
@@ -40,13 +50,16 @@ export function AcoesDoPedido({ id, situacao, reservaId, atualizar }: { id: stri
         return
       }
       if (resultado.urlWhatsApp) {
+        let alternativaBloqueada: Alternativa | undefined
         try {
           if (conversa && !conversa.closed) conversa.location.replace(resultado.urlWhatsApp)
-          else setAlternativa({ url: resultado.urlWhatsApp, reservaId: resultado.reservaId })
+          else alternativaBloqueada = { url: resultado.urlWhatsApp, reservaId: resultado.reservaId }
         } catch {
           conversa?.close()
-          setAlternativa({ url: resultado.urlWhatsApp, reservaId: resultado.reservaId })
+          alternativaBloqueada = { url: resultado.urlWhatsApp, reservaId: resultado.reservaId }
         }
+        setAlternativa(alternativaBloqueada)
+        if (acao === "chamar" && resultado.reservaId) aoChamar(resultado.reservaId, alternativaBloqueada)
       } else if (document.activeElement === botao) {
         botao.closest("li")?.querySelector<HTMLElement>(".situacao")?.focus()
       }

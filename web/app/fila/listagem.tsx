@@ -23,6 +23,8 @@ export default function Listagem({ podeOperar, situacoes }: {
   const [filtro, setFiltro] = useState(inicial)
   const [resultado, setResultado] = useState<{ filtro: FiltroFila; dados?: PaginaFila; erro?: string }>()
   const [revisao, setRevisao] = useState(0)
+  const [retomada, setRetomada] = useState<{ id: string; reservaId: string; url?: string; filtroAnterior: FiltroFila }>()
+  const focoRetomada = useRef<string | null>(null)
   const busca = useRef<HTMLInputElement>(null)
   const atualizar = useCallback(() => setRevisao(atual => atual + 1), [])
   useEffect(() => {
@@ -73,7 +75,9 @@ export default function Listagem({ podeOperar, situacoes }: {
   const resposta = resultado?.filtro === filtro ? resultado : undefined
   const dados = resposta?.dados
   function alterar(campos: Partial<FiltroFila>) {
-    setFiltro(atual => ({ ...atual, pagina: 1, ...campos }))
+    setRetomada(undefined)
+    focoRetomada.current = null
+    setFiltro(atual => ({ busca: atual.busca, situacao: atual.situacao, tamanho: atual.tamanho, pagina: 1, ...campos }))
   }
   return <section className="lista-painel" aria-label="Consulta de pedidos">
     <div className="filtros">
@@ -91,13 +95,27 @@ export default function Listagem({ podeOperar, situacoes }: {
         </select><ChevronDown aria-hidden="true" size={16} /></div>
       </div>
     </div>
+    {retomada && filtro.pedidoId === retomada.id && <Button variant="outline" type="button" onClick={() => {
+      setFiltro(retomada.filtroAnterior)
+      setRetomada(undefined)
+      focoRetomada.current = null
+      busca.current?.focus()
+    }}>Voltar para Aguardando vaga</Button>}
     {!resposta && <p className="lista-estado" role="status">Carregando pedidos…</p>}
     {resposta?.erro && <div className="lista-estado" role="alert"><p>{resposta.erro}</p>
       <Button variant="outline" onClick={() => setFiltro({ ...filtro })}>Tentar novamente</Button></div>}
     {dados && <>
       {dados.total > 0 ? <>
         <div className="lista-colunas" aria-hidden="true"><span>Participante</span><span>Origem e recebimento</span><span>Situação</span></div>
-        <ul aria-label="Pedidos em ordem de chegada" className="pedidos">{dados.itens.map(item => <li key={item.id} data-pedido-id={item.id} data-situacao={item.situacao}>
+        <ul aria-label="Pedidos em ordem de chegada" className="pedidos">{dados.itens.map(item => <li key={item.id} data-pedido-id={item.id} data-situacao={item.situacao}
+          ref={linha => {
+            if (!linha || focoRetomada.current !== item.reservaId || !item.reservaId) return
+            focoRetomada.current = null
+            if (document.activeElement === document.body) {
+              const alvo = linha.querySelector<HTMLElement>(".aviso-acao a") ?? linha.querySelector<HTMLElement>(".situacao")
+              alvo?.focus()
+            }
+          }}>
           <div className="pessoa"><strong>{item.nome}</strong><span>{item.telefone.replace(/^55(\d{2})(\d{4,5})(\d{4})$/, "+55 ($1) $2-$3")}</span>
             {item.motivacao && <p className="motivacao">{item.motivacao}</p>}</div>
           <div className="origem"><span>{item.origem}</span><time dateTime={item.recebidoEm}>{horario.format(new Date(item.recebidoEm))}</time></div>
@@ -113,7 +131,15 @@ export default function Listagem({ podeOperar, situacoes }: {
               <time dateTime={item.encerradoEm}>{horario.format(new Date(item.encerradoEm))}</time></p>}
           </div>}
           {podeOperar && temAcoes(item)
-            && <AcoesDoPedido id={item.id} situacao={item.situacao} reservaId={item.reservaId} atualizar={atualizar} />}
+            && <AcoesDoPedido id={item.id} situacao={item.situacao} reservaId={item.reservaId} atualizar={atualizar}
+              alternativaInicial={retomada?.id === item.id && retomada.reservaId === item.reservaId && retomada.url
+                ? { url: retomada.url, reservaId: retomada.reservaId } : undefined}
+              aoChamar={(reservaId, alternativa) => {
+                if (filtro.situacao !== "Aguardando vaga") return
+                focoRetomada.current = reservaId
+                setRetomada({ id: item.id, reservaId, url: alternativa?.url, filtroAnterior: filtro })
+                setFiltro(atual => atual === filtro ? { ...atual, situacao: "Todos", pedidoId: item.id, busca: item.telefone, pagina: 1 } : atual)
+              }} />}
         </li>)}</ul>
       </> : <div className="lista-estado">
         {filtro.busca || filtro.situacao !== "Todos" ? <ListFilter aria-hidden="true" /> : <Inbox aria-hidden="true" />}

@@ -9,7 +9,7 @@ export function situacaoValida(valor: string): valor is SituacaoFila {
   return situacoesFila.some(situacao => situacao === valor)
 }
 
-export type FiltroFila = { busca: string; situacao: SituacaoFila; pagina: number; tamanho: 5 | 10 | 20 }
+export type FiltroFila = { pedidoId?: string; busca: string; situacao: SituacaoFila; pagina: number; tamanho: 5 | 10 | 20 }
 export type ItemFila = {
   id: string
   nome: string
@@ -43,6 +43,7 @@ export async function listarPedidos(operador: Extract<Acesso, { tipo: "operador"
               reserva_id, enviado_em, enviado_por_nome, aprovado_em, aprovado_por, aprovado_por_nome, encerrado_em, encerrado_por_nome
        from orbcommu.pedidos
        where comunidade = $1
+         and ($7::bigint is null or id = $7)
          and ($2 = 'Todos' or ($2 = 'Finalizados' and encerrado_em is not null)
                            or (situacao = $2 and encerrado_em is null))
          and (strpos(lower(nome), lower($3)) > 0 or ($4 <> '' and strpos(telefone, $4) > 0))
@@ -56,7 +57,7 @@ export async function listarPedidos(operador: Extract<Acesso, { tipo: "operador"
      )
      select (select count(*)::int from filtrados) as total,
             coalesce((select json_agg(p order by "recebidoEm", id::bigint) from pagina p), '[]') as itens`,
-    [operador.comunidade, situacao === "Envio a confirmar" ? "Chamada iniciada" : situacao, busca.trim(), digitos, tamanho, (BigInt(pagina - 1) * BigInt(tamanho)).toString()],
+    [operador.comunidade, situacao === "Envio a confirmar" ? "Chamada iniciada" : situacao, busca.trim(), digitos, tamanho, (BigInt(pagina - 1) * BigInt(tamanho)).toString(), filtro.pedidoId ?? null],
   )
   return rows[0]
 }
