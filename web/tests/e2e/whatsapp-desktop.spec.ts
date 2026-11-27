@@ -26,6 +26,7 @@ test("chama pelo aplicativo e confirma os envios diretamente na fila", async ({ 
         }
       }, true))
       await fazerLogin(page, contas.primeira)
+      await expect(page.getByRole("heading", { name: "Fila de entrada" })).toBeVisible()
       await page.goto("/fila?pedido=1")
       await expect(page).toHaveURL(/\/fila$/)
       await page.getByLabel("Pesquisar").fill(busca)
