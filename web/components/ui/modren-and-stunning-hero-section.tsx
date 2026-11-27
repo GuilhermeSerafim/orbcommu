@@ -3,6 +3,7 @@
 import { useRef, type CSSProperties, type ReactNode } from "react"
 import { BotaoDemonstracao } from "@/app/organizadores/inscricao"
 import { Painel } from "@/app/organizadores/painel"
+import { SimboloOrbCommu } from "@/components/marca-orbcommu"
 import { useMovimento } from "@/app/organizadores/use-movimento"
 import estilos from "@/app/organizadores/landing.module.css"
 
@@ -43,7 +44,7 @@ export function Abertura({ chamada, navegacao }: { chamada: ReactNode; navegacao
   return (
     <div className={estilos.abertura} id="inicio" ref={abertura}>
       <header className={`${estilos.largura} ${estilos.cabecalho}`}>
-        <a href="#inicio" className={estilos.marca}><span aria-hidden="true" />OrbCommu</a>
+        <a href="#inicio" className="marca"><SimboloOrbCommu />OrbCommu</a>
         {navegacao}
         <div className={estilos.acoesCabecalho}>
           <BotaoDemonstracao />

@@ -5,6 +5,7 @@ import { AtSign, Link2, Link2Off, QrCode } from "lucide-react"
 import { useMovimento } from "@/app/organizadores/use-movimento"
 import { edicoes, entradasNovembro as entradasAcumuladas, origens as nomesOrigens } from "@/lib/edicoes-exemplo"
 import { Button } from "@/components/ui/button"
+import { SimboloOrbCommu } from "@/components/marca-orbcommu"
 import estilos from "./ink-orbit-features.module.css"
 
 const pessoas = [
@@ -33,10 +34,6 @@ const curva = pontos.reduce((d, ponto, i) => {
   return `${d} C ${meio} ${anterior.y} ${meio} ${ponto.y} ${ponto.x} ${ponto.y}`
 }, "")
 
-function MarcaOrbital() {
-  return <span className={estilos.orbe} aria-hidden="true" />
-}
-
 function FluxoDaEdicao() {
   return (
     <article className={`${estilos.quadro} ${estilos.principal}`}>
@@ -57,9 +54,9 @@ function FluxoDaEdicao() {
             <span key={figura} className={estilos.retrato}
               style={{ left: `${x / 160 * 100}%`, top: `${y / 140 * 100}%`, backgroundImage: `url(/organizadores/personagens/p${figura}.svg)` }} />
           ))}
-          <span className={estilos.nucleoPessoas}><MarcaOrbital /></span>
+          <span className={estilos.nucleoPessoas}><SimboloOrbCommu /></span>
         </div>
-        <div className={estilos.marcaCentral}><MarcaOrbital /><span>OrbCommu</span></div>
+        <div className={estilos.marcaCentral}><SimboloOrbCommu /><span>OrbCommu</span></div>
         <div className={estilos.folhas} aria-hidden="true">
           <div className={estilos.relatorio}>
             <span>Resumo da edição</span>
@@ -101,7 +98,7 @@ function MapaDeOrigens({ automatico }: { automatico: boolean }) {
             </g>
           ))}
         </svg>
-        <span className={estilos.centroMapa} aria-hidden="true"><MarcaOrbital /></span>
+        <span className={estilos.centroMapa} aria-hidden="true"><SimboloOrbCommu /></span>
         {origens.map(({ nome, Icone, cliques }, i) => (
           <Button key={nome} variant="outline" size="icon" className={estilos.origem} type="button"
             aria-label={`${nome}, ${cliques} aberturas`} aria-pressed={ativa === i} title={nome}

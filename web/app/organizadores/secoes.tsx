@@ -1,4 +1,5 @@
 import { BotaoDemonstracao } from "./inscricao"
+import { SimboloOrbCommu } from "@/components/marca-orbcommu"
 import estilos from "./landing.module.css"
 
 export const secoes = [
@@ -113,7 +114,7 @@ export function Rodape() {
   return (
     <footer className={estilos.rodape}>
       <div className={estilos.larguraFechamento}>
-        <a className={estilos.marcaRodape} href="#inicio">OrbCommu</a>
+        <a className={`marca ${estilos.marcaRodape}`} href="#inicio"><SimboloOrbCommu />OrbCommu</a>
         <nav aria-label="Rodapé">
           {secoes.slice(1).map(([id, nome]) => <a key={id} href={`#${id}`}>{nome}</a>)}
           <a href="/entrar">Entrar como equipe</a>

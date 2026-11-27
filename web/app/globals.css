@@ -33,8 +33,8 @@ button:not(:disabled), select { cursor: pointer; }
 .masthead-inner, .entrada-layout, .painel { width: min(1180px, calc(100% - clamp(32px, 9vw, 128px))); margin-inline: auto; }
 .masthead-inner { display: flex; justify-content: space-between; align-items: center; min-height: 77px; gap: 12px; }
 .marca { display: inline-flex; align-items: center; gap: 9px; font: 800 26px/1 var(--titulo); letter-spacing: -.065em; text-decoration: none; }
-.marca-simbolo { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--tinta); color: var(--laranja); }
-.marca-simbolo svg { width: 24px; height: 24px; }
+.marca-simbolo { display: grid; place-items: center; flex: none; width: var(--diametro-marca, 34px); height: var(--diametro-marca, 34px); border-radius: 50%; background: var(--tinta); color: var(--laranja); }
+.marca-simbolo svg { width: var(--icone-marca, 24px); height: var(--icone-marca, 24px); }
 .header-action { height: 44px; font-size: 14px; font-weight: 650; }
 .entrada-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .95fr); gap: clamp(36px, 6vw, 104px); align-items: center; padding-block: clamp(28px, 5vh, 58px); }
 .cartaz { position: relative; display: flex; flex-direction: column; isolation: isolate; min-height: 568px; min-width: 0; align-self: stretch; overflow: hidden; border-radius: 13px; background: var(--laranja); }
@@ -81,7 +81,7 @@ input::placeholder, textarea::placeholder { color: #6b6e63; }
 @media (max-width: 780px) {
   .masthead-inner { min-height: 62px; }
   .marca { font-size: 23px; }
-  .marca-simbolo { width: 30px; height: 30px; }
+  .marca { --diametro-marca: 30px; }
   .entrada-layout { max-width: 600px; grid-template-columns: 1fr; gap: 25px; padding-block: 20px 36px; }
   .cartaz { min-height: 154px; border-radius: 9px; }
   .cartaz-titulo { width: 61%; padding: 18px clamp(12px, 3vw, 20px); }

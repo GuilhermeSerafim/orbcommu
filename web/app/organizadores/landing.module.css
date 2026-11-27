@@ -37,23 +37,6 @@
   font-size: 14px;
 }
 
-.marca {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 25px;
-  font-weight: 730;
-  letter-spacing: -.065em;
-}
-
-.marca span {
-  width: 25px;
-  height: 25px;
-  border: 5px solid #b1a0ff;
-  border-radius: 50%;
-  box-shadow: inset 3px 2px #6953bd;
-}
-
 .acoesCabecalho {
   flex-wrap: wrap;
   gap: 12px;
@@ -249,10 +232,6 @@
 @media (max-width: 760px) {
   .largura {
     padding-inline: 20px;
-  }
-
-  .marca {
-    font-size: 22px;
   }
 
   .hero {

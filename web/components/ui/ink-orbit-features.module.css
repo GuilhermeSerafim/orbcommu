@@ -58,7 +58,7 @@
   mask-image: linear-gradient(#000 87%, transparent);
 }
 
-.conexoes, .ramais, .pessoas svg { position: absolute; }
+.conexoes, .ramais, .pessoas > svg { position: absolute; }
 .conexoes { left: 16%; top: 0; width: 66%; height: 84%; }
 .conexoes path, .ramais path {
   fill: none;
@@ -80,7 +80,7 @@
 .secao[data-animar="true"] .pulso { animation-play-state: running; }
 
 .pessoas { position: absolute; left: 3%; top: 6%; width: 27%; height: 72%; }
-.pessoas svg { inset: 0; width: 100%; height: 100%; }
+.pessoas > svg { inset: 0; width: 100%; height: 100%; }
 .pessoas line { stroke: #6a637b; vector-effect: non-scaling-stroke; }
 .retrato, .nucleoPessoas, .marcaCentral, .centroMapa, .origem { position: absolute; translate: -50% -50%; }
 .retrato {
@@ -104,17 +104,9 @@
   background: var(--acento);
   box-shadow: 0 0 0 1px #322e3e;
 }
-.orbe {
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  flex: none;
-  border: .19em solid var(--acento);
-  border-radius: 50%;
-  box-shadow: inset .1em .08em #7865c8;
-}
-
 .nucleoPessoas, .centroMapa, .marcaCentral {
+  --diametro-marca: 1.35em;
+  --icone-marca: 1em;
   display: flex;
   align-items: center;
   justify-content: center;
