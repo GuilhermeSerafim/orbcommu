@@ -611,9 +611,9 @@
   grid-template-columns: minmax(0, .55fr) minmax(0, 1.45fr);
   gap: 12px 32px;
   padding: clamp(20px, 3vw, 32px);
-  border-left: 3px solid var(--laranja);
+  border-left: 3px solid var(--violeta);
   border-radius: 0 15px 15px 0;
-  background: #faf6f2;
+  background: var(--lavanda);
 }
 
 .pesquisa h3 {

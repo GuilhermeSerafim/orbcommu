@@ -1,5 +1,3 @@
-import { Orbit } from "lucide-react"
-
 export function SimboloOrbCommu() {
-  return <span className="marca-simbolo" aria-hidden="true"><Orbit strokeWidth={2.05} /></span>
+  return <img className="marca-simbolo" src="/icon.svg" width={25} height={25} alt="" />
 }

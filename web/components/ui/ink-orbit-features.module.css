@@ -106,7 +106,6 @@
 }
 .nucleoPessoas, .centroMapa, .marcaCentral {
   --diametro-marca: 1.35em;
-  --icone-marca: 1em;
   display: flex;
   align-items: center;
   justify-content: center;
