@@ -11,16 +11,17 @@ import type { FilaPublica } from "@/lib/filas-publicas"
 
 type Campos = Partial<Record<keyof PedidoValido, string>>
 
-export default function Formulario({ fila }: { fila: Omit<FilaPublica, "cartaz"> }) {
+export default function Formulario({ fila, divulgacao }: Readonly<{ fila: Omit<FilaPublica, "cartaz">; divulgacao?: string }>) {
   const [campos, setCampos] = useState<Campos>({})
   const [pronto, setPronto] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [recebido, setRecebido] = useState(false)
   const [falhou, setFalhou] = useState(false)
+  const [encerrada, setEncerrada] = useState(false)
   const titulo = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => { setPronto(true) }, [])
-  useEffect(() => { if (recebido) titulo.current?.focus() }, [recebido])
+  useEffect(() => { if (recebido || encerrada) titulo.current?.focus() }, [recebido, encerrada])
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
@@ -32,6 +33,7 @@ export default function Formulario({ fila }: { fila: Omit<FilaPublica, "cartaz">
     setEnviando(true)
     try {
       const endpoint = new URL(`/api/pedidos/${fila.slug}`, window.location.origin)
+      if (divulgacao) endpoint.searchParams.set("edicao", divulgacao)
       for (const origem of new URLSearchParams(window.location.search).getAll("origem")) {
         endpoint.searchParams.append("origem", origem)
       }
@@ -41,7 +43,9 @@ export default function Formulario({ fila }: { fila: Omit<FilaPublica, "cartaz">
         body: JSON.stringify(pedido),
       })
       const resultado = await resposta.json()
-      if (resposta.status === 422) {
+      if (divulgacao && resposta.status === 410) {
+        setEncerrada(true)
+      } else if (resposta.status === 422) {
         setCampos(resultado.campos)
         const primeiro = form.elements.namedItem(Object.keys(resultado.campos)[0])
         if (primeiro instanceof HTMLElement) primeiro.focus()
@@ -56,6 +60,11 @@ export default function Formulario({ fila }: { fila: Omit<FilaPublica, "cartaz">
       setEnviando(false)
     }
   }
+
+  if (encerrada) return <section className="formulario-area recibo">
+    <h1 ref={titulo} tabIndex={-1}>Divulgação encerrada</h1>
+    <p className="introducao">O período terminou antes do envio deste pedido.</p>
+  </section>
 
   if (recebido) return <section className="formulario-area recibo">
     <div className="secao-simbolo"><Check aria-hidden="true" size={25} /></div>

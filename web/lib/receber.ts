@@ -1,6 +1,6 @@
 import { validarEntrada, type PedidoValido } from "./entrada"
 
-export async function receberPedido(requisicao: Request, gravar: (pedido: PedidoValido) => Promise<void>): Promise<Response> {
+export async function receberPedido(requisicao: Request, gravar: (pedido: PedidoValido) => Promise<void | "encerrada" | "agendada" | "invalida">): Promise<Response> {
   let entrada: unknown
   try {
     entrada = await requisicao.json()
@@ -10,7 +10,11 @@ export async function receberPedido(requisicao: Request, gravar: (pedido: Pedido
   const resultado = validarEntrada(entrada)
   if (!resultado.ok) return Response.json({ campos: resultado.campos }, { status: 422 })
   try {
-    await gravar(resultado.pedido)
+    const estado = await gravar(resultado.pedido)
+    if (estado) {
+      const status = { encerrada: 410, agendada: 409, invalida: 404 }[estado]
+      return Response.json({ erro: estado }, { status })
+    }
   } catch {
     return Response.json({ erro: "indisponivel" }, { status: 503 })
   }
