@@ -95,10 +95,9 @@ test("percorrer as simulações não envia pedidos", async ({ page }) => {
   await distribuicao.scrollIntoViewIfNeeded()
   await page.clock.runFor(2400)
   await expect(grupoA).toHaveAttribute("aria-valuenow", /^[45]$/)
-  await relatorio.locator("summary").filter({ hasText: "Cliques por dia" }).press("Enter")
-  await relatorio.locator("summary").filter({ hasText: /^Ver valores por dia$/ }).press("Enter")
-  const tabelaDias = relatorio.getByRole("table", { name: "Cliques por dia", exact: true })
-  await expect(tabelaDias.getByRole("rowheader", { name: "16 nov", exact: true })).toBeVisible()
+  const ranking = relatorio.getByRole("table", { name: "Cliques por canal", exact: true })
+  await ranking.scrollIntoViewIfNeeded()
+  await expect(ranking.getByRole("rowheader", { name: "QR do encontro", exact: true })).toBeInViewport()
 
   await expect(page.getByText("Conversa de exemplo · Ana", { exact: true })).toHaveCount(0)
   const operacao = page.getByRole("region", { name: "A operação da sua comunidade", exact: true })

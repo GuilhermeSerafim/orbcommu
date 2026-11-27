@@ -50,7 +50,6 @@ export function ComparacaoEdicoes() {
     <section id="comparacao-edicoes" className={estilos.secao} aria-labelledby="titulo-comparacao">
       <div className={estilos.conteudo}>
         <h2 id="titulo-comparacao">O que mudou de uma edição para a outra?</h2>
-        <p className={estilos.periodo}>Outubro → novembro · dados de exemplo</p>
         <dl ref={faixa} className={estilos.faixa}>
           {indicadores.map(({ titulo, valor, unidade, descricao, destaque }) => (
             <div key={titulo} className={destaque ? estilos.destaque : undefined}>
@@ -66,10 +65,6 @@ export function ComparacaoEdicoes() {
             </div>
           ))}
         </dl>
-        <details className={estilos.piloto}>
-          <summary>Como vamos medir o tempo da equipe no piloto?</summary>
-          <p>Em cada edição, vamos somar os minutos que a equipe dedica a analisar pedidos, enviar convites e confirmar entradas. Dividindo esse total pelo número de pedidos tratados, podemos comparar o tempo por pedido no processo atual e no OrbCommu.</p>
-        </details>
       </div>
     </section>
   )

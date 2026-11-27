@@ -12,16 +12,11 @@
   letter-spacing: -.055em;
   text-wrap: balance;
 }
-.periodo {
-  margin: 18px 0 22px;
-  color: #595265;
-  font: 550 15px/1.4 var(--corpo);
-}
 
 .faixa {
   display: grid;
   grid-template-columns: 1fr 1.1fr 1fr;
-  margin: 0;
+  margin: 24px 0 0;
   overflow: hidden;
   border: 1px solid #ded9e7;
   border-radius: 18px;
@@ -70,11 +65,6 @@
 .destaque dt, .destaque dd p { color: #f0e9fc; }
 .destaque .numero { color: #e1cfff; font-size: clamp(68px, 7.4vw, 106px); font-weight: 650; }
 
-.piloto { margin-top: 10px; color: #51495d; font: 400 14px/1.55 var(--corpo); }
-.piloto summary { width: fit-content; padding: 12px 0; color: #4f435f; font-weight: 650; cursor: pointer; }
-.piloto summary:hover { text-decoration: underline; text-underline-offset: .2em; }
-.piloto summary:focus-visible { outline: 3px solid #6858c7; outline-offset: 3px; }
-.piloto p { max-width: 78ch; margin: 0 0 10px; }
 @media (max-width: 700px) {
   .faixa { grid-template-columns: 1fr; }
   .faixa > div { padding: 22px; }

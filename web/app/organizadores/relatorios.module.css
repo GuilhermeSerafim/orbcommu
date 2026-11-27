@@ -85,36 +85,6 @@
 .canais tbody tr:first-child .barra { background: #7353bc; }
 .canais tbody tr:first-child td { color: #6443a4; }
 
-.detalhe { border-top: 1px solid #e4dfeb; }
-.detalhe > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-block: 15px;
-  color: #493c5c;
-  font: 600 15px/1.3 var(--corpo);
-  list-style: none;
-}
-.detalhe > summary::-webkit-details-marker { display: none; }
-.detalhe summary { cursor: pointer; }
-.detalhe summary:hover { color: #633dae; }
-.detalhe summary:focus-visible { outline: 2px solid #7558ac; outline-offset: 2px; border-radius: 3px; }
-.detalhe[open] > summary svg { transform: rotate(180deg); }
-.diario, .resumo { padding: 0 0 16px; color: #585161; font-size: 15px; line-height: 1.5; }
-.diario strong { color: #3e3153; }
-.plotagem { display: grid; place-items: center; height: 210px; margin-top: 8px; }
-.carregando { color: #655c6d; }
-.valores summary { width: fit-content; padding: 12px 0; font-size: 14px; }
-.valores table { width: 100%; border-collapse: collapse; }
-.valores :is(th, td) { text-align: left; padding: 7px 0; border-bottom: 1px solid #ede9f1; }
-.valores th[scope="row"] { font-weight: 400; }
-.valores :is(th, td):last-child { text-align: right; font-variant-numeric: tabular-nums; }
-.resumo dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.resumo dt { font-size: 14px; line-height: 1.3; }
-.resumo dd { margin-top: 4px; font: 640 26px/1.1 var(--titulo); color: #3e3153; }
-.resumo p { margin-top: 16px; }
-
 @media (max-width: 760px) {
   .conteudo { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .cabecalho { padding-top: 0; }
