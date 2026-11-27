@@ -1,15 +1,16 @@
-import { ArrowLeft, ArrowUpRight, MapPin, Orbit } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, MapPin } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
+import { SimboloOrbCommu } from "@/components/marca-orbcommu"
 import fotoDoEncontro from "../public/meetup.jpg"
 
 export function Cabecalho({ children }: { children: ReactNode }) {
   return <header className="masthead">
     <div className="masthead-inner">
       <Link href="/" className="marca" aria-label="OrbCommu, página inicial">
-        <span className="marca-simbolo"><Orbit aria-hidden="true" strokeWidth={2.05} /></span>
+        <SimboloOrbCommu />
         OrbCommu
       </Link>
       {children}
