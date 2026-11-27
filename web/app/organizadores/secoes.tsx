@@ -1,7 +1,5 @@
 import { BotaoDemonstracao } from "./inscricao"
 import { AcordeaoDuvidas } from "./acordeao-duvidas"
-import { SimboloOrbCommu } from "@/components/marca-orbcommu"
-import { linkDeParticipacao, meetUpTechSP } from "@/lib/filas-publicas"
 import { PlusIcon } from "lucide-react"
 import estilos from "./landing.module.css"
 
@@ -111,12 +109,8 @@ export function Rodape() {
   return (
     <footer className={estilos.rodape}>
       <div className={estilos.larguraFechamento}>
-        <a className={`marca ${estilos.marcaRodape}`} href="#inicio"><SimboloOrbCommu />OrbCommu</a>
-        <nav aria-label="Rodapé">
-          {secoes.slice(1).map(([id, nome]) => <a key={id} href={`#${id}`}>{nome}</a>)}
-          <a href="/entrar">Entrar como equipe</a>
-          <a href={linkDeParticipacao(meetUpTechSP)}>{meetUpTechSP.titulo}</a>
-        </nav>
+        <p>Criado por <a href="https://guiler.vercel.app/">Guiler</a></p>
+        <p>Todos os direitos reservados.</p>
       </div>
     </footer>
   )

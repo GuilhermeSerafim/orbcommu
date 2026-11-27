@@ -1,9 +1,8 @@
 "use client"
 
 import { useRef, type CSSProperties, type ReactNode } from "react"
-import { BotaoDemonstracao } from "@/app/organizadores/inscricao"
+import { CabecalhoLanding } from "@/app/organizadores/cabecalho"
 import { Painel } from "@/app/organizadores/painel"
-import { SimboloOrbCommu } from "@/components/marca-orbcommu"
 import { useMovimento } from "@/app/organizadores/use-movimento"
 import estilos from "@/app/organizadores/landing.module.css"
 
@@ -43,13 +42,7 @@ export function Abertura({ chamada, navegacao }: { chamada: ReactNode; navegacao
 
   return (
     <div className={estilos.abertura} id="inicio" ref={abertura}>
-      <header className={`${estilos.largura} ${estilos.cabecalho}`}>
-        <a href="#inicio" className="marca"><SimboloOrbCommu />OrbCommu</a>
-        {navegacao}
-        <div className={estilos.acoesCabecalho}>
-          <BotaoDemonstracao />
-        </div>
-      </header>
+      <CabecalhoLanding navegacao={navegacao} />
       <section className={`${estilos.largura} ${estilos.hero}`} aria-labelledby="organizadores-titulo">
         <div>
           <h1 id="organizadores-titulo">Organize inscrições e filas de espera para turmas e eventos<span>.</span></h1>
