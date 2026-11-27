@@ -1,5 +1,5 @@
 "use client"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import type { AcaoPedido, ResultadoAcao } from "../../lib/operacao"
 import { agirNoPedido } from "./acoes"
@@ -21,23 +21,24 @@ type Props = {
   id: string
   situacao: string
   reservaId: string | null
-  alternativaInicial?: Alternativa
-  chamadaIncerta?: boolean
-  aoChamar: (reservaId?: string, alternativa?: Alternativa) => void
+  aoIniciarChamada: () => void
   atualizar: () => void
   prepararAba: () => AberturaWhatsApp
 }
 
-export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, chamadaIncerta, aoChamar, atualizar, prepararAba }: Props) {
+export function AcoesDoPedido({ id, situacao, reservaId, aoIniciarChamada, atualizar, prepararAba }: Props) {
   const emAndamento = useRef(false)
   const [pendente, setPendente] = useState(false)
-  const [erro, setErro] = useState<string | undefined>(chamadaIncerta ? avisoChamada : undefined)
-  const [alternativa, setAlternativa] = useState(alternativaInicial)
+  const [erro, setErro] = useState<string>()
+  const [alternativa, setAlternativa] = useState<Alternativa>()
+  const linkAlternativo = useRef<HTMLAnchorElement>(null)
+  useEffect(() => { linkAlternativo.current?.focus({ preventScroll: true }) }, [alternativa, situacao, reservaId])
 
   async function agir(acao: AcaoPedido, botao: HTMLButtonElement) {
     if (emAndamento.current) return
     emAndamento.current = true
     botao.focus()
+    if (acao === "chamar") aoIniciarChamada()
     const conversa = ["conversar", "chamar", "reabrir"].includes(acao) ? prepararAba() : null
     setPendente(true)
     setErro(undefined)
@@ -55,14 +56,15 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
         const url = destinoDaConversa(resultado.urlWhatsApp, navigator)
         const alternativaBloqueada = conversa?.abrir(url) ? undefined : { url, reservaId: resultado.reservaId }
         setAlternativa(alternativaBloqueada)
-        if (acao === "chamar" && resultado.reservaId) aoChamar(resultado.reservaId, alternativaBloqueada)
       } else if (document.activeElement === botao) {
         botao.closest("li")?.querySelector<HTMLElement>(".situacao")?.focus()
       }
       atualizar()
     } catch {
       conversa?.cancelar()
-      if (acao === "chamar") aoChamar()
+      if (acao === "chamar" && document.activeElement === botao) {
+        botao.closest("li")?.querySelector<HTMLElement>(".situacao")?.focus({ preventScroll: true })
+      }
       setErro(acao === "chamar" ? avisoChamada : mensagens.indisponivel)
       atualizar()
     } finally {
@@ -91,7 +93,8 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
     </>}
     {erro && <p className="aviso-acao" role="alert">{erro}</p>}
     {alternativa && (alternativa.reservaId ? situacao === "Chamada iniciada" && alternativa.reservaId === reservaId : situacao === "Para analisar") && <p className="aviso-acao">
-      A conversa não abriu automaticamente. <a href={alternativa.url} target={alternativa.url.startsWith("https://wa.me/") ? "_blank" : "_self"} rel="noopener noreferrer" onClick={evento => {
+      A conversa não abriu automaticamente. <a ref={linkAlternativo} href={alternativa.url} target={alternativa.url.startsWith("https://wa.me/") ? "_blank" : "_self"} rel="noopener noreferrer" onClick={evento => {
+        if (alternativa.url.startsWith("whatsapp:")) return
         if (!evento.ctrlKey && !evento.metaKey && !evento.shiftKey && !evento.altKey && prepararAba().abrir(alternativa.url)) evento.preventDefault()
       }}>Abrir a conversa</a>
     </p>}

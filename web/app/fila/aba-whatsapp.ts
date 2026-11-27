@@ -1,6 +1,6 @@
 "use client"
 import { useRef } from "react"
-import { usarWhatsAppWeb } from "../../lib/convite"
+import { usarWhatsAppDesktop } from "../../lib/convite"
 
 export type AberturaWhatsApp = { abrir: (url: string) => boolean; cancelar: () => void }
 
@@ -11,14 +11,21 @@ export function useAbaWhatsApp() {
   const vazia = useRef(false)
   const ultimaTentativa = useRef(0)
 
-  function preparar(guardarPedido: () => void): AberturaWhatsApp {
+  function preparar(): AberturaWhatsApp {
     const tentativa = ++ultimaTentativa.current
-    if (usarWhatsAppWeb(navigator)) {
+    if (usarWhatsAppDesktop(navigator)) {
       return {
         abrir(url) {
-          if (tentativa !== ultimaTentativa.current) return false
-          guardarPedido()
-          window.location.assign(url)
+          if (tentativa !== ultimaTentativa.current || navigator.userActivation?.isActive === false) return false
+          const atalho = document.createElement("a")
+          atalho.href = url
+          atalho.hidden = true
+          document.body.append(atalho)
+          try {
+            atalho.click()
+          } finally {
+            atalho.remove()
+          }
           return true
         },
         cancelar() {},
