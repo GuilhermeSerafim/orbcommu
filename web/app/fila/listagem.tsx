@@ -23,7 +23,7 @@ export default function Listagem({ podeOperar, situacoes }: {
   const [filtro, setFiltro] = useState(inicial)
   const [resultado, setResultado] = useState<{ filtro: FiltroFila; dados?: PaginaFila; erro?: string }>()
   const [revisao, setRevisao] = useState(0)
-  const [retomada, setRetomada] = useState<{ id: string; reservaId: string; url?: string; filtroAnterior: FiltroFila }>()
+  const [retomada, setRetomada] = useState<{ id: string; reservaId?: string; url?: string; filtroAnterior: FiltroFila }>()
   const focoRetomada = useRef<string | null>(null)
   const busca = useRef<HTMLInputElement>(null)
   const atualizar = useCallback(() => setRevisao(atual => atual + 1), [])
@@ -114,7 +114,7 @@ export default function Listagem({ podeOperar, situacoes }: {
         <div className="lista-colunas" aria-hidden="true"><span>Participante</span><span>Origem e recebimento</span><span>Situação</span></div>
         <ul aria-label="Pedidos em ordem de chegada" className="pedidos">{dados.itens.map(item => <li key={item.id} data-pedido-id={item.id} data-situacao={item.situacao}
           ref={linha => {
-            if (!linha || focoRetomada.current !== item.reservaId || !item.reservaId) return
+            if (!linha || focoRetomada.current !== item.id) return
             focoRetomada.current = null
             if (document.activeElement === document.body) {
               const alvo = linha.querySelector<HTMLElement>(".aviso-acao a") ?? linha.querySelector<HTMLElement>(".situacao")
@@ -125,7 +125,9 @@ export default function Listagem({ podeOperar, situacoes }: {
             {item.motivacao && <p className="motivacao">{item.motivacao}</p>}</div>
           <div className="origem"><span>{item.origem}</span><time dateTime={item.recebidoEm}>{horario.format(new Date(item.recebidoEm))}</time></div>
           <span className="situacao" tabIndex={-1}>{item.situacao}</span>
-          {(item.conversadoEm || item.aprovadoEm || item.encerradoPorNome || item.enviadoEm) && <div className="historico-vistoria" aria-live="polite">
+          {(item.situacao === "Convite enviado" || item.situacao === "Prazo encerrado")
+            ? <div className="historico-vistoria" aria-live="polite">Enviado por {item.enviadoPorNome}</div>
+            : (item.conversadoEm || item.aprovadoEm || item.encerradoPorNome || item.enviadoEm) && <div className="historico-vistoria" aria-live="polite">
             {item.conversadoEm && <p>{item.conversadoPorNome} abriu o WhatsApp às{" "}
               <time dateTime={item.conversadoEm} title={horario.format(new Date(item.conversadoEm))}>{hora.format(new Date(item.conversadoEm))}</time></p>}
             {item.aprovadoEm && <p>{item.aprovadoPorNome} aprovou em{" "}
@@ -137,11 +139,12 @@ export default function Listagem({ podeOperar, situacoes }: {
           </div>}
           {podeOperar && temAcoes(item)
             && <AcoesDoPedido id={item.id} situacao={item.situacao} reservaId={item.reservaId} atualizar={atualizar}
+              chamadaIncerta={retomada?.id === item.id && !retomada.reservaId}
               alternativaInicial={retomada?.id === item.id && retomada.reservaId === item.reservaId && retomada.url
                 ? { url: retomada.url, reservaId: retomada.reservaId } : undefined}
               aoChamar={(reservaId, alternativa) => {
                 if (filtro.situacao !== "Aguardando vaga") return
-                focoRetomada.current = reservaId
+                focoRetomada.current = item.id
                 setRetomada({ id: item.id, reservaId, url: alternativa?.url, filtroAnterior: filtro })
                 setFiltro(atual => atual === filtro ? { ...atual, situacao: "Todos", pedidoId: item.id, busca: item.telefone, pagina: 1 } : atual)
               }} />}

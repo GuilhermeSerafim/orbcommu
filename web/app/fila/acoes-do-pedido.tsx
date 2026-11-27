@@ -12,20 +12,23 @@ const mensagens = {
   indisponivel: "Não foi possível concluir a ação. Tente novamente.",
 } satisfies Record<Extract<ResultadoAcao, { ok: false }>["motivo"], string>
 
+const avisoChamada = "A resposta da chamada se perdeu. Confira a situação do pedido antes de continuar."
+
 type Alternativa = { url: string; reservaId?: string }
 type Props = {
   id: string
   situacao: string
   reservaId: string | null
   alternativaInicial?: Alternativa
-  aoChamar: (reservaId: string, alternativa?: Alternativa) => void
+  chamadaIncerta?: boolean
+  aoChamar: (reservaId?: string, alternativa?: Alternativa) => void
   atualizar: () => void
 }
 
-export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, aoChamar, atualizar }: Props) {
+export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, chamadaIncerta, aoChamar, atualizar }: Props) {
   const emAndamento = useRef(false)
   const [pendente, setPendente] = useState(false)
-  const [erro, setErro] = useState<string>()
+  const [erro, setErro] = useState<string | undefined>(chamadaIncerta ? avisoChamada : undefined)
   const [alternativa, setAlternativa] = useState(alternativaInicial)
   const [semConvite, setSemConvite] = useState(false)
 
@@ -66,7 +69,8 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, aoC
       atualizar()
     } catch {
       conversa?.close()
-      setErro(mensagens.indisponivel)
+      if (acao === "chamar") aoChamar()
+      setErro(acao === "chamar" ? avisoChamada : mensagens.indisponivel)
       atualizar()
     } finally {
       emAndamento.current = false
@@ -89,7 +93,7 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, aoC
     </>}
     {(situacao === "Convite enviado" || situacao === "A conferir") && <>
       <Button type="button" aria-disabled={pendente} onClick={e => void agir("confirmar_entrada", e.currentTarget)}>Confirmar entrada</Button>
-      <Button variant="outline" type="button" aria-disabled={pendente} onClick={e => void agir("desistir", e.currentTarget)}>Registrar desist?ncia</Button>
+      <Button variant="outline" type="button" aria-disabled={pendente} onClick={e => void agir("desistir", e.currentTarget)}>Registrar desistência</Button>
       {situacao === "A conferir" && <Button variant="ghost" type="button" aria-disabled={pendente} onClick={e => void agir("encerrar_sem_aceite", e.currentTarget)}>Encerrar sem aceite</Button>}
     </>}
     {semConvite && <Button type="button" variant="outline" onClick={() => {
