@@ -96,12 +96,7 @@ function avancarAna(atual: Simulacao): Simulacao {
   return seguinte
 }
 
-export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
-  automatico: boolean
-  alternarPausa: () => void
-  pausado?: boolean
-  reduzido?: boolean
-}) {
+export function Painel({ automatico }: { automatico: boolean }) {
   const [simulacao, atualizar] = useState(inicial)
   const [mostrarFila, escolherFila] = useState(false)
   const [estadoAna, acaoAna] = etapasAna[simulacao.etapaAna]
@@ -110,7 +105,7 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
   const evento = semVaga
     ? simulacao.reservaAna === null
       ? "Grupos lotados. Os pedidos aguardam vaga."
-      : "A última vaga está reservada para Ana. Confirme a entrada na Fila ou reinicie."
+      : "A última vaga está reservada para Ana. Confirme a entrada na Fila."
     : simulacao.evento
 
   useEffect(() => {
@@ -170,17 +165,6 @@ export function Painel({ automatico, alternarPausa, pausado, reduzido }: {
           ))}
         </div>
       )}
-      <div className={estilos.acoesPainel}>
-        {!reduzido && (
-          <button type="button" className={estilos.controlePainel} onClick={alternarPausa}>
-            {pausado ? "Retomar animação" : "Pausar animação"}
-          </button>
-        )}
-        <button type="button" className={estilos.controlePainel} aria-disabled={semVaga} onClick={() => atualizar(avancar)}>
-          Avançar
-        </button>
-        <button type="button" className={estilos.controlePainel} onClick={() => atualizar(inicial)}>Reiniciar</button>
-      </div>
       <p className={estilos.eventoPainel}>{evento}</p>
     </div>
   )

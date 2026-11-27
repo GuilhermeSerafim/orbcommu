@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, type PointerEvent } from "react"
-import { AtSign, Link2, Link2Off, Pause, Play, QrCode } from "lucide-react"
+import { AtSign, Link2, Link2Off, QrCode } from "lucide-react"
 import { useMovimento } from "@/app/organizadores/use-movimento"
 import { edicoes, entradasNovembro as entradasAcumuladas, origens as nomesOrigens } from "@/lib/edicoes-exemplo"
 import { Button } from "@/components/ui/button"
@@ -153,7 +153,7 @@ function CurvaDeEntradas() {
 
 export function InkOrbitFeatures() {
   const ref = useRef<HTMLElement>(null)
-  const { automatico, pausado, reduzido, alternarPausa } = useMovimento(ref)
+  const automatico = useMovimento(ref)
 
   return (
     <section ref={ref} id="operacao" aria-labelledby="titulo-operacao" className={estilos.secao} data-animar={automatico}>
@@ -161,11 +161,7 @@ export function InkOrbitFeatures() {
         <h2 id="titulo-operacao">A operação da <span>sua comunidade</span></h2>
         <FluxoDaEdicao />
         <div className={estilos.par}><MapaDeOrigens automatico={automatico} /><CurvaDeEntradas /></div>
-        <div className={estilos.rodape}><small>Edição de exemplo · {edicoes.nov.periodo}</small>
-          {!reduzido && <Button variant="ghost" size="sm" type="button" className={estilos.pausa} onClick={alternarPausa}>
-            {pausado ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}{pausado ? "Retomar animação" : "Pausar animação"}
-          </Button>}
-        </div>
+        <small className={estilos.rodape}>Edição de exemplo · {edicoes.nov.periodo}</small>
       </div>
     </section>
   )

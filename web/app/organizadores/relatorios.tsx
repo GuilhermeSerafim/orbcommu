@@ -79,7 +79,6 @@ export function Relatorios() {
             </div>
           </div>
         </div>
-        <p className={estilos.nota}>Dados fictícios. A origem acompanha o link da divulgação, inclusive quando alguém o encaminha. O QR abre esse mesmo link.</p>
       </div>
     </section>
   )

@@ -73,11 +73,23 @@ test("percorrer as simulações não envia pedidos", async ({ page }) => {
   page.on("request", pedido => {
     if (pedido.method() === "POST") posts.push(pedido.url())
   })
-  await page.emulateMedia({ reducedMotion: "reduce" })
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await page.clock.install()
   await page.goto("/organizadores")
+  const controlesRemovidos = [
+    "Pausar animação", "Retomar animação", "Pausar", "Continuar", "Avançar",
+    "Avançar uma pessoa", "Reiniciar", "Recomeçar", "Simular envio",
+  ]
+  for (const nome of controlesRemovidos) {
+    await expect(page.getByRole("button", { name: nome, exact: true })).toHaveCount(0)
+  }
+  await expect(page.locator("#relatorios").getByText(/A origem acompanha o link da divulgação/)).toHaveCount(0)
   await page.getByRole("button", { name: "Fila", exact: true }).click()
   await page.getByRole("button", { name: "Aprovar Ana" }).click()
-  await page.getByRole("button", { name: "Avançar uma pessoa" }).click()
+  const distribuicao = page.getByRole("region", { name: "Como os grupos enchem?" })
+  await distribuicao.scrollIntoViewIfNeeded()
+  await page.clock.runFor(2400)
+  await expect(distribuicao.getByText(/^Chegadas simuladas · \d+$/)).toBeVisible()
   await page.getByRole("combobox", { name: "Edição de exemplo" }).selectOption("out")
 
   await expect(page.getByText("Conversa de exemplo · Ana", { exact: true })).toHaveCount(0)

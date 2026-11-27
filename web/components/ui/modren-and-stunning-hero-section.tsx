@@ -38,7 +38,7 @@ const personagens = Array.from({ length: 42 }, (_, indice) => {
 
 export function Abertura({ chamada, navegacao }: { chamada: ReactNode; navegacao: ReactNode }) {
   const abertura = useRef<HTMLDivElement>(null)
-  const movimento = useMovimento(abertura)
+  const automatico = useMovimento(abertura)
 
   return (
     <div className={estilos.abertura} id="inicio" ref={abertura}>
@@ -59,9 +59,9 @@ export function Abertura({ chamada, navegacao }: { chamada: ReactNode; navegacao
           </div>
           <p className={estilos.nota}>Deixe seu contato para entrar na fila da demonstração.</p>
         </div>
-        <Painel {...movimento} />
+        <Painel automatico={automatico} />
       </section>
-      <div className={estilos.multidao} data-animada={movimento.automatico} aria-hidden="true">
+      <div className={estilos.multidao} data-animada={automatico} aria-hidden="true">
         {personagens.map(({ src, estilo }, indice) => (
           <img key={indice} src={src} style={estilo} alt="" aria-hidden="true"
             width={240} height={324} draggable={false} decoding="async" />

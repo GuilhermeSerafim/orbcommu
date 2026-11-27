@@ -91,14 +91,13 @@ async function verificarImoveis(cena: Locator) {
   expect(depois).toEqual(antes)
 }
 
-test("pausar ou preferir movimento reduzido mantém a multidão imóvel", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" })
+test("a multidão acompanha as mudanças na preferência de movimento", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
   const cena = await abrirMultidao(page)
-  await expect(cena).toHaveAttribute("data-animada", "true")
-  await page.getByRole("button", { name: "Pausar animação" }).click()
   await verificarImoveis(cena)
-  await page.getByRole("button", { name: "Retomar animação" }).click()
+  await page.emulateMedia({ reducedMotion: "no-preference" })
   await expect(cena).toHaveAttribute("data-animada", "true")
+  await expect(cena.locator("img").first()).toHaveCSS("animation-play-state", "running")
   await page.emulateMedia({ reducedMotion: "reduce" })
   await verificarImoveis(cena)
 })

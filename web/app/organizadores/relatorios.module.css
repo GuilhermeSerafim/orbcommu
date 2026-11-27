@@ -187,13 +187,6 @@
   background: #584ac8;
 }
 
-.nota {
-  margin-top: 14px;
-  color: #655f76;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
 @media (max-width: 720px) {
   .cabecalho {
     display: grid;

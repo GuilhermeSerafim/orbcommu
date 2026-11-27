@@ -15,7 +15,7 @@
 }
 
 .cabecalho, .cabecalho nav, .acoesCabecalho, .acoesHero,
-.cabecalhoPainel, .abasPainel, .linhaPainel, .acoesPainel {
+.cabecalhoPainel, .abasPainel, .linhaPainel {
   display: flex;
   align-items: center;
 }
@@ -210,12 +210,6 @@
   border-radius: inherit;
   background: #b9a8ff;
   transition: width .4s;
-}
-
-.acoesPainel {
-  flex-wrap: wrap;
-  gap: 9px;
-  margin-top: 12px;
 }
 
 .controlePainel {
@@ -609,33 +603,10 @@
 }
 
 .distribuicaoStatus {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 12px;
   margin-top: 12px;
-}
-.distribuicaoStatus b { color: #494654; font-size: 13px; }
-.distribuicaoAcoes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.distribuicaoAcoes button {
-  min-height: 44px;
-  padding: 7px 10px;
-  border: 1px solid #d4d2df;
-  border-radius: 8px;
-  background: white;
-  color: #333143;
-  font: inherit;
+  color: #494654;
   font-size: 13px;
-  cursor: pointer;
 }
-.distribuicaoAcoes button:hover:not([aria-disabled="true"]) { border-color: #948ba8; }
-.distribuicaoAcoes button:focus-visible { outline: 3px solid #584ac8; outline-offset: 2px; }
-.distribuicaoAcoes button[aria-disabled="true"] { opacity: .55; cursor: default; }
 
 @media (max-width: 760px) {
   .distribuicaoConteudo { grid-template-columns: 1fr; gap: 28px; }
@@ -646,7 +617,6 @@
   .distribuicaoModo { grid-template-columns: 84px minmax(0, 1fr); gap: 14px; padding: 18px 14px; }
   .distribuicaoGrupos { gap: 2px; }
   .distribuicaoLegenda { padding-inline: 14px; }
-  .distribuicaoAcoes button { padding-inline: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

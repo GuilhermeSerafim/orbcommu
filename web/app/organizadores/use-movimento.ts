@@ -6,7 +6,6 @@ export function useMovimento(ref: RefObject<HTMLElement | null>) {
   const [visivel, definirVisivel] = useState(false)
   const [abaVisivel, definirAbaVisivel] = useState(false)
   const [reduzido, definirReduzido] = useState(false)
-  const [pausado, definirPausado] = useState(false)
 
   useEffect(() => {
     const secao = ref.current
@@ -30,10 +29,5 @@ export function useMovimento(ref: RefObject<HTMLElement | null>) {
     }
   }, [ref])
 
-  return {
-    automatico: visivel && abaVisivel && !reduzido && !pausado,
-    alternarPausa: () => definirPausado(estado => !estado),
-    pausado,
-    reduzido,
-  }
+  return visivel && abaVisivel && !reduzido
 }
