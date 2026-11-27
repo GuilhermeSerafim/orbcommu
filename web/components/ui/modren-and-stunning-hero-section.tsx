@@ -51,7 +51,7 @@ export function Abertura({ chamada, navegacao }: { chamada: ReactNode; navegacao
       </header>
       <section className={`${estilos.largura} ${estilos.hero}`} aria-labelledby="organizadores-titulo">
         <div>
-          <h1 id="organizadores-titulo">Uma fila para organizar a entrada na sua comunidade<span>.</span></h1>
+          <h1 id="organizadores-titulo">Organize inscrições e filas de espera para turmas e eventos<span>.</span></h1>
           <p className={estilos.textoHero}>Receba os pedidos em ordem de chegada e convide pelo WhatsApp quando surgir uma vaga.</p>
           <div className={estilos.acoesHero}>
             {chamada}
