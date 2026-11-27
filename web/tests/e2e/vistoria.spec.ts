@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test"
 import { test } from "../support/playwright"
 import { banco } from "../support/banco"
+import { comFixtureConvite } from "../support/convite"
 import { criarOperadores, fazerLogin } from "../support/operadores"
 import { criarCasoPedido } from "../support/pedidos"
 
@@ -106,34 +107,34 @@ test("compartilha o link do grupo apenas entre contas operacionais", async ({ pa
   const contas = await criarOperadores()
   const segunda = await browser.newPage()
   const leitora = await browser.newPage()
-  const convite = "https://chat.whatsapp.com/FixtureAb123"
 
   try {
-    await fazerLogin(page, contas.primeira)
-    await page.getByText("Link do grupo", { exact: true }).click()
-    const campo = page.getByLabel("Link de convite do WhatsApp")
-    await campo.fill(convite + "?mode=ac_t")
-    await page.getByRole("button", { name: "Salvar link" }).click()
-    await expect(page.getByText("Link salvo.")).toBeVisible()
-    await expect(campo).toHaveValue(convite)
+    await comFixtureConvite("meet-up-tech-sp", async (convite) => {
+      await fazerLogin(page, contas.primeira)
+      await page.getByText("Link do grupo", { exact: true }).click()
+      const campo = page.getByLabel("Link de convite do WhatsApp")
+      await campo.fill(convite + "?mode=ac_t")
+      await page.getByRole("button", { name: "Salvar link" }).click()
+      await expect(page.getByText("Link salvo.")).toBeVisible()
+      await expect(campo).toHaveValue(convite)
 
-    await campo.fill("https://example.test/formulario")
-    await page.getByRole("button", { name: "Salvar link" }).click()
-    await expect(page.getByText("Informe um link de convite do grupo do WhatsApp.")).toBeVisible()
+      await campo.fill("https://example.test/formulario")
+      await page.getByRole("button", { name: "Salvar link" }).click()
+      await expect(page.getByText("Informe um link de convite do grupo do WhatsApp.")).toBeVisible()
 
-    await fazerLogin(segunda, contas.segunda)
-    await segunda.getByText("Link do grupo", { exact: true }).click()
-    await expect(segunda.getByLabel("Link de convite do WhatsApp")).toHaveValue(convite)
+      await fazerLogin(segunda, contas.segunda)
+      await segunda.getByText("Link do grupo", { exact: true }).click()
+      await expect(segunda.getByLabel("Link de convite do WhatsApp")).toHaveValue(convite)
 
-    await fazerLogin(leitora, contas.leitora)
-    await expect(leitora).toHaveURL(/\/fila$/)
-    await expect(leitora.getByText("Link do grupo", { exact: true })).toHaveCount(0)
-    await expect(leitora.getByLabel("Link de convite do WhatsApp")).toHaveCount(0)
-    const lista = await leitora.request.get("/api/fila")
-    expect(lista.ok()).toBe(true)
-    expect(await lista.text()).not.toContain("FixtureAb123")
+      await fazerLogin(leitora, contas.leitora)
+      await expect(leitora).toHaveURL(/\/fila$/)
+      await expect(leitora.getByText("Link do grupo", { exact: true })).toHaveCount(0)
+      await expect(leitora.getByLabel("Link de convite do WhatsApp")).toHaveCount(0)
+      const lista = await leitora.request.get("/api/fila")
+      expect(lista.ok()).toBe(true)
+      expect(await lista.text()).not.toContain(new URL(convite).pathname.slice(1))
+    })
   } finally {
-    await banco.query("delete from orbcommu.convites_do_grupo where comunidade = 'meet-up-tech-sp' and convite = $1", [convite])
     await Promise.all([segunda.close(), leitora.close()])
     await contas.limpar()
   }
