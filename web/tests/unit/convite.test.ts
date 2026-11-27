@@ -3,13 +3,14 @@ import { conversaDeConvite, destinoDaConversa, normalizarConvite } from "../../l
 
 const desktop = { userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", maxTouchPoints: 0 }
 
-it("vai direto ao WhatsApp Web no computador e mantém a mensagem intacta", () => {
+it("abre o aplicativo instalado no computador e mantém a mensagem intacta", () => {
   const link = conversaDeConvite("12025550142", "https://chat.whatsapp.com/FixtureAb123")
   const direto = new URL(destinoDaConversa(link, desktop))
-  expect(direto.origin + direto.pathname).toBe("https://web.whatsapp.com/send")
+  expect(direto.protocol).toBe("whatsapp:")
+  expect(direto.hostname).toBe("send")
   expect(direto.searchParams.get("phone")).toBe("12025550142")
   expect(direto.searchParams.get("text")).toBe(new URL(link).searchParams.get("text"))
-  expect(destinoDaConversa("https://wa.me/12025550142", desktop)).toBe("https://web.whatsapp.com/send?phone=12025550142")
+  expect(destinoDaConversa("https://wa.me/12025550142", desktop)).toBe("whatsapp://send?phone=12025550142")
 })
 
 it.each(["Android", "iPhone", "Macintosh"])("preserva o link universal em %s com tela de toque", dispositivo => {

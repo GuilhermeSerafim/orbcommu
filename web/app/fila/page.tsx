@@ -12,7 +12,8 @@ import "./fila.css"
 
 export const metadata = { title: "Área da equipe · Meet Up Tech SP" }
 
-export default async function Fila() {
+export default async function Fila({ searchParams }: { searchParams: Promise<{ pedido?: string | string[] }> }) {
+  if ((await searchParams).pedido !== undefined) redirect("/fila")
   const acesso = await obterAcesso()
   if (acesso.tipo === "anonimo") redirect("/entrar")
   return <>

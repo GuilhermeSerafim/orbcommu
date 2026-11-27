@@ -11,16 +11,16 @@ export function conversaDeConvite(telefone: string, convite: string): string {
 
 type Navegador = Pick<Navigator, "userAgent" | "maxTouchPoints">
 
-export function usarWhatsAppWeb({ userAgent, maxTouchPoints }: Navegador) {
+export function usarWhatsAppDesktop({ userAgent, maxTouchPoints }: Navegador) {
   return !/Android|iPhone|iPad|iPod|Mobi/i.test(userAgent)
     && !(/Macintosh/i.test(userAgent) && maxTouchPoints > 1)
 }
 
 export function destinoDaConversa(link: string, navegador: Navegador) {
-  if (!usarWhatsAppWeb(navegador)) return link
+  if (!usarWhatsAppDesktop(navegador)) return link
   const origem = new URL(link)
   const telefone = origem.pathname.slice(1)
   const texto = origem.searchParams.get("text")
-  return "https://web.whatsapp.com/send?phone=" + encodeURIComponent(telefone)
+  return "whatsapp://send?phone=" + encodeURIComponent(telefone)
     + (texto === null ? "" : "&text=" + encodeURIComponent(texto))
 }

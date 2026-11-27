@@ -31,7 +31,7 @@ export type ItemFila = {
 }
 export type PaginaFila = { itens: ItemFila[]; total: number; atualizarEmMs: number | null }
 
-export async function listarPedidos(operador: Extract<Acesso, { tipo: "operador" }>, filtro: FiltroFila): Promise<PaginaFila> {
+export async function listarPedidos(operador: Extract<Acesso, { tipo: "operador" }>, filtro: FiltroFila, chamadasNaPagina: string[] = []): Promise<PaginaFila> {
   const { busca, situacao, pagina, tamanho } = filtro
   if (![5, 10, 20].includes(tamanho) || !Number.isSafeInteger(pagina) || pagina < 1) {
     throw new RangeError("Paginação inválida.")
@@ -50,6 +50,7 @@ export async function listarPedidos(operador: Extract<Acesso, { tipo: "operador"
          and (strpos(lower(nome), lower($3)) > 0 or ($4 <> '' and strpos(telefone, $4) > 0))
      ), filtrados as (
        select * from candidatos where ($2 = 'Todos' or ($2 = 'Finalizados' and encerrado_em is not null)
+                           or ($2 = 'Aguardando vaga' and situacao = 'Chamada iniciada' and encerrado_em is null and id = any($8::bigint[]))
                            or (situacao = $2 and (encerrado_em is null or $2 = 'Prazo encerrado')))
      ), pagina as (
        select id::text, nome, telefone, motivacao, origem, situacao, recebido_em as "recebidoEm",
@@ -65,7 +66,7 @@ export async function listarPedidos(operador: Extract<Acesso, { tipo: "operador"
               (select ceil(extract(epoch from min(encerrado_em) + interval '2160 hours' - now()) * 1000)::float8
                from filtrados)) as "atualizarEmMs",
             coalesce((select json_agg(p order by "recebidoEm", id::bigint) from pagina p), '[]') as itens`,
-    [operador.comunidade, situacao === "Envio a confirmar" ? "Chamada iniciada" : situacao, busca.trim(), digitos, tamanho, (BigInt(pagina - 1) * BigInt(tamanho)).toString(), filtro.pedidoId ?? null],
+    [operador.comunidade, situacao === "Envio a confirmar" ? "Chamada iniciada" : situacao, busca.trim(), digitos, tamanho, (BigInt(pagina - 1) * BigInt(tamanho)).toString(), filtro.pedidoId ?? null, chamadasNaPagina],
   )
   return rows[0]
 }
