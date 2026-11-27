@@ -884,7 +884,7 @@
   outline-offset: 3px;
 }
 
-.cabecalho a, .acoesHero a, .acoesFinais a, .rodape a {
+.cabecalho nav a, .acoesHero a, .acoesFinais a, .rodape nav a {
   text-decoration: none;
   background-image:
     linear-gradient(90deg, #ad96ff, #e4ddff),
@@ -899,8 +899,8 @@
   --linha-link: #aca6ca;
 }
 
-.cabecalho a:is(:hover, :focus-visible), .acoesHero a:is(:hover, :focus-visible),
-.acoesFinais a:is(:hover, :focus-visible), .rodape a:is(:hover, :focus-visible) {
+.cabecalho nav a:is(:hover, :focus-visible), .acoesHero a:is(:hover, :focus-visible),
+.acoesFinais a:is(:hover, :focus-visible), .rodape nav a:is(:hover, :focus-visible) {
   background-size: 100% 2px, 100% 1px;
   color: #fff;
 }
@@ -912,14 +912,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cabecalho a, .acoesHero a, .acoesFinais a, .rodape a {
+  .cabecalho nav a, .acoesHero a, .acoesFinais a, .rodape nav a {
     transition: none;
   }
 }
 
 @media (forced-colors: active) {
   .acoesHero a, .acoesFinais a,
-  .cabecalho a:is(:hover, :focus-visible), .rodape a:is(:hover, :focus-visible) {
+  .cabecalho nav a:is(:hover, :focus-visible), .rodape nav a:is(:hover, :focus-visible) {
     text-decoration: underline;
   }
 }
