@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Fila e convites · OrbCommu</title>
+  <style>
+    :root { color-scheme: light; font-family: "Inter", "Segoe UI", sans-serif; color: #162d32; background: #f6f8f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #196ab0; outline-offset: 3px; }
+    [hidden] { display: none !important; }
+    .bar { background: #153c38; color: #fff; }
+    .wrap { max-width: 1060px; margin: auto; padding: 0 24px; }
+    .bar .wrap { min-height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { font-weight: 750; font-size: 21px; letter-spacing: -.7px; }
+    .avatar { background: #dcebc4; border-radius: 50%; width: 34px; height: 34px; display: grid; place-items: center; color: #21483a; font-weight: 700; }
+    main { padding-block: 32px 60px !important; }
+    h1 { margin: 4px 0 8px; font-size: clamp(29px,5vw,41px); line-height: 1.1; letter-spacing: -.045em; }
+    p { margin: 0; }
+    .sub, .meta { color: #4f635d; }
+    .sub { font-size: 15px; }
+    .list { padding: 0; list-style: none; margin: 14px 0; }
+    .filters { display:flex; align-items:flex-end; flex-wrap:wrap; gap:10px 16px; margin:12px 0; }
+    .status-filter, .search-filter { display:grid; gap:4px; color:#304f43; font-size:14px; }
+    .search-filter { flex:1; min-width:min(100%,210px); max-width:360px; }
+    .search-filter input { width:100%; min-height:44px; }
+    .status-filter select { min-height:44px; max-width:100%; padding:6px 12px; color:inherit; background:white; border:1px solid #849d92; border-radius:8px; }
+    .pagination, .page-size, .page-controls { display:flex; align-items:center; }
+    .pagination { justify-content:flex-end; flex-wrap:wrap; gap:4px 20px; padding:6px 0; border-top:1px solid #d6dfd6; color:#304f43; font-size:14px; }
+    .page-size { gap:4px; }
+    .page-size select { min-height:44px; padding:0 4px; border:0; background:transparent; color:inherit; }
+    .page-controls { gap:2px; }
+    #pageRange { margin-right:8px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .page-arrow { display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:50%; background:transparent; color:inherit; }
+    .page-arrow::before { content:""; width:8px; height:8px; border:solid currentColor; border-width:2px 2px 0 0; transform:rotate(45deg); }
+    #previousPage::before { transform:rotate(-135deg); }
+    .page-arrow:enabled:hover { background:#e6efe8; }
+    .page-arrow:disabled { opacity:.35; cursor:default; }
+    @media (max-width:420px) {
+      .pagination { gap:4px 8px; }
+      .page-size .label-prefix { display:none; }
+      #pageRange { margin-right:2px; }
+    }
+    .entry { background: #fff; border: 1px solid #d6dfd6; border-radius: 12px; padding: 17px 20px; margin: 9px 0; display: grid; grid-template-columns: minmax(170px,.85fr) minmax(200px,1.15fr) auto; gap: 18px; align-items: center; }
+    .name { font-size: 17px; font-weight: 700; }
+    .meta { display: block; margin-top: 4px; font-size: 14px; line-height: 1.4; }
+    .note { line-height: 1.45; overflow-wrap: anywhere; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .actions:empty { display: none; }
+    .state { display: block; margin-bottom: 4px; }
+    .state-mark { display:inline-flex; align-items:center; gap:6px; }
+    .state-mark svg, .state-mark svg > g { display:none; }
+    .entry[data-state="review"] .state-mark { color:#805000; }
+    .entry[data-state="joined"] .state-mark { color:#166043; }
+    .entry[data-state="expired"] .state-mark { color:#58645f; }
+    .entry:is([data-state="review"],[data-state="joined"],[data-state="expired"]) .state-mark svg { display:block; flex-shrink:0; }
+    .entry[data-state="review"] .clock, .entry[data-state="joined"] .check, .entry[data-state="expired"] .lock { display:inline; }
+    .action { border: 1px solid #849d92; background: white; color: #234c40; border-radius: 8px; min-height: 44px; padding: 8px 12px; font-weight: 650; }
+    .primary { background: #165e49; border-color: #165e49; color: white; }
+    .activity { grid-column: 1 / -1; color: #47635a; font-size: 14px; }
+    .settings { margin-top:14px; }
+    .settings summary { cursor:pointer; color:#234c40; font-weight:600; width:fit-content; padding-block:12px; }
+    .settings form { display:flex; align-items:flex-end; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+    .settings label { display:grid; gap:4px; flex:1; min-width:min(100%,240px); font-size:14px; }
+    .settings input { width:100%; min-height:44px; }
+    .chat textarea { resize:vertical; width:100%; min-width:0; min-height:44px; border:1px solid #a3b3a7; border-radius:8px; padding:10px; font:inherit; }
+    .chat textarea:focus-visible { outline:3px solid #196ab0; outline-offset:2px; }
+    .notice:not(:empty) { position: fixed; bottom: 16px; inset-inline: 16px; width: fit-content; max-width: calc(100% - 32px); margin: auto; background: #214e42; color: #fff; border-radius: 8px; padding: 12px 16px; box-shadow: 0 3px 15px #102a2529; pointer-events: none; }
+    dialog { padding: 0; border: 0; border-radius: 16px; width: min(440px,94vw); max-height: 92dvh; color: #172d26; background: #f0f3ed; }
+    dialog::backdrop { background: rgb(13 30 24 / .58); }
+    .chat { display: flex; flex-direction: column; height: min(620px,85dvh); }
+    .chat header { display: flex; align-items: center; gap: 12px; padding: 12px; color: #fff; background: #214e42; }
+    .chat header small { display: block; color: #d2e6dc; margin-top: 3px; }
+    .chat-log { flex: 1; overflow-y: auto; padding: 14px; }
+    .bubble { background: white; line-height: 1.45; border-radius: 10px; padding: 10px 13px; width: fit-content; max-width: 88%; margin: 8px 0; overflow-wrap: anywhere; }
+    .sent { margin-left: auto; background: #d8ebcb; }
+    .composer { display: flex; padding: 12px; gap: 8px; background: #fff; }
+    input { border: 1px solid #a3b3a7; border-radius: 8px; padding: 10px; min-width: 0; flex: 1; }
+    @media (max-width: 760px) {
+      .wrap { padding-inline: 16px; }
+      main { padding-block-start: 23px !important; }
+      .entry { grid-template-columns: 1fr; gap: 9px; padding: 15px; }
+      .actions { margin-top: 3px; }
+      dialog { width: 100%; max-width: none; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+      .chat { height: 100%; }
+      .composer { padding-bottom: max(12px,env(safe-area-inset-bottom)); }
+    }
+  </style>
+</head>
+<body>
+  <header class="bar"><div class="wrap"><span class="brand">OrbCommu</span><span class="avatar" aria-label="Joana">J</span></div></header>
+  <main class="wrap">
+    <h1>Fila de entrada</h1>
+    <p class="sub">Meet Up Tech SP · Dados de exemplo</p>
+    <p class="notice" role="status" id="notice" tabindex="-1"></p>
+    <details class="settings" id="settings"><summary>Link do grupo</summary>
+      <form id="linkForm"><label>Convite do WhatsApp<input id="inviteUrl" type="url" placeholder="https://chat.whatsapp.com/…" autocomplete="off" required></label><button class="action">Salvar link</button></form>
+    </details>
+    <div class="filters">
+    <label class="search-filter">Pesquisar<input type="search" id="search" placeholder="Nome ou WhatsApp" aria-controls="requests" autocomplete="off"></label>
+    <label class="status-filter">Situação
+      <select id="statusFilter" aria-controls="requests">
+        <option value="all">Todos</option>
+        <option value="pending">Para analisar</option>
+        <option value="waiting">Aguardando vaga</option>
+        <option value="reserved">Envio a confirmar</option>
+        <option value="invited">Convite enviado</option>
+        <option value="review">A conferir</option>
+        <option value="expired">Prazo encerrado</option>
+        <option value="finished">Finalizados</option>
+      </select>
+    </label>
+    </div>
+    <ul class="list" id="requests" aria-label="Pedidos em ordem de chegada"></ul>
+    <p id="empty" hidden>A fila ainda não recebeu pedidos.</p>
+    <nav class="pagination" aria-label="Paginação da fila">
+      <label class="page-size"><span><span class="label-prefix">Pessoas </span>por página</span>
+        <select id="pageSize" aria-label="Pessoas por página" aria-controls="requests">
+          <option selected>5</option><option>10</option><option>20</option>
+        </select>
+      </label>
+      <div class="page-controls">
+        <span id="pageRange" aria-live="polite"></span>
+        <button type="button" class="page-arrow" id="previousPage" aria-label="Página anterior" title="Página anterior" aria-controls="requests"></button>
+        <button type="button" class="page-arrow" id="nextPage" aria-label="Próxima página" title="Próxima página" aria-controls="requests"></button>
+      </div>
+    </nav>
+  </main>
+  <dialog id="conversation" aria-labelledby="contactName">
+    <div class="chat">
+      <header><button class="action" id="returnButton" type="button">Voltar</button><div><strong id="contactName"></strong><small>Conversa simulada · WhatsApp</small></div></header>
+      <div class="chat-log" id="messages" role="log" aria-label="Mensagens simuladas"></div>
+      <form class="composer" id="compose"><textarea id="messageInput" rows="1" aria-label="Sua mensagem simulada" placeholder="Mensagem" required maxlength="1000"></textarea><button class="action primary">Enviar</button></form>
+    </div>
+  </dialog>
+  <template id="entryTemplate"><li class="entry">
+    <div><strong class="name"></strong><span class="meta origin"></span><span class="meta phone"></span></div>
+    <div><span class="state-mark"><svg aria-hidden="true" focusable="false" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <g class="clock"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g>
+      <g class="check"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></g>
+      <g class="lock"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></g>
+    </svg><strong class="state" tabindex="-1"></strong></span><p class="note"></p></div>
+    <div class="actions"></div>
+    <p class="activity" hidden></p>
+  </li></template>
+  <script>
+    const byId = id => document.getElementById(id);
+    const currentAdmin = 'Joana';
+    const integrated = window.parent !== window && new URLSearchParams(location.search).get('ensaio') === '1';
+    const targetOrigin = window.origin === 'null' ? '*' : window.origin;
+    // Os pedidos fictícios já estão em ordem de chegada. Aprovar preserva essa ordem.
+    const requests = [
+      ['Ana', 'Quero participar dos encontros presenciais.', '14h00', 'pending'],
+      ['Bruno', 'Conhecer outros desenvolvedores.', '14h05', 'waiting'],
+      ['Carla', 'Encontros de dados em São Paulo.', '14h10', 'waiting'],
+      ['Davi', 'Compartilhar projetos.', '14h15', 'pending'],
+      ['Luiza', 'Ir a eventos sobre tecnologia.', '14h20', 'joined'],
+      ['Rafa', 'Conhecer a comunidade.', '14h25', 'expired'],
+    ].map(([name, note, arrival, status], id) => ({name, note, arrival, status, id, opened:'', messages:[], confirmedAt:null, inviteSent:false}));
+    const dialog = byId('conversation');
+    const fullDate = new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const duration = 24 * 60 * 60 * 1000;
+    // Um convite antigo permite ensaiar o vencimento sem esperar um dia.
+    const earlierInvite = Date.now() - duration - 60 * 60 * 1000;
+    requests.unshift({id:6, name:'Bia', arrival:fullDate.format(earlierInvite - 1800000),
+      status:'invited', opened:'', messages:[], confirmedAt:earlierInvite, sentBy:'Cris', inviteSent:true});
+    if (integrated) requests.length = 0;
+    const outcomeLabels = {joined:'Entrada confirmada', withdrawn:'Desistiu', expired:'Prazo encerrado', declined:'Encerrado na vistoria'};
+    const linkKey = 'orbcommu.vistoria.convite';
+    let groupInvite = '';
+    try { groupInvite = localStorage.getItem(linkKey) || ''; } catch {}
+    if (!groupInvite) groupInvite = 'https://chat.whatsapp.com/ConviteFicticioDoEnsaio';
+    byId('inviteUrl').value = groupInvite;
+    byId('settings').open = !groupInvite;
+    let activeRequest = null;
+    let trigger = null;
+    let triggerOffset = 0;
+    let noticeTimer;
+    let inviteConversation = false;
+    let pageSize = Number(byId('pageSize').value);
+    let currentPage = 0;
+    const statusFilter = byId('statusFilter');
+    const search = byId('search');
+    function displayState(request) {
+      if (request.status === 'invited' && Date.now() >= request.confirmedAt + duration) return 'review';
+      return request.status;
+    }
+    function normalizeName(value) {
+      return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').trim();
+    }
+    function filteredRequests() {
+      const query = normalizeName(search.value);
+      const digits = /^[+\d\s().-]+$/.test(query) ? query.replace(/\D/g,'') : '';
+      return requests.filter(request => {
+        if (query && !normalizeName(request.name).includes(query)) {
+          const phone = request.phone || byId('request-' + request.id).querySelector('.phone').textContent;
+          if (!digits || !phone.replace(/\D/g,'').includes(digits)) return false;
+        }
+        if (statusFilter.value === 'all') return true;
+        if (statusFilter.value === 'finished') return Object.hasOwn(outcomeLabels, request.status);
+        return displayState(request) === statusFilter.value;
+      });
+    }
+    function showPage(page) {
+      const filtered = filteredRequests();
+      const total = filtered.length;
+      const lastPage = Math.max(0, Math.ceil(total / pageSize) - 1);
+      currentPage = Math.max(0, Math.min(page, lastPage));
+      const start = currentPage * pageSize;
+      const end = Math.min(start + pageSize, total);
+      const visible = new Set(filtered.slice(start,end).map(r => 'request-' + r.id));
+      for (const row of byId('requests').children) row.hidden = !visible.has(row.id);
+      byId('empty').hidden = total > 0;
+      byId('empty').textContent = search.value.trim() ? 'Nenhum pedido encontrado.' :
+        requests.length ? 'Nenhum pedido nesta situação.' : 'A fila ainda não recebeu pedidos.';
+      byId('pageRange').textContent = total === 0 ? '0 pessoas' : (start + 1) + '–' + end + ' de ' + total;
+      byId('previousPage').disabled = currentPage === 0;
+      byId('nextPage').disabled = currentPage === lastPage;
+    }
+    statusFilter.onchange = () => showPage(0);
+    search.oninput = () => showPage(0);
+    function focusAfterAction(request) {
+      const row = byId('request-' + request.id);
+      (row.hidden ? statusFilter : row.querySelector('.state')).focus({preventScroll:true});
+    }
+    byId('pageSize').onchange = event => {
+      const firstVisible = currentPage * pageSize;
+      pageSize = Number(event.target.value);
+      showPage(Math.floor(firstVisible / pageSize));
+    };
+    byId('previousPage').onclick = () => {
+      showPage(currentPage - 1);
+      if (byId('previousPage').disabled) byId('nextPage').focus({preventScroll:true});
+    };
+    byId('nextPage').onclick = () => {
+      showPage(currentPage + 1);
+      if (byId('nextPage').disabled) byId('previousPage').focus({preventScroll:true});
+    };
+    function recordProgress(request) {
+      if (!integrated) return;
+      const {status, messages, opened, inviteSent, confirmedAt, sentBy, finishedAt} = request;
+      parent.postMessage({type:'orb-progress', id:request.id,
+        progress:{status, messages, opened, inviteSent, confirmedAt, sentBy, finishedAt}}, targetOrigin);
+    }
+    function scheduleDeadline(request) {
+      const remaining = request.confirmedAt + duration - Date.now();
+      if (remaining > 0) setTimeout(() => {
+        if (request.status === 'invited') {
+          render();
+        }
+      }, remaining);
+    }
+    function notify(text) {
+      byId('notice').textContent = text;
+      clearTimeout(noticeTimer);
+      noticeTimer = setTimeout(() => { byId('notice').textContent = ''; }, 5500);
+    }
+    function action(label, callback, primary = false) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = primary ? 'action primary' : 'action';
+      button.textContent = label;
+      button.onclick = callback;
+      return button;
+    }
+    function confirmInvitation(request) {
+      if (request.status !== 'reserved') return;
+      request.status = 'invited';
+      request.confirmedAt = Date.now();
+      request.sentBy = currentAdmin;
+      recordProgress(request);
+      render();
+      scheduleDeadline(request);
+      focusAfterAction(request);
+      notify('Envio para ' + request.name + ' confirmado. Prazo de 24 horas iniciado.');
+    }
+    function startInvite(request) {
+      if (request.status !== 'waiting') return;
+      if (!groupInvite) {
+        byId('settings').open = true;
+        byId('inviteUrl').focus();
+        notify('Salve o link do grupo para preparar o convite.');
+        return;
+      }
+      request.status = 'reserved';
+      recordProgress(request);
+      if (statusFilter.value === 'waiting') {
+        statusFilter.value = 'reserved';
+        currentPage = Math.floor(filteredRequests().indexOf(request) / pageSize);
+      }
+      render();
+      const confirmButton = byId('request-' + request.id).querySelector('.primary');
+      openConversation(request, confirmButton, true);
+    }
+    function setActivity(row, request) {
+      const activity = row.querySelector('.activity');
+      activity.hidden = !request.opened || request.status === 'invited' || Object.hasOwn(outcomeLabels,request.status);
+      activity.textContent = request.opened ? 'Joana abriu o WhatsApp às ' + request.opened : '';
+    }
+    function finishInvitation(request, outcome) {
+      if (request.status !== 'invited') return;
+      if (outcome === 'expired' && displayState(request) !== 'review') return;
+      request.status = outcome;
+      request.finishedAt = Date.now();
+      recordProgress(request);
+      render();
+      focusAfterAction(request);
+      notify(request.name + ' · ' + outcomeLabels[outcome]);
+    }
+    function renderInvitation(request, row) {
+      const review = row.dataset.state === 'review';
+      row.querySelector('.state').textContent = review ? 'A conferir' : 'Convite enviado';
+      row.querySelector('.note').textContent = review ? '' : 'Enviado por ' + request.sentBy;
+      const actions = row.querySelector('.actions');
+      actions.replaceChildren(action('Confirmar entrada', () => finishInvitation(request, 'joined'), true),
+        review ? action('Encerrar sem aceite', () => finishInvitation(request, 'expired')) :
+          action('Registrar desistência', () => finishInvitation(request, 'withdrawn')));
+    }
+    function render() {
+      for (const request of requests) {
+        const row = byId('request-' + request.id);
+        row.dataset.state = displayState(request);
+        const state = row.querySelector('.state');
+        const note = row.querySelector('.note');
+        const actions = row.querySelector('.actions');
+        actions.replaceChildren();
+        note.textContent = '';
+        if (request.status === 'pending') {
+          state.textContent = 'Para analisar';
+          note.textContent = request.note;
+          actions.append(action('Aprovar', () => {
+            request.status = 'waiting';
+            recordProgress(request);
+            render();
+            focusAfterAction(request);
+            notify('Pedido de ' + request.name + ' aprovado. Aguardando vaga.');
+          }, true), action('Conversar no WhatsApp', e => openConversation(request, e.currentTarget)),
+          action('Encerrar pedido', () => {
+            request.status = 'declined';
+            request.finishedAt = Date.now();
+            recordProgress(request);
+            render();
+            focusAfterAction(request);
+            notify(request.name + ' · Encerrado na vistoria');
+          }));
+        } else if (request.status === 'waiting') {
+          state.textContent = 'Aguardando vaga';
+          actions.append(action('Chamar ' + request.name, () => startInvite(request), true));
+        } else if (request.status === 'reserved') {
+          state.textContent = 'Chamada iniciada · Envio a confirmar';
+          actions.append(action('Confirmar envio', () => confirmInvitation(request), true),
+            action('Reabrir conversa', e => openConversation(request, e.currentTarget, true)));
+        } else if (request.status === 'invited') {
+          renderInvitation(request, row);
+        } else {
+          state.textContent = outcomeLabels[request.status];
+        }
+        setActivity(row, request);
+      }
+      showPage(currentPage);
+    }
+    function showMessages() {
+      const messages = byId('messages');
+      messages.replaceChildren();
+      for (const [sent, text] of activeRequest.messages) {
+        const line = document.createElement('p');
+        line.className = sent ? 'bubble sent' : 'bubble';
+        line.textContent = text;
+        messages.append(line);
+      }
+      messages.scrollTop = messages.scrollHeight;
+    }
+    function openConversation(request, button, invite = false) {
+      activeRequest = request;
+      inviteConversation = invite;
+      trigger = button;
+      triggerOffset = button.getBoundingClientRect().top;
+      if (!invite) {
+        request.opened = new Intl.DateTimeFormat('pt-BR', {hour:'2-digit',minute:'2-digit'}).format(new Date());
+        recordProgress(request);
+        setActivity(button.closest('.entry'), request);
+      }
+      byId('contactName').textContent = request.name;
+      const input = byId('messageInput');
+      input.value = invite && !request.inviteSent
+        ? 'Oi, ' + request.name + '! Chegou a sua vez na Meet Up Tech SP. Você tem 24 horas para solicitar a entrada. Depois desse prazo, a vaga passa à próxima pessoa. Abra o convite e toque em “Solicitar entrada”.\n' + groupInvite
+        : '';
+      input.rows = input.value ? 5 : 1;
+      showMessages();
+      history.pushState({orbChat:true}, '');
+      document.documentElement.style.overflow = 'hidden';
+      dialog.showModal();
+    }
+    function returnToQueue() {
+      if (!dialog.open) return;
+      dialog.close();
+      document.documentElement.style.overflow = '';
+      trigger.focus({preventScroll:true});
+      window.scrollBy(0, trigger.getBoundingClientRect().top - triggerOffset);
+      activeRequest = null;
+      trigger = null;
+      byId('contactName').textContent = '';
+      byId('messages').replaceChildren();
+      byId('messageInput').value = '';
+    }
+    byId('compose').onsubmit = event => {
+      event.preventDefault();
+      const input = byId('messageInput');
+      if (!input.value.trim()) return;
+      activeRequest.messages.push([true,input.value.trim()]);
+      if (inviteConversation) {
+        activeRequest.inviteSent = true;
+      } else {
+        const reply = activeRequest.name === 'Ana' ? 'Sim, estarei em São Paulo e quero participar do próximo encontro presencial.' : 'Sim, quero participar da comunidade.';
+        activeRequest.messages.push([false,reply]);
+      }
+      input.value = '';
+      input.rows = 1;
+      recordProgress(activeRequest);
+      showMessages();
+    };
+    byId('returnButton').onclick = () => history.back();
+    dialog.addEventListener('cancel', event => { event.preventDefault(); history.back(); });
+    window.addEventListener('popstate', returnToQueue);
+    byId('inviteUrl').oninput = event => event.target.setCustomValidity('');
+    byId('linkForm').onsubmit = event => {
+      event.preventDefault();
+      const input = byId('inviteUrl');
+      let url;
+      try { url = new URL(input.value.trim()); } catch {}
+      if (!url || url.origin !== 'https://chat.whatsapp.com' || url.username || url.password || !/^\/[a-zA-Z0-9_-]+\/?$/.test(url.pathname)) {
+        input.setCustomValidity('Cole o convite do grupo que começa com https://chat.whatsapp.com/.');
+        input.reportValidity();
+        return;
+      }
+      groupInvite = url.href;
+      let message = 'Link do grupo salvo.';
+      try { localStorage.setItem(linkKey, groupInvite); } catch { message = 'Link disponível nesta sessão.'; }
+      byId('settings').open = false;
+      byId('settings').querySelector('summary').focus();
+      notify(message);
+    };
+    function addRow(request) {
+      const row = byId('entryTemplate').content.firstElementChild.cloneNode(true);
+      row.id = 'request-' + request.id;
+      row.querySelector('.name').textContent = request.name;
+      if (request.phone) {
+        const localPhone = request.phone.slice(2);
+        row.querySelector('.phone').textContent = '(' + localPhone.slice(0,2) + ') ' +
+          localPhone.slice(2,-4) + '-' + localPhone.slice(-4);
+        row.querySelector('.origin').textContent = fullDate.format(request.requestedAt) + ' · ' + request.source;
+      } else {
+        row.querySelector('.phone').textContent = '(11) 9XXXX-' + String(1200 + request.id);
+        row.querySelector('.origin').textContent = (request.confirmedAt ? '' : 'Hoje, ') + request.arrival + ' · ' + (request.id % 2 ? 'Link geral' : 'Link do evento');
+      }
+      byId('requests').append(row);
+    }
+    for (const request of requests) addRow(request);
+    render();
+    if (integrated) {
+      window.addEventListener('message', event => {
+        if (event.source !== parent || event.origin !== window.origin || event.data?.type !== 'orb-add') return;
+        const present = new Set(event.data.records.map(request => request.id));
+        for (let i = requests.length - 1; i >= 0; i--) {
+          const request = requests[i];
+          if (present.has(request.id)) continue;
+          if (activeRequest === request) returnToQueue();
+          byId('request-' + request.id).remove();
+          requests.splice(i,1);
+        }
+        for (const request of event.data.records) {
+          if (requests.some(r => r.id === request.id)) continue;
+          requests.push(request);
+          addRow(request);
+          if (request.status === 'invited') scheduleDeadline(request);
+        }
+        render();
+      });
+      parent.postMessage({type:'orb-ready'}, targetOrigin);
+    }
+  </script>
+</body>
+</html>

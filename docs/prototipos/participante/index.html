@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pedir entrada · Meet Up Tech SP</title>
+  <style>
+    :root { color-scheme: light; font: 100%/1.5 Inter, "Segoe UI", sans-serif; color: #192f2a; background: #f5f7f4; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 29rem; margin: clamp(1.5rem, 7vh, 5rem) auto; padding: 2rem; background: #fff; border: 1px solid #d6dfd6; border-radius: 12px; }
+    header { margin-bottom: 1.75rem; color: #234c40; font-size: .94rem; font-weight: 700; }
+    h1 { margin: 0 0 1.3rem; font-size: clamp(1.65rem, 6vw, 2rem); line-height: 1.17; letter-spacing: -.035em; }
+    form, label { display: grid; }
+    form { gap: 1.15rem; }
+    label { gap: .35rem; font-weight: 600; }
+    small { font-size: .85rem; color: #50665b; font-weight: 400; }
+    input, textarea, button { font: inherit; }
+    input, textarea { width: 100%; border: 1px solid #879c91; border-radius: 6px; padding: .62rem .75rem; color: inherit; background: white; }
+    textarea { min-height: 5rem; resize: vertical; }
+    button { min-height: 46px; border: none; border-radius: 7px; background: #165e49; color: white; padding: .65rem 1rem; font-weight: 650; cursor: pointer; }
+    button:disabled { opacity: .68; cursor: wait; }
+    :focus-visible { outline: 3px solid #196ab0; outline-offset: 3px; }
+    p { margin: 0; }
+    #error { color: #8c3025; }
+    [hidden] { display: none !important; }
+    @media (max-width: 500px) {
+      :root { background: #fff; }
+      main { margin: 0 auto; border: 0; padding: 1.5rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>Meet Up Tech SP</header>
+    <section id="request">
+      <h1>Pedir entrada na comunidade</h1>
+      <form id="form">
+        <label>Como você quer ser chamado?
+          <input id="name" autocomplete="given-name" required>
+        </label>
+        <label>WhatsApp com DDD
+          <input id="phone" type="tel" autocomplete="tel" placeholder="(11) 9XXXX-XXXX" required>
+        </label>
+        <label>O que você busca na Meet Up Tech SP?
+          <small>Opcional</small>
+          <textarea id="reason" rows="2"></textarea>
+        </label>
+        <p id="error" role="alert" hidden></p>
+        <button id="send" disabled>Enviar pedido</button>
+      </form>
+    </section>
+    <section id="result" hidden>
+      <h1 id="resultTitle" tabindex="-1"></h1>
+      <p id="resultText"></p>
+    </section>
+  </main>
+  <script src="../ensaio.js"></script>
+  <script>
+    const byId = id => document.getElementById(id);
+    const campaignCode = new URLSearchParams(location.search).get('evento');
+    if (campaignCode && 'IntersectionObserver' in window) {
+      let inView = false;
+      let recorded = false;
+      const observer = new IntersectionObserver(entries => {
+        inView = entries.some(entry => entry.isIntersecting);
+        recordIfVisible();
+      });
+      function recordIfVisible() {
+        if (recorded || !inView || document.visibilityState !== 'visible') return;
+        recorded = true;
+        observer.disconnect();
+        document.removeEventListener('visibilitychange',recordIfVisible);
+        ensaio.recordOpening(campaignCode).catch(() => {});
+      }
+      document.addEventListener('visibilitychange',recordIfVisible);
+      observer.observe(document.querySelector('main'));
+    }
+    function showResult(title, message) {
+      byId('request').hidden = true;
+      byId('resultTitle').textContent = title;
+      byId('resultText').textContent = message;
+      byId('result').hidden = false;
+      byId('resultTitle').focus();
+    }
+
+    function presentCampaign(campaign) {
+      const state = ensaio.state(campaign);
+      if (state === 'open') {
+        byId('result').hidden = true;
+        byId('request').hidden = false;
+        byId('send').disabled = false;
+        return;
+      }
+      if (state === 'scheduled') {
+        const opening = campaign.periodUnit === 'day' ? ensaio.day.format(campaign.start) : ensaio.date.format(campaign.start) + ' (São Paulo)';
+        showResult('A divulgação ainda não abriu', 'Os pedidos começam em ' + opening + '.');
+        setTimeout(checkOpening, Math.min(2147483647, Math.max(1, campaign.start - Date.now())));
+      } else if (state === 'closed') {
+        showResult('Divulgação encerrada', 'Os pedidos por este link terminaram.');
+      } else {
+        showResult('Link de evento inválido', 'Confira o endereço da divulgação com a equipe da Meet Up Tech SP.');
+      }
+    }
+    async function checkOpening() {
+      if (campaignCode === null) { byId('send').disabled = false; return; }
+      try { presentCampaign(await ensaio.eventByCode(campaignCode)); }
+      catch { showResult('Não foi possível abrir a divulgação', 'Reabra o link neste navegador para tentar novamente.'); }
+    }
+
+    function normalizePhone(value) {
+      const raw = value.trim();
+      if (!/^[+\d\s().-]+$/.test(raw)) return '';
+      let digits = raw.replace(/\D/g, '');
+      if (raw.startsWith('+') || digits.length > 11) {
+        if (!digits.startsWith('55')) return '';
+        digits = digits.slice(2);
+      }
+      return /^[1-9][1-9]\d{8,9}$/.test(digits) ? '55' + digits : '';
+    }
+
+    const form = byId('form');
+    const send = byId('send');
+    form.addEventListener('input', event => {
+      event.target.setCustomValidity('');
+      byId('error').hidden = true;
+    });
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (send.disabled) return;
+      const name = byId('name').value.trim();
+      const phone = normalizePhone(byId('phone').value);
+      if (!name) byId('name').setCustomValidity('Informe como você quer ser chamado.');
+      if (!phone) byId('phone').setCustomValidity('Informe um WhatsApp com DDD, por exemplo (11) 91234-5678.');
+      if (!form.reportValidity()) return;
+      send.disabled = true;
+      try {
+        const result = await ensaio.submit({name, phone, reason:byId('reason').value.trim(), campaignCode});
+        if (result?.blocked) { presentCampaign(result.event); return; }
+        if (window.parent !== window) parent.postMessage({type:'orb-refresh'}, window.origin === 'null' ? '*' : window.origin);
+        form.reset();
+        showResult('Recebemos seu pedido para entrar na Meet Up Tech SP.',
+          'Se seu pedido for aprovado, a equipe vai chamar você pelo WhatsApp quando chegar a sua vez.');
+      } catch {
+        const error = byId('error');
+        error.textContent = 'Não foi possível guardar seu pedido. Tente enviar novamente.';
+        error.hidden = false;
+        send.disabled = false;
+      }
+    });
+    checkOpening();
+  </script>
+</body>
+</html>

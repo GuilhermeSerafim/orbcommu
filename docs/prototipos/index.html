@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Do evento à fila · OrbCommu</title>
+  <style>
+    * { box-sizing:border-box; }
+    body { margin:0; height:100vh; height:100dvh; display:flex; flex-direction:column; font:16px/1.4 Inter,"Segoe UI",sans-serif; color:#193c32; background:#f5f7f4; }
+    header { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:4px 16px; padding:8px min(4vw,28px); background:#fff; border-bottom:1px solid #cbd7cd; }
+    strong { font-size:.87rem; }
+    nav { display:flex; flex-wrap:wrap; gap:4px; }
+    button { border:0; border-radius:6px; background:transparent; color:#304f43; cursor:pointer; min-height:44px; padding:6px 10px; font:inherit; font-size:.89rem; }
+    button[aria-pressed=true] { background:#e6efe8; color:#154936; font-weight:650; }
+    button:focus-visible { outline:2px solid #196ab0; }
+    iframe { border:0; width:100%; flex:1; min-height:0; }
+    #campaigns { overflow-y:auto; flex:1; padding:clamp(16px,4vw,40px) 16px; }
+    .panel { max-width:31rem; margin:auto; padding:clamp(18px,4vw,32px); background:white; border:1px solid #d6dfd6; border-radius:12px; }
+    .panel h1 { font-size:1.7rem; line-height:1.15; margin:.4rem 0 1.3rem; overflow-wrap:anywhere; }
+    .panel h2, dialog h2 { font-size:1.15rem; margin:0; }
+    .panel form, .panel label, .stack { display:grid; gap:6px; }
+    .panel form, .stack { gap:16px; }
+    .panel input:not([type=radio]), .panel select { font:inherit; width:100%; min-height:44px; padding:8px; border:1px solid #879c91; border-radius:6px; background:white; color:inherit; }
+    .range-field { display:grid; gap:6px; }
+    .range-trigger { width:100%; display:flex; align-items:center; justify-content:space-between; text-align:left; gap:8px; font:inherit; padding:8px 12px; border:1px solid #879c91; background:white; }
+    #calendar { padding:10px; border:1px solid #cbd7cd; border-radius:8px; }
+    .month-nav { display:flex; align-items:center; justify-content:space-between; }
+    .month-nav button { font-size:1.2rem; min-width:40px; }
+    .week, .days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); text-align:center; }
+    .week { color:#50665b; font-size:.8rem; }
+    .days button { padding:0; border-radius:4px; font:inherit; }
+    .days button[aria-pressed=true] { background:#e2eee6; }
+    .days button.edge { background:#165e49; color:white; }
+    #calendar button:disabled { color:#a4afa8; cursor:default; }
+    .panel small { color:#50665b; }
+    .panel .edition-picker { margin-bottom:20px; }
+    .results { display:grid; gap:10px; padding-top:16px; border-top:1px solid #cbd7cd; }
+    .result-line { display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+    .result-line strong { font-size:1.15rem; font-variant-numeric:tabular-nums; }
+    .result-line .percent { color:#165e49; }
+    progress { display:block; width:100%; height:10px; border:0; border-radius:6px; overflow:hidden; appearance:none; background:#e3e9e5; }
+    progress::-webkit-progress-bar { background:#e3e9e5; }
+    progress::-webkit-progress-value { background:#246451; border-radius:6px; }
+    progress::-moz-progress-bar { background:#246451; border-radius:6px; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .primary, .secondary, .danger { font:inherit; border-radius:7px; padding:8px 14px; min-height:44px; cursor:pointer; }
+    .primary { background:#165e49; color:white; }
+    .secondary { border:1px solid #879c91; background:white; color:#204334; }
+    .danger { color:#892e27; background:white; border:1px solid #b89491; }
+    .panel a { color:#165e49; display:inline-block; padding:9px 0; }
+    .panel canvas { width:min(184px,100%); height:auto; image-rendering:pixelated; justify-self:center; }
+    .panel :focus-visible, dialog :focus-visible { outline:3px solid #196ab0; outline-offset:2px; }
+    .panel p, dialog p { margin:0; }
+    .panel [role=status]:not(:empty) { margin-top:12px; }
+    dialog { width:min(90vw,25rem); color:inherit; border:1px solid #879c91; border-radius:12px; padding:22px; }
+    dialog form { display:grid; gap:16px; }
+    dialog::backdrop { background:#102e2466; }
+    [hidden] { display:none!important; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>Ensaio · Dados fictícios</strong>
+    <nav aria-label="Percursos do ensaio">
+      <button type="button" data-view="campaigns" aria-pressed="true">Divulgações</button>
+      <button type="button" data-view="event" aria-pressed="false">Link do evento</button>
+      <button type="button" data-view="general" aria-pressed="false">Link geral</button>
+      <button type="button" data-view="admin" aria-pressed="false">Fila da Joana</button>
+    </nav>
+  </header>
+  <section id="campaigns" aria-label="Divulgações da comunidade">
+    <div class="panel">
+      <strong>Meet Up Tech SP</strong>
+      <h1 id="heading" tabindex="-1">Divulgar um evento</h1>
+      <label class="edition-picker" id="picker" hidden>Divulgação
+        <select id="editions"><option value="">Nova divulgação</option></select>
+      </label>
+      <form id="create">
+        <label>Nome do evento<input id="editionName" required maxlength="100" placeholder="Ex.: Encontro Tech SP"></label>
+        <div class="range-field">
+          <label for="rangeToggle">Período da divulgação</label>
+          <button id="rangeToggle" type="button" class="range-trigger" aria-expanded="false" aria-controls="calendar"><span id="rangeText">Selecionar período</span><span aria-hidden="true">▾</span></button>
+          <div id="calendar" hidden>
+            <small id="rangeHint" aria-live="polite">Escolha o primeiro dia.</small>
+            <div class="month-nav">
+              <button id="prevMonth" type="button" aria-label="Mês anterior">‹</button>
+              <strong id="monthTitle" aria-live="polite"></strong>
+              <button id="nextMonth" type="button" aria-label="Próximo mês">›</button>
+            </div>
+            <div class="week" aria-hidden="true"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+            <div id="days" class="days" role="group" aria-labelledby="monthTitle"></div>
+          </div>
+        </div>
+        <div><button class="primary">Gerar link e QR</button></div>
+      </form>
+      <section id="ready" class="stack" hidden>
+        <div><h2 id="state"></h2><p id="period"></p></div>
+        <div id="material" class="stack">
+          <canvas id="qr" role="img" aria-label="QR para pedir entrada na comunidade por esta edição"></canvas>
+          <label>Link para pedir entrada na comunidade<input id="eventUrl" readonly></label>
+          <div class="actions"><button class="primary" id="copy">Copiar link</button><button class="secondary" id="download">Baixar QR</button></div>
+          <div><a href="#" id="openEvent">Abrir como participante</a></div>
+        </div>
+        <button class="danger" id="finish">Encerrar divulgação</button>
+        <section class="results" aria-labelledby="resultsTitle">
+          <h2 id="resultsTitle">Resultados da divulgação</h2>
+          <div class="result-line"><span>Aberturas do link ou QR</span><strong id="openingCount"></strong></div>
+          <small id="coverage" hidden>Contagem de aberturas a partir desta versão do protótipo.</small>
+          <div class="result-line"><span>Entradas confirmadas</span><strong class="percent" id="joinPercent"></strong></div>
+          <progress id="joinProgress" aria-label="Proporção de entradas confirmadas" aria-describedby="joinCaption" max="100" value="0"></progress>
+          <p id="joinCaption" aria-live="polite"></p>
+        </section>
+      </section>
+      <p id="notice" role="status"></p>
+      <small>Ensaio local. Use dados fictícios e abra o link neste navegador.</small>
+    </div>
+    <dialog id="confirm" aria-labelledby="confirmTitle"><form method="dialog">
+      <h2 id="confirmTitle">Encerrar divulgação?</h2>
+      <p id="consequence"></p>
+      <div class="actions"><button value="cancel" class="secondary" autofocus>Voltar</button><button value="close" class="danger">Encerrar de vez</button></div>
+    </form></dialog>
+  </section>
+  <iframe id="participant" title="Pedido de entrada na comunidade" hidden></iframe>
+  <iframe id="admin" title="Painel da Joana" hidden></iframe>
+  <script src="ensaio.js"></script>
+  <script src="periodo.js"></script>
+  <script src="vendor/qrcode.js"></script>
+  <script src="divulgacao.js"></script>
+</body>
+</html>

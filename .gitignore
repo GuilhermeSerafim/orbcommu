@@ -1,0 +1,25 @@
+# Este diretório também abriga o arquivo de pesquisa do piloto.
+# Só os diretórios e arquivos públicos listados abaixo entram no Git.
+/*
+!/.gitignore
+!/.github/
+!/README.md
+!/package.json
+!/package-lock.json
+!/playwright.config.mjs
+!/tests/
+!/web/
+!/docs/
+/docs/*
+!/docs/prototipos/
+!/docs/qualidade-e-entrega.md
+
+.figma/
+node_modules/
+.next/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+*.pem
