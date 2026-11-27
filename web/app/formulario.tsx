@@ -1,6 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState, type FormEvent } from "react"
+import { ArrowRight, Check, LoaderCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import type { PedidoValido } from "../lib/entrada"
 
 type Campos = Partial<Record<keyof PedidoValido, string>>
@@ -47,33 +52,36 @@ export default function Formulario() {
     }
   }
 
-  if (recebido) return <section>
+  if (recebido) return <section className="formulario-area recibo">
+    <div className="secao-simbolo"><Check aria-hidden="true" size={25} /></div>
     <h1 ref={titulo} tabIndex={-1}>Recebemos seu pedido para entrar na Meet Up Tech SP.</h1>
-    <p>Se seu pedido for aprovado, a equipe vai chamar você pelo WhatsApp quando chegar a sua vez.</p>
+    <p className="introducao">Se seu pedido for aprovado, a equipe vai chamar você pelo WhatsApp quando chegar a sua vez.</p>
   </section>
 
-  return <section>
+  return <section className="formulario-area">
     <h1>Pedir entrada na comunidade</h1>
-    <form method="post" noValidate onSubmit={enviar}>
+    <p className="introducao">Se seu pedido for aprovado, a equipe entra em contato pelo WhatsApp.</p>
+    <form method="post" className="formulario" noValidate onSubmit={enviar}>
       <noscript><p>Ative o JavaScript no navegador e recarregue esta página para enviar seu pedido.</p></noscript>
-      <div>
-        <label htmlFor="nome">Como você quer ser chamado?</label>
-        <input id="nome" name="nome" autoComplete="given-name" required aria-invalid={!!campos.nome} aria-describedby={campos.nome ? "erro-nome" : undefined} />
+      <div className="campo">
+        <Label htmlFor="nome">Como você quer ser chamado?</Label>
+        <Input id="nome" name="nome" placeholder="Seu nome" autoComplete="given-name" required aria-invalid={!!campos.nome} aria-describedby={campos.nome ? "erro-nome" : undefined} />
         {campos.nome && <small id="erro-nome" role="alert">{campos.nome}</small>}
       </div>
-      <div>
-        <label htmlFor="telefone">WhatsApp com DDD</label>
-        <input id="telefone" name="telefone" type="tel" autoComplete="tel" placeholder="(11) 9XXXX-XXXX" required aria-invalid={!!campos.telefone} aria-describedby={campos.telefone ? "erro-telefone" : undefined} />
+      <div className="campo">
+        <Label htmlFor="telefone">WhatsApp com DDD</Label>
+        <Input id="telefone" name="telefone" type="tel" autoComplete="tel" placeholder="(11) 99999-9999" required aria-invalid={!!campos.telefone} aria-describedby={campos.telefone ? "erro-telefone" : undefined} />
         {campos.telefone && <small id="erro-telefone" role="alert">{campos.telefone}</small>}
       </div>
-      <div>
-        <label htmlFor="motivacao">O que você busca na Meet Up Tech SP?</label>
-        <small id="opcional">Opcional</small>
-        <textarea id="motivacao" name="motivacao" rows={2} aria-invalid={!!campos.motivacao} aria-describedby={campos.motivacao ? "opcional erro-motivacao" : "opcional"} />
+      <div className="campo">
+        <div className="rotulo-opcional"><Label htmlFor="motivacao">O que você busca na Meet Up Tech SP?</Label><small id="opcional">Opcional</small></div>
+        <Textarea id="motivacao" name="motivacao" rows={2} placeholder="Conte um pouco sobre o seu interesse" aria-invalid={!!campos.motivacao} aria-describedby={campos.motivacao ? "opcional erro-motivacao" : "opcional"} />
         {campos.motivacao && <small id="erro-motivacao" role="alert">{campos.motivacao}</small>}
       </div>
-      {falhou && <p role="alert">Não foi possível guardar seu pedido. Tente enviar novamente.</p>}
-      <button type="submit" disabled={!pronto || enviando}>Enviar pedido</button>
+      {falhou && <p className="aviso-erro" role="alert">Não foi possível guardar seu pedido. Tente enviar novamente.</p>}
+      <Button type="submit" className="acao-principal" disabled={!pronto || enviando}>
+        Enviar pedido {enviando ? <LoaderCircle className="girar" aria-hidden="true" /> : <ArrowRight aria-hidden="true" />}
+      </Button>
     </form>
   </section>
 }
