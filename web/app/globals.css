@@ -44,13 +44,10 @@ button:not(:disabled), select { cursor: pointer; }
 .nome-comunidade { display: block; margin-top: clamp(18px, 2.4vw, 36px); font: 800 clamp(72px, 7.5vw, 112px)/.84 var(--titulo); letter-spacing: -.075em; }
 .ponto { color: #fff6df; }
 .cartaz-foto { position: relative; flex: 1; min-height: 195px; overflow: hidden; background: #a19f91; }
-.foto-ceu { position: absolute; inset: 0; background: url("/copan.webp") 48% 64% / cover; filter: grayscale(1) sepia(.14) contrast(1.13); }
-.orbita { position: absolute; width: 145%; height: 117%; top: 19%; left: 15%; transform: rotate(-24deg); border: 2px solid var(--laranja); border-radius: 50%; }
-.orbita-menor { width: 144%; top: 23%; left: 16%; border-width: 1px; }
+.cartaz-foto img { object-fit: cover; object-position: 52% 55%; }
 .cartaz-legenda { width: 100%; background: #25251f; color: #fffaf2; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px clamp(18px, 2.4vw, 34px); }
 .cartaz-legenda span { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; }
 .cartaz-legenda svg { color: var(--laranja); }
-.cartaz-legenda a { color: #deded2; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }
 .entrada-conteudo { min-width: 0; width: min(100%, 475px); margin-inline: auto; padding-block: 17px; }
 .formulario-area h1, .painel h1 { font: 750 clamp(36px, 4.1vw, 58px)/.99 var(--titulo); letter-spacing: -.065em; text-wrap: balance; }
 .introducao { font-size: 16px; margin-top: 15px; color: var(--cinza); max-width: 43ch; line-height: 1.55; }
@@ -84,15 +81,13 @@ input::placeholder, textarea::placeholder { color: #6b6e63; }
   .marca-simbolo { width: 30px; height: 30px; }
   .entrada-layout { max-width: 600px; grid-template-columns: 1fr; gap: 25px; padding-block: 20px 36px; }
   .cartaz { min-height: 154px; border-radius: 9px; }
-  .cartaz-titulo { width: 61%; padding: 18px clamp(12px, 3vw, 20px); }
+  .cartaz-titulo { width: 50%; padding: 18px clamp(12px, 3vw, 20px); }
   .cartaz-categoria { font-size: 9px; gap: 5px; }
   .cartaz-categoria::before { width: 12px; }
-  .nome-comunidade { font-size: clamp(38px, 11vw, 56px); margin-top: 10px; }
-  .cartaz-foto { position: absolute; inset: 0 0 0 61%; min-height: 0; }
-  .foto-ceu { background-position: 45% 60%; }
-  .cartaz-legenda { position: absolute; bottom: 0; width: 39%; right: 0; padding: 6px 8px; background: #25251f; }
+  .nome-comunidade { font-size: clamp(30px, 8.8vw, 54px); margin-top: 10px; }
+  .cartaz-foto { position: absolute; inset: 0 0 29px 50%; min-height: 0; }
+  .cartaz-legenda { position: absolute; bottom: 0; width: 50%; right: 0; padding: 6px 8px; background: #25251f; }
   .cartaz-legenda span { font-size: 11px; }
-  .cartaz-legenda a { display: none; }
   .entrada-conteudo { width: 100%; padding: 0; }
   .formulario-area h1 { max-width: 17ch; }
   .formulario { gap: 17px; margin-top: 22px; }
