@@ -6,7 +6,8 @@ import { criarCasoPedido, type CasoPedido } from "../support/pedidos"
 import { registrarPedido } from "../../lib/pedidos"
 import { getPool } from "../../lib/db"
 import { listarPedidos } from "../../lib/fila"
-import { agirNoPedido } from "../../app/fila/acoes"
+import { agirNoPedido, salvarConvite } from "../../app/fila/acoes"
+import { consultarConvite } from "../../lib/configuracao-convite"
 import type { Acesso } from "../../lib/acesso"
 
 vi.mock("server-only", () => ({}))
@@ -99,5 +100,35 @@ it("aprovação e encerramento simultâneos têm um único vencedor", async () =
     expect(pedido).toMatchObject({ situacao: "Aguardando vaga", aprovado_por: contas.primeira.id, encerrado_em: null })
   } else {
     expect(pedido).toMatchObject({ situacao: "Encerrado na vistoria", encerrado_por: contas.segunda.id, aprovado_em: null })
+  }
+})
+
+it("o convite exige vínculo operacional e preserva o valor salvo após uma entrada inválida", async () => {
+  const grupo = randomUUID()
+  const operadora = acesso(contas.primeira.id, "operacao", grupo)
+  const leitora = acesso(contas.leitora.id, "leitura", grupo)
+  const convite = "https://chat.whatsapp.com/FixtureAb123"
+
+  await banco.query("insert into orbcommu.operadores (comunidade, usuario_id, perfil) values ($1, $2, 'operacao'), ($1, $3, 'leitura')", [grupo, operadora.usuarioId, leitora.usuarioId])
+  try {
+    obterAcesso.mockResolvedValue(operadora)
+    expect(await salvarConvite(convite + "?mode=ac_t")).toEqual({ ok: true, convite })
+    expect(await salvarConvite("https://example.test")).toEqual({ ok: false, motivo: "link_invalido" })
+
+    obterAcesso.mockResolvedValue(leitora)
+    expect(await salvarConvite(convite + "Outro")).toEqual({ ok: false, motivo: "acesso" })
+    expect(await consultarConvite(leitora)).toBeNull()
+
+    const perfilDesatualizado = { ...leitora, perfil: "operacao" } as const
+    obterAcesso.mockResolvedValue(perfilDesatualizado)
+    expect(await salvarConvite(convite + "Outro")).toEqual({ ok: false, motivo: "acesso" })
+    expect(await consultarConvite(perfilDesatualizado)).toBeNull()
+    expect(await consultarConvite(operadora)).toBe(convite)
+
+    obterAcesso.mockResolvedValue(operadora)
+    expect(await salvarConvite(convite + "Novo")).toEqual({ ok: true, convite: convite + "Novo" })
+    expect(await consultarConvite(operadora)).toBe(convite + "Novo")
+  } finally {
+    await banco.query("delete from orbcommu.convites_do_grupo where comunidade = $1", [grupo])
   }
 })
