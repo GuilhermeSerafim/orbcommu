@@ -22,17 +22,26 @@ export async function criarOperadores() {
       if (error) throw error
     }
   }
-  async function criar(vinculo: boolean) {
+  async function criar(perfil?: "operacao" | "leitura") {
     const email = `piloto-${randomUUID()}@example.test`
     const senha = randomUUID()
     const { data, error } = await auth.admin.createUser({ email, password: senha, email_confirm: true })
     if (error) throw error
     ids.push(data.user.id)
-    if (vinculo) await banco.query("insert into orbcommu.operadores values ($1, $2)", ["meet-up-tech-sp", data.user.id])
+    if (perfil) await banco.query(
+      "insert into orbcommu.operadores (comunidade, usuario_id, perfil) values ($1, $2, $3)",
+      ["meet-up-tech-sp", data.user.id, perfil],
+    )
     return { email, senha, id: data.user.id }
   }
   try {
-    return { primeira: await criar(true), segunda: await criar(true), semVinculo: await criar(false), limpar }
+    return {
+      primeira: await criar("operacao"),
+      segunda: await criar("operacao"),
+      leitora: await criar("leitura"),
+      semVinculo: await criar(),
+      limpar,
+    }
   } catch (erro) {
     await limpar()
     throw erro

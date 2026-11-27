@@ -24,6 +24,8 @@ test("isola a leitura entre sessões", async ({ browser, page }) => {
     await expect(vinculada).toHaveURL(/\/entrar$/)
     await vinculada.goto("/fila")
     await expect(vinculada).toHaveURL(/\/entrar$/)
+    await fazerLogin(page, contas.leitora)
+    await expect(page.getByRole("heading", { name: "Fila de entrada" })).toBeVisible()
   } finally {
     await Promise.all([vinculada.close(), recusada.close()])
     await contas.limpar()
