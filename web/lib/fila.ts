@@ -2,7 +2,7 @@ import "server-only"
 import type { Acesso } from "./acesso"
 import { getPool } from "./db"
 
-export const situacoesFila = ["Todos", "Para analisar", "Aguardando vaga", "Finalizados"] as const
+export const situacoesFila = ["Todos", "Para analisar", "Aguardando vaga", "Envio a confirmar", "Convite enviado", "Finalizados"] as const
 type SituacaoFila = typeof situacoesFila[number]
 
 export function situacaoValida(valor: string): valor is SituacaoFila {
@@ -20,6 +20,9 @@ export type ItemFila = {
   recebidoEm: string
   conversadoEm: string | null
   conversadoPorNome: string | null
+  reservaId: string | null
+  enviadoEm: string | null
+  enviadoPorNome: string | null
   aprovadoEm: string | null
   aprovadoPor: string | null
   aprovadoPorNome: string | null
@@ -37,7 +40,7 @@ export async function listarPedidos(operador: Extract<Acesso, { tipo: "operador"
   const { rows } = await getPool().query<PaginaFila>(
     `with filtrados as (
        select id, nome, telefone, motivacao, origem, situacao, recebido_em, conversado_em, conversado_por_nome,
-              aprovado_em, aprovado_por, aprovado_por_nome, encerrado_em, encerrado_por_nome
+              reserva_id, enviado_em, enviado_por_nome, aprovado_em, aprovado_por, aprovado_por_nome, encerrado_em, encerrado_por_nome
        from orbcommu.pedidos
        where comunidade = $1
          and ($2 = 'Todos' or ($2 = 'Finalizados' and encerrado_em is not null)
@@ -46,13 +49,14 @@ export async function listarPedidos(operador: Extract<Acesso, { tipo: "operador"
      ), pagina as (
        select id::text, nome, telefone, motivacao, origem, situacao, recebido_em as "recebidoEm",
               conversado_em as "conversadoEm", conversado_por_nome as "conversadoPorNome",
+              reserva_id as "reservaId", enviado_em as "enviadoEm", enviado_por_nome as "enviadoPorNome",
               aprovado_em as "aprovadoEm", aprovado_por as "aprovadoPor", aprovado_por_nome as "aprovadoPorNome",
               encerrado_em as "encerradoEm", encerrado_por_nome as "encerradoPorNome"
        from filtrados order by recebido_em, filtrados.id limit $5 offset $6
      )
      select (select count(*)::int from filtrados) as total,
             coalesce((select json_agg(p order by "recebidoEm", id::bigint) from pagina p), '[]') as itens`,
-    [operador.comunidade, situacao, busca.trim(), digitos, tamanho, (BigInt(pagina - 1) * BigInt(tamanho)).toString()],
+    [operador.comunidade, situacao === "Envio a confirmar" ? "Chamada iniciada" : situacao, busca.trim(), digitos, tamanho, (BigInt(pagina - 1) * BigInt(tamanho)).toString()],
   )
   return rows[0]
 }

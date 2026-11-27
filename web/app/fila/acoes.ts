@@ -4,9 +4,9 @@ import { configurarConvite, type ResultadoConvite } from "../../lib/configuracao
 import { obterAcesso } from "../../lib/acesso"
 import { executarVistoria, type AcaoPedido, type ResultadoAcao } from "../../lib/operacao"
 
-export async function agirNoPedido(id: string, acao: AcaoPedido, _reservaId?: string): Promise<ResultadoAcao> {
+export async function agirNoPedido(id: string, acao: AcaoPedido, reservaId?: string): Promise<ResultadoAcao> {
   try {
-    return await executarVistoria(await obterAcesso(), id, acao)
+    return await executarVistoria(await obterAcesso(), id, acao, reservaId)
   } catch {
     return { ok: false, motivo: "indisponivel" }
   }

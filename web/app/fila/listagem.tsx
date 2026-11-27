@@ -12,8 +12,8 @@ const horario = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle
 
 const hora = new Intl.DateTimeFormat("pt-BR", { timeStyle: "short", timeZone: "America/Sao_Paulo" })
 
-function temAcoesDeVistoria(item: ItemFila) {
-  return item.situacao === "Para analisar" && !item.encerradoEm
+function temAcoes(item: ItemFila) {
+  return ["Para analisar", "Aguardando vaga", "Chamada iniciada"].includes(item.situacao) && !item.encerradoEm
 }
 
 export default function Listagem({ podeOperar, situacoes }: {
@@ -56,7 +56,7 @@ export default function Listagem({ podeOperar, situacoes }: {
           const itemAtualizado = dados.itens.find(item => item.id === linhaFocada.dataset.pedidoId)
           if (!itemAtualizado) {
             busca.current?.focus({ preventScroll: true })
-          } else if (foco?.closest(".acoes-pedido") && !temAcoesDeVistoria(itemAtualizado)) {
+          } else if (foco?.closest(".acoes-pedido") && linhaFocada.dataset.situacao !== itemAtualizado.situacao) {
             linhaFocada.querySelector<HTMLElement>(".situacao")?.focus({ preventScroll: true })
           }
         }
@@ -97,21 +97,23 @@ export default function Listagem({ podeOperar, situacoes }: {
     {dados && <>
       {dados.total > 0 ? <>
         <div className="lista-colunas" aria-hidden="true"><span>Participante</span><span>Origem e recebimento</span><span>Situação</span></div>
-        <ul aria-label="Pedidos em ordem de chegada" className="pedidos">{dados.itens.map(item => <li key={item.id} data-pedido-id={item.id}>
+        <ul aria-label="Pedidos em ordem de chegada" className="pedidos">{dados.itens.map(item => <li key={item.id} data-pedido-id={item.id} data-situacao={item.situacao}>
           <div className="pessoa"><strong>{item.nome}</strong><span>{item.telefone.replace(/^55(\d{2})(\d{4,5})(\d{4})$/, "+55 ($1) $2-$3")}</span>
             {item.motivacao && <p className="motivacao">{item.motivacao}</p>}</div>
           <div className="origem"><span>{item.origem}</span><time dateTime={item.recebidoEm}>{horario.format(new Date(item.recebidoEm))}</time></div>
           <span className="situacao" tabIndex={-1}>{item.situacao}</span>
-          {(item.conversadoEm || item.aprovadoEm || item.encerradoPorNome) && <div className="historico-vistoria" aria-live="polite">
+          {(item.conversadoEm || item.aprovadoEm || item.encerradoPorNome || item.enviadoEm) && <div className="historico-vistoria" aria-live="polite">
             {item.conversadoEm && <p>{item.conversadoPorNome} abriu o WhatsApp às{" "}
               <time dateTime={item.conversadoEm} title={horario.format(new Date(item.conversadoEm))}>{hora.format(new Date(item.conversadoEm))}</time></p>}
             {item.aprovadoEm && <p>{item.aprovadoPorNome} aprovou em{" "}
               <time dateTime={item.aprovadoEm}>{horario.format(new Date(item.aprovadoEm))}</time></p>}
+            {item.enviadoEm && <p>Enviado por {item.enviadoPorNome} em{" "}
+              <time dateTime={item.enviadoEm}>{horario.format(new Date(item.enviadoEm))}</time></p>}
             {item.encerradoEm && item.encerradoPorNome && <p>{item.encerradoPorNome} encerrou o pedido em{" "}
               <time dateTime={item.encerradoEm}>{horario.format(new Date(item.encerradoEm))}</time></p>}
           </div>}
-          {podeOperar && temAcoesDeVistoria(item)
-            && <AcoesDoPedido id={item.id} atualizar={atualizar} />}
+          {podeOperar && temAcoes(item)
+            && <AcoesDoPedido id={item.id} situacao={item.situacao} reservaId={item.reservaId} atualizar={atualizar} />}
         </li>)}</ul>
       </> : <div className="lista-estado">
         {filtro.busca || filtro.situacao !== "Todos" ? <ListFilter aria-hidden="true" /> : <Inbox aria-hidden="true" />}
