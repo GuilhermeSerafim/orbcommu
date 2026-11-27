@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { FiltroFila, ItemFila, PaginaFila } from "../../lib/fila"
 import { AcoesDoPedido } from "./acoes-do-pedido"
+import { useAbaWhatsApp } from "./aba-whatsapp"
 
 const inicial: FiltroFila = { busca: "", situacao: "Todos", pagina: 1, tamanho: 5 }
 const horario = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" })
@@ -26,6 +27,7 @@ export default function Listagem({ podeOperar, situacoes }: {
   const [retomada, setRetomada] = useState<{ id: string; reservaId?: string; url?: string; filtroAnterior: FiltroFila }>()
   const focoRetomada = useRef<string | null>(null)
   const busca = useRef<HTMLInputElement>(null)
+  const abaWhatsApp = useAbaWhatsApp()
   const atualizar = useCallback(() => setRevisao(atual => atual + 1), [])
   useEffect(() => {
     function aoVoltar() {
@@ -85,6 +87,9 @@ export default function Listagem({ podeOperar, situacoes }: {
     setFiltro(atual => ({ busca: atual.busca, situacao: atual.situacao, tamanho: atual.tamanho, pagina: 1, ...campos }))
   }
   return <section className="lista-painel" aria-label="Consulta de pedidos">
+    {/* A aba externa tem como opener um quadro vazio sem permissão para executar scripts. */}
+    {podeOperar && <iframe ref={abaWhatsApp.origem} title="Abertura do WhatsApp" hidden
+      sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" />}
     <div className="filtros">
       <div className="campo">
         <Label htmlFor="busca">Pesquisar</Label>
@@ -138,7 +143,7 @@ export default function Listagem({ podeOperar, situacoes }: {
               <time dateTime={item.encerradoEm}>{horario.format(new Date(item.encerradoEm))}</time></p>}
           </div>}
           {podeOperar && temAcoes(item)
-            && <AcoesDoPedido id={item.id} situacao={item.situacao} reservaId={item.reservaId} atualizar={atualizar}
+            && <AcoesDoPedido id={item.id} situacao={item.situacao} reservaId={item.reservaId} atualizar={atualizar} prepararAba={abaWhatsApp.preparar}
               chamadaIncerta={retomada?.id === item.id && !retomada.reservaId}
               alternativaInicial={retomada?.id === item.id && retomada.reservaId === item.reservaId && retomada.url
                 ? { url: retomada.url, reservaId: retomada.reservaId } : undefined}

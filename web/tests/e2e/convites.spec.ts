@@ -25,8 +25,24 @@ test("chama a pessoa escolhida, recupera a reserva e confirma o envio", async ({
       const linha = lista.nth(1)
       await expect(linha).toContainText(pessoas[1].pedido.nome)
       await page.context().route("https://wa.me/**", route => route.fulfill({ body: "Conversa simulada" }))
+      const primeiraLinha = lista.first()
+      const abriuAba = page.context().waitForEvent("page")
+      await primeiraLinha.getByRole("button", { name: "Chamar", exact: true }).click()
+      const aba = await abriuAba
+      await expect(aba).toHaveURL(url => url.pathname === "/" + pessoas[0].pedido.telefone)
+      await primeiraLinha.getByRole("button", { name: "Desfazer chamada" }).click()
+      await expect(primeiraLinha).toContainText("Aguardando vaga")
+      await page.route("**/fila", route => route.abort("failed"), { times: 1 })
+      await linha.getByRole("button", { name: "Chamar", exact: true }).click()
+      await expect(linha.getByRole("alert")).toBeVisible()
+      await expect(aba).toHaveURL(url => url.pathname === "/" + pessoas[0].pedido.telefone)
+      await linha.getByRole("button", { name: "Chamar", exact: true }).click()
+      await expect(aba).toHaveURL(url => url.pathname === "/" + pessoas[1].pedido.telefone && !!url.searchParams.get("text")?.includes(convite))
+      expect(page.context().pages()).toHaveLength(2)
+      expect(await aba.evaluate(() => window.opener === null || window.opener !== window.opener.top)).toBe(true)
+      await aba.close()
       async function abrir(rotulo: string, alvo = linha) {
-        const abriu = page.waitForEvent("popup")
+        const abriu = page.context().waitForEvent("page")
         await alvo.getByRole("button", { name: rotulo, exact: true }).click()
         const conversa = await abriu
         await expect(conversa).toHaveURL(url => url.hostname === "wa.me" && url.pathname === "/" + pessoas[1].pedido.telefone)
@@ -36,7 +52,6 @@ test("chama a pessoa escolhida, recupera a reserva e confirma o envio", async ({
         expect(mensagem).toContain("perde a vez")
         await conversa.close()
       }
-      await abrir("Chamar")
       const registro = async () => (await pessoas[1].linhas())[0]
       const primeira = (await registro()).reserva_id
       await expect(linha.getByRole("button", { name: "Confirmar envio" })).toBeVisible()
@@ -83,7 +98,7 @@ test("chama a pessoa escolhida, recupera a reserva e confirma o envio", async ({
       await page.getByLabel("Pesquisar").fill(busca)
       await page.getByLabel("Situação").selectOption("Aguardando vaga")
       await expect(lista).toHaveCount(2)
-      await page.evaluate(() => { window.open = () => null })
+      await page.frameLocator('iframe[title="Abertura do WhatsApp"]').locator("html").evaluate(() => { window.open = () => null })
       await lista.nth(1).getByRole("button", { name: "Chamar" }).click()
       const escolhida = lista.filter({ hasText: terceira.pedido.nome })
       const alternativa = escolhida.getByRole("link", { name: "Abrir a conversa" })

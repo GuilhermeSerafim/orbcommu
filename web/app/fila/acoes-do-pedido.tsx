@@ -3,6 +3,7 @@ import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import type { AcaoPedido, ResultadoAcao } from "../../lib/operacao"
 import { agirNoPedido } from "./acoes"
+import type { useAbaWhatsApp } from "./aba-whatsapp"
 
 const mensagens = {
   sem_convite: "Para chamar esta pessoa, salve o convite em “Link do grupo”, no topo da fila.",
@@ -23,9 +24,10 @@ type Props = {
   chamadaIncerta?: boolean
   aoChamar: (reservaId?: string, alternativa?: Alternativa) => void
   atualizar: () => void
+  prepararAba: ReturnType<typeof useAbaWhatsApp>["preparar"]
 }
 
-export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, chamadaIncerta, aoChamar, atualizar }: Props) {
+export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, chamadaIncerta, aoChamar, atualizar, prepararAba }: Props) {
   const emAndamento = useRef(false)
   const [pendente, setPendente] = useState(false)
   const [erro, setErro] = useState<string | undefined>(chamadaIncerta ? avisoChamada : undefined)
@@ -35,8 +37,7 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
     if (emAndamento.current) return
     emAndamento.current = true
     botao.focus()
-    const conversa = ["conversar", "chamar", "reabrir"].includes(acao) ? window.open("about:blank", "_blank") : null
-    if (conversa) conversa.opener = null
+    const conversa = ["conversar", "chamar", "reabrir"].includes(acao) ? prepararAba() : null
     setPendente(true)
     setErro(undefined)
     setAlternativa(undefined)
@@ -44,20 +45,14 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
     try {
       const resultado = await agirNoPedido(id, acao, reservaId ?? undefined)
       if (!resultado.ok) {
-        conversa?.close()
+        conversa?.cancelar()
         setErro(mensagens[resultado.motivo])
         if (resultado.motivo === "pedido_alterado" || resultado.motivo === "acesso") atualizar()
         return
       }
       if (resultado.urlWhatsApp) {
-        let alternativaBloqueada: Alternativa | undefined
-        try {
-          if (conversa && !conversa.closed) conversa.location.replace(resultado.urlWhatsApp)
-          else alternativaBloqueada = { url: resultado.urlWhatsApp, reservaId: resultado.reservaId }
-        } catch {
-          conversa?.close()
-          alternativaBloqueada = { url: resultado.urlWhatsApp, reservaId: resultado.reservaId }
-        }
+        const alternativaBloqueada = conversa?.abrir(resultado.urlWhatsApp) ? undefined
+          : { url: resultado.urlWhatsApp, reservaId: resultado.reservaId }
         setAlternativa(alternativaBloqueada)
         if (acao === "chamar" && resultado.reservaId) aoChamar(resultado.reservaId, alternativaBloqueada)
       } else if (document.activeElement === botao) {
@@ -65,7 +60,7 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
       }
       atualizar()
     } catch {
-      conversa?.close()
+      conversa?.cancelar()
       if (acao === "chamar") aoChamar()
       setErro(acao === "chamar" ? avisoChamada : mensagens.indisponivel)
       atualizar()
@@ -95,7 +90,9 @@ export function AcoesDoPedido({ id, situacao, reservaId, alternativaInicial, cha
     </>}
     {erro && <p className="aviso-acao" role="alert">{erro}</p>}
     {alternativa && (alternativa.reservaId ? situacao === "Chamada iniciada" && alternativa.reservaId === reservaId : situacao === "Para analisar") && <p className="aviso-acao">
-      A abertura automática foi bloqueada. <a href={alternativa.url} target="_blank" rel="noopener noreferrer">Abrir a conversa</a>
+      A conversa não abriu automaticamente. <a href={alternativa.url} target="_blank" rel="noopener noreferrer" onClick={evento => {
+        if (!evento.ctrlKey && !evento.metaKey && !evento.shiftKey && !evento.altKey && prepararAba().abrir(alternativa.url)) evento.preventDefault()
+      }}>Abrir a conversa</a>
     </p>}
   </div>
 }
