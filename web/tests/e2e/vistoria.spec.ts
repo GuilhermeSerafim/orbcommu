@@ -26,7 +26,7 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
     const conversar = linha.getByRole("button", { name: "Conversar no WhatsApp" })
     await expect(conversar).toBeVisible()
     await page.context().route("https://wa.me/**", route => route.fulfill({ body: "WhatsApp simulado" }))
-    const abriu = page.waitForEvent("popup")
+    const abriu = page.context().waitForEvent("page")
     await conversar.click()
     const conversa = await abriu
     await expect(conversa).toHaveURL("https://wa.me/" + ana.pedido.telefone)
@@ -54,7 +54,7 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
 
     await page.getByLabel("Pesquisar").fill(bia.pedido.nome)
     await linha.getByRole("button", { name: "Conversar no WhatsApp" }).waitFor()
-    await page.evaluate(() => {
+    await page.frameLocator('iframe[title="Abertura do WhatsApp"]').locator("html").evaluate(() => {
       const abrir = window.open
       window.open = () => {
         window.open = abrir
