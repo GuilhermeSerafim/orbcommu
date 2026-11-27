@@ -1,6 +1,6 @@
 import { LogOut, LockKeyhole } from "lucide-react"
 import { redirect } from "next/navigation"
-import { Cabecalho } from "@/components/comunidade"
+import { Cabecalho } from "@/components/cabecalho"
 import { Button } from "@/components/ui/button"
 import { obterAcesso } from "../../lib/acesso"
 import { situacoesFila } from "../../lib/fila"

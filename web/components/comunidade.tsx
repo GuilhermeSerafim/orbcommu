@@ -1,34 +1,14 @@
-import { ArrowLeft, ArrowUpRight, MapPin } from "lucide-react"
+import { MapPin } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 import type { ReactNode } from "react"
-import { Button } from "@/components/ui/button"
-import { SimboloOrbCommu } from "@/components/marca-orbcommu"
-import { linkDeParticipacao, meetUpTechSP } from "@/lib/filas-publicas"
+import { Cabecalho } from "@/components/cabecalho"
+import type { FilaPublica } from "@/lib/filas-publicas"
 
-export function Cabecalho({ children }: { children: ReactNode }) {
-  return <header className="masthead">
-    <div className="masthead-inner">
-      <Link href="/" className="marca" aria-label="OrbCommu, página inicial">
-        <SimboloOrbCommu />
-        OrbCommu
-      </Link>
-      {children}
-    </div>
-  </header>
-}
-
-export function EntradaLayout({ children, fila = meetUpTechSP, equipe = false }: { children: ReactNode; fila?: typeof meetUpTechSP; equipe?: boolean }) {
+export function EntradaLayout({ children, fila }: Readonly<{ children: ReactNode; fila: FilaPublica }>) {
   const { cartaz } = fila
   return <>
-    <Cabecalho>
-      <Button asChild variant="ghost" className="header-action">
-        {equipe
-          ? <Link href={linkDeParticipacao(fila)}><ArrowLeft aria-hidden="true" /> Voltar à comunidade</Link>
-          : <Link href="/entrar">Acesso da equipe <ArrowUpRight aria-hidden="true" /></Link>}
-      </Button>
-    </Cabecalho>
-    <main className={equipe ? "entrada-layout entrada-equipe" : "entrada-layout"}>
+    <Cabecalho />
+    <main className="entrada-layout">
       <aside className="cartaz" aria-label={`${cartaz.linhas.join(" ")}, ${cartaz.categoria}, ${cartaz.local}`}>
         <div className="cartaz-titulo" aria-hidden="true">
           <span className="cartaz-categoria">{cartaz.categoria}</span>
