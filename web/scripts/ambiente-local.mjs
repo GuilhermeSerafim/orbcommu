@@ -59,6 +59,7 @@ save("../.env.local", {
   DATABASE_URL: status.DB_URL,
   NEXT_PUBLIC_SUPABASE_URL: status.API_URL,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: status.PUBLISHABLE_KEY || status.ANON_KEY,
+  SUPABASE_ADMIN_KEY: status.SERVICE_ROLE_KEY,
 })
 mkdirSync(new URL("../tests/", import.meta.url), { recursive: true })
 save("../tests/.env.fixture", { SUPABASE_SERVICE_ROLE_KEY: status.SERVICE_ROLE_KEY })

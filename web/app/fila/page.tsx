@@ -17,6 +17,7 @@ export default async function Fila({ searchParams }: { searchParams: Promise<{ p
   if ((await searchParams).pedido !== undefined) redirect("/fila")
   const acesso = await obterAcesso()
   if (acesso.tipo === "anonimo") redirect("/entrar")
+  if (acesso.tipo === "definir_senha") redirect("/entrar/definir-senha")
   return <>
     <Cabecalho>
       <form action={sair}><Button variant="ghost" className="header-action" type="submit"><LogOut aria-hidden="true" /> Sair</Button></form>
@@ -26,7 +27,7 @@ export default async function Fila({ searchParams }: { searchParams: Promise<{ p
         ? <section className="painel-recusado"><div className="secao-simbolo"><LockKeyhole aria-hidden="true" /></div>
             <h1>Acesso recusado</h1><p>Esta conta não tem acesso à fila desta comunidade.</p></section>
         : <>
-            <NavegacaoEquipe atual="fila" />
+            <NavegacaoEquipe atual="fila" superadmin={acesso.superadmin} />
             <header className="painel-titulo">
               <span className="comunidade-id">Meet Up Tech SP</span>
               <h1>Fila de entrada</h1>

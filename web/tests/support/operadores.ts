@@ -29,7 +29,7 @@ export async function criarOperadores() {
     if (error) throw error
     ids.push(data.user.id)
     if (perfil) await banco.query(
-      "insert into orbcommu.operadores (comunidade, usuario_id, perfil) values ($1, $2, $3)",
+      "insert into orbcommu.operadores (comunidade, usuario_id, perfil, versao_senha_aceita) values ($1, $2, $3, 'inicial')",
       ["meet-up-tech-sp", data.user.id, perfil],
     )
     return { email, senha, id: data.user.id }
