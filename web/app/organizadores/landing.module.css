@@ -15,7 +15,7 @@
 }
 
 .cabecalho, .cabecalho nav, .acoesCabecalho, .acoesHero,
-.cabecalhoPainel, .abasPainel, .linhaPainel {
+.linhaPainel {
   display: flex;
   align-items: center;
 }
@@ -118,32 +118,14 @@
   box-shadow: 0 28px 70px #08071266;
 }
 
-.cabecalhoPainel, .linhaPainel {
+.linhaPainel {
   justify-content: space-between;
   gap: 10px;
 }
 
-.cabecalhoPainel small, .linhaPainel small, .linhaPainel span, .eventoPainel {
+.linhaPainel small, .eventoPainel {
   color: #c3bfd3;
   font-size: 13px;
-}
-
-.abasPainel {
-  gap: 10px;
-  margin-block: 17px 6px;
-}
-
-.abasPainel button {
-  min-height: 32px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  color: #ccc8df;
-  cursor: pointer;
-}
-
-.abasPainel button[aria-pressed="true"] {
-  background: #423a61;
-  color: white;
 }
 
 .metricaPainel {
@@ -182,10 +164,6 @@
   color: #c9baff;
 }
 
-.filaPainel {
-  margin-top: 10px;
-}
-
 .linhaPainel .grupoLotado {
   display: block;
   color: #d9caff;
@@ -210,23 +188,6 @@
   border-radius: inherit;
   background: #b9a8ff;
   transition: width .4s;
-}
-
-.controlePainel {
-  padding: 8px 12px;
-  border: 1px solid #ffffff3b;
-  border-radius: 9px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.controlePainel:hover, .abasPainel button:hover {
-  background: #423a61;
-}
-
-.controlePainel[aria-disabled="true"] {
-  opacity: .65;
-  cursor: default;
 }
 
 .eventoPainel {

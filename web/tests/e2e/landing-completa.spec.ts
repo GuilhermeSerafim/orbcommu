@@ -84,8 +84,10 @@ test("percorrer as simulações não envia pedidos", async ({ page }) => {
     await expect(page.getByRole("button", { name: nome, exact: true })).toHaveCount(0)
   }
   await expect(page.locator("#relatorios").getByText(/A origem acompanha o link da divulgação/)).toHaveCount(0)
-  await page.getByRole("button", { name: "Fila", exact: true }).click()
-  await page.getByRole("button", { name: "Aprovar Ana" }).click()
+  const abertura = page.locator("#inicio")
+  await expect(abertura.locator("[data-animada]")).toHaveAttribute("data-animada", "true")
+  await page.clock.runFor(3300)
+  await expect(abertura.getByRole("meter", { name: "Grupo 2", exact: true })).toHaveAttribute("aria-valuenow", /^(18|19|20)$/)
   const distribuicao = page.getByRole("region", { name: "Como os grupos enchem?" })
   await distribuicao.scrollIntoViewIfNeeded()
   await page.clock.runFor(2400)
