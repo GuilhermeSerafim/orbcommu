@@ -5,12 +5,12 @@ import { usarCasoPedido, type CasoPedido } from "../support/pedidos"
 const test = base.extend<{ caso: CasoPedido }>({ caso: async ({}, usar) => usarCasoPedido(usar) })
 const confirmacao = "Recebemos seu pedido para entrar na Meet Up Tech SP."
 
-test("a landing encaminha o participante ao formulário da comunidade", async ({ page }) => {
-  expect((await page.request.get("/organizadores", { maxRedirects: 0 })).headers().location).toBe("/")
-  await page.goto("/")
-  const participar = page.getByRole("link", { name: "Pedir entrada na Meet Up Tech SP" })
-  await expect(participar).toHaveAttribute("href", "/participar/meet-up-tech-sp")
-  await participar.click()
+test("o endereço antigo dos organizadores redireciona para a landing", async ({ request }) => {
+  expect((await request.get("/organizadores", { maxRedirects: 0 })).headers().location).toBe("/")
+})
+
+test("o link público abre o formulário da comunidade", async ({ page }) => {
+  await page.goto("/participar/meet-up-tech-sp")
   await expect(page.getByRole("heading", { name: "Pedir entrada na Meet Up Tech SP" })).toBeVisible()
   await expect(page.locator('a[href="/entrar"]')).toHaveCount(0)
 })

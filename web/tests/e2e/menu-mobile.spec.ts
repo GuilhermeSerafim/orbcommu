@@ -54,6 +54,24 @@ for (const largura of [390, 900]) {
   })
 }
 
+test("fechar a demonstração preserva o foco de quem já voltou ao menu", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto("/")
+  await page.locator("#inicio").getByRole("button", demonstracao).click()
+  const menu = page.getByRole("button", { name: "Menu", exact: true })
+  const dialogo = page.getByRole("dialog", { name: "Fila da demonstração" })
+  await expect(dialogo).toBeVisible()
+  // O navegador entrega o evento close depois de fechar o diálogo e liberar o teclado.
+  await dialogo.evaluate((elemento: HTMLDialogElement) => new Promise<void>(resolve => {
+    elemento.addEventListener("close", () => requestAnimationFrame(() => resolve()), { once: true })
+    elemento.close()
+    document.querySelector<HTMLButtonElement>('button[aria-controls="menu-cabecalho"]')!.focus()
+  }))
+  await expect(menu).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expect(menu).toHaveAttribute("aria-expanded", "true")
+})
+
 for (const largura of [901, 1440]) {
   test(`cabeçalho exibe os links de navegação diretamente em ${largura}px`, async ({ page }) => {
     await page.setViewportSize({ width: largura, height: 900 })

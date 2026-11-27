@@ -48,7 +48,10 @@ export function InscricaoProvider({ children }: { children: ReactNode }) {
     sessaoAtual.current = null
     definirAbertura(null)
     confirmar(false)
-    sessao?.disparador.focus()
+    const foco = document.activeElement
+    if (!foco || foco === document.body || dialogo.current?.contains(foco)) {
+      sessao?.disparador.focus()
+    }
   }
 
   return (
