@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { Cabecalho } from "@/components/comunidade"
 import { Button } from "@/components/ui/button"
 import { obterAcesso } from "../../lib/acesso"
+import { situacoesFila } from "../../lib/fila"
 import { sair } from "../entrar/actions"
 import Listagem from "./listagem"
 import "./fila.css"
@@ -25,7 +26,7 @@ export default async function Fila() {
               <span className="comunidade-id">Meet Up Tech SP</span>
               <h1>Fila de entrada</h1>
             </header>
-            <Listagem key={acesso.usuarioId} />
+            <Listagem key={acesso.usuarioId} podeOperar={acesso.perfil === "operacao"} situacoes={situacoesFila} />
           </>}
     </main>
   </>

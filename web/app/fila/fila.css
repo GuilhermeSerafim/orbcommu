@@ -25,6 +25,15 @@
 .motivacao { margin-top: 3px; white-space: pre-line; }
 .situacao { display: inline-flex; align-items: center; gap: 7px; width: fit-content; border-radius: 100px; padding: 4px 10px; background: #fce9ce; color: #6d4218; font-size: 13px; font-weight: 650; }
 .situacao::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #99611e; }
+.historico-vistoria, .acoes-pedido { grid-column: 1 / -1; }
+.historico-vistoria { display: grid; gap: 3px; color: var(--cinza); font-size: 13px; }
+.historico-vistoria time { font-variant-numeric: tabular-nums; }
+.acoes-pedido { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.acoes-pedido button { min-height: 44px; }
+.acoes-pedido button[aria-disabled="true"] { opacity: .55; cursor: wait; }
+.acoes-pedido :focus, .situacao:focus { outline: 2px solid var(--tinta); outline-offset: 2px; }
+.aviso-acao { flex-basis: 100%; color: var(--cinza); font-size: 14px; }
+.aviso-acao a { text-decoration: underline; }
 .lista-estado { display: grid; justify-items: center; align-content: center; gap: 9px; padding: 34px 18px; min-height: 200px; color: var(--cinza); text-align: center; font-size: 14px; }
 .lista-estado > svg { width: 36px; height: 36px; color: #96724e; margin-bottom: 3px; stroke-width: 1.5px; }
 .lista-estado strong { color: var(--tinta); font: 700 22px/1.2 var(--titulo); letter-spacing: -.035em; }

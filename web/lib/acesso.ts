@@ -7,7 +7,7 @@ import { COMUNIDADE } from "./pedidos"
 export type Acesso =
   | { tipo: "anonimo" }
   | { tipo: "sem_vinculo" }
-  | { tipo: "operador"; usuarioId: string; comunidade: string; perfil: "leitura" | "operacao" }
+  | { tipo: "operador"; usuarioId: string; comunidade: string; perfil: "leitura" | "operacao"; nomeExibicao?: string }
 
 export async function obterAcesso(): Promise<Acesso> {
   const jar = await cookies()
@@ -20,5 +20,7 @@ export async function obterAcesso(): Promise<Acesso> {
     [COMUNIDADE, user.id],
   )
   if (!vinculo.rowCount) return { tipo: "sem_vinculo" }
-  return { tipo: "operador", usuarioId: user.id, comunidade: COMUNIDADE, perfil: vinculo.rows[0].perfil }
+  const nome = user.app_metadata.nome_exibicao
+  const nomeExibicao = typeof nome === "string" ? nome.trim() : undefined
+  return { tipo: "operador", usuarioId: user.id, comunidade: COMUNIDADE, perfil: vinculo.rows[0].perfil, nomeExibicao: nomeExibicao || undefined }
 }

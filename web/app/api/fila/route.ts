@@ -1,5 +1,5 @@
 import { obterAcesso } from "../../../lib/acesso"
-import { listarPedidos } from "../../../lib/fila"
+import { listarPedidos, situacaoValida } from "../../../lib/fila"
 
 const headers = { "Cache-Control": "private, no-store" }
 export async function GET(request: Request) {
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     const situacao = params.get("situacao") ?? "Todos"
     if (!Number.isSafeInteger(pagina) || pagina < 1
       || (tamanho !== 5 && tamanho !== 10 && tamanho !== 20)
-      || (situacao !== "Todos" && situacao !== "Para analisar")) {
+      || !situacaoValida(situacao)) {
       return Response.json({ erro: "filtro" }, { status: 400, headers })
     }
     const dados = await listarPedidos(acesso, { busca: params.get("busca") ?? "", pagina, tamanho, situacao })
