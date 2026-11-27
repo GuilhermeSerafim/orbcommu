@@ -2,6 +2,7 @@
 import { Abertura } from "@/components/ui/modren-and-stunning-hero-section"
 import { Distribuicao } from "./distribuicao"
 import { BotaoDemonstracao, InscricaoProvider } from "./inscricao"
+import { Relatorios } from "./relatorios"
 
 export const metadata: Metadata = {
   title: "OrbCommu · Para organizadores",
@@ -14,6 +15,7 @@ export default function Organizadores() {
       <main>
         <Abertura chamada={<BotaoDemonstracao />} />
         <Distribuicao />
+        <Relatorios />
       </main>
     </InscricaoProvider>
   )
