@@ -160,11 +160,11 @@ function Formulario({ interesse, aoConfirmar }: { interesse: Interesse; aoConfir
           <legend>Como prefere ser contatado?</legend>
           <Label>
             <input type="radio" name="canal" value="email" checked={email} onChange={() => trocarCanal("email")} />
-            E-mail
+            <span>E-mail</span>
           </Label>
           <Label>
             <input type="radio" name="canal" value="whatsapp" checked={!email} onChange={() => trocarCanal("whatsapp")} />
-            WhatsApp
+            <span>WhatsApp</span>
           </Label>
         </fieldset>
         <Label className={estilos.rotuloContato} htmlFor="inscricao-contato">{email ? "E-mail" : "WhatsApp com DDD"}</Label>

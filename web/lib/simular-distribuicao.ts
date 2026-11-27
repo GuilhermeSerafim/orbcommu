@@ -13,7 +13,8 @@ export function destino(
   if (modo === "ordem") return elegiveis[0].indice
   if (modo === "sorteio") return elegiveis[Math.floor(aleatorio() * elegiveis.length)].indice
 
-  return elegiveis.reduce((melhor, grupo) =>
-    grupo.ocupadas * melhor.capacidade < melhor.ocupadas * grupo.capacidade ? grupo : melhor,
+  return elegiveis.reduce(
+    (melhor, grupo) => grupo.ocupadas * melhor.capacidade < melhor.ocupadas * grupo.capacidade ? grupo : melhor,
+    elegiveis[0],
   ).indice
 }
