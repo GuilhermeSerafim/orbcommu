@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next"
 import { Abertura } from "@/components/ui/modren-and-stunning-hero-section"
 import { InkOrbitFeatures } from "@/components/ui/ink-orbit-features"
+import { ComparacaoEdicoes } from "./comparacao"
 import { Distribuicao } from "./distribuicao"
 import { BotaoDemonstracao, InscricaoProvider } from "./inscricao"
 import { Relatorios } from "./relatorios"
@@ -25,6 +26,7 @@ export default function Organizadores() {
         <Distribuicao />
         <Relatorios />
         <InkOrbitFeatures />
+        <ComparacaoEdicoes />
         <Fechamento />
       </main>
       <Rodape />

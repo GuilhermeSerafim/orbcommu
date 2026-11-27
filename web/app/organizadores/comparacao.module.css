@@ -1,0 +1,82 @@
+.secao {
+  padding: clamp(60px, 7vw, 100px) max(20px, 5vw);
+  background: #fff;
+  color: #211d2c;
+  scroll-margin-top: 24px;
+}
+.conteudo { max-width: 1120px; margin-inline: auto; }
+.conteudo h2 {
+  max-width: 22ch;
+  margin: 0;
+  font: 650 clamp(36px, 4.5vw, 62px)/1.02 var(--titulo);
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+.periodo {
+  margin: 18px 0 22px;
+  color: #595265;
+  font: 550 15px/1.4 var(--corpo);
+}
+
+.faixa {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr 1fr;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #ded9e7;
+  border-radius: 18px;
+  background: #faf9fc;
+}
+.faixa > div {
+  min-width: 0;
+  padding: clamp(23px, 2.6vw, 38px);
+}
+.faixa dt {
+  color: #42394d;
+  font: 650 clamp(16px, 1.3vw, 19px)/1.25 var(--corpo);
+  letter-spacing: -.025em;
+}
+.numero {
+  display: block;
+  margin: 16px 0;
+  color: #31283d;
+  font: 560 clamp(54px, 6.3vw, 88px)/1.05 var(--titulo);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -.06em;
+  white-space: nowrap;
+}
+.unidade { font-size: .48em; letter-spacing: -.04em; }
+.faixa dd p { max-width: 34ch; margin: 0; color: #575063; font: 400 16px/1.5 var(--corpo); }
+
+.faixa .destaque {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #342651;
+}
+.destaque::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  width: 220px;
+  height: 220px;
+  right: -124px;
+  top: -65px;
+  border: 1px solid #c7afff32;
+  border-radius: 50%;
+  box-shadow: 0 0 0 22px #342651, 0 0 0 23px #c7afff24, 0 0 0 45px #342651, 0 0 0 46px #c7afff1a;
+}
+.destaque dt, .destaque dd p { color: #f0e9fc; }
+.destaque .numero { color: #e1cfff; font-size: clamp(68px, 7.4vw, 106px); font-weight: 650; }
+
+.piloto { margin-top: 10px; color: #51495d; font: 400 14px/1.55 var(--corpo); }
+.piloto summary { width: fit-content; padding: 12px 0; color: #4f435f; font-weight: 650; cursor: pointer; }
+.piloto summary:hover { text-decoration: underline; text-underline-offset: .2em; }
+.piloto summary:focus-visible { outline: 3px solid #6858c7; outline-offset: 3px; }
+.piloto p { max-width: 78ch; margin: 0 0 10px; }
+@media (max-width: 700px) {
+  .faixa { grid-template-columns: 1fr; }
+  .faixa > div { padding: 22px; }
+  .numero { margin: 10px 0 8px; }
+}

@@ -37,10 +37,6 @@
   font-size: 14px;
 }
 
-.cabecalho a:hover {
-  text-decoration: underline;
-}
-
 .marca {
   display: inline-flex;
   align-items: center;
@@ -71,8 +67,6 @@
 .acoesHero a {
   color: #ebe8ff;
   font-size: 15px;
-  text-decoration: underline;
-  text-underline-offset: 5px;
 }
 
 .hero {
@@ -812,11 +806,6 @@
   gap: 24px;
 }
 
-.acoesFinais a {
-  text-decoration: underline;
-  text-underline-offset: 5px;
-}
-
 .chamadaFinal .botaoDemonstracao {
   background: #bdb4ff;
   color: #201b40;
@@ -849,10 +838,6 @@
   font-size: 14px;
 }
 
-.rodape a:hover {
-  text-decoration: underline;
-}
-
 .marcaRodape {
   color: #fff;
   font-size: 22px;
@@ -867,6 +852,46 @@
 .fechamento :focus-visible, .rodape :focus-visible {
   outline: 3px solid #7964e7;
   outline-offset: 3px;
+}
+
+.cabecalho a, .acoesHero a, .acoesFinais a, .rodape a {
+  text-decoration: none;
+  background-image:
+    linear-gradient(90deg, #ad96ff, #e4ddff),
+    linear-gradient(var(--linha-link, transparent), var(--linha-link, transparent));
+  background-position: left bottom;
+  background-size: 0% 2px, 100% 1px;
+  background-repeat: no-repeat;
+  transition: background-size 200ms ease-out, color 160ms ease-out;
+}
+
+.acoesHero a, .acoesFinais a {
+  --linha-link: #aca6ca;
+}
+
+.cabecalho a:is(:hover, :focus-visible), .acoesHero a:is(:hover, :focus-visible),
+.acoesFinais a:is(:hover, :focus-visible), .rodape a:is(:hover, :focus-visible) {
+  background-size: 100% 2px, 100% 1px;
+  color: #fff;
+}
+
+.cabecalho a:focus-visible, .acoesHero a:focus-visible,
+.acoesFinais a:focus-visible, .rodape a:focus-visible {
+  outline: 2px solid #d4c9ff;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cabecalho a, .acoesHero a, .acoesFinais a, .rodape a {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .acoesHero a, .acoesFinais a,
+  .cabecalho a:is(:hover, :focus-visible), .rodape a:is(:hover, :focus-visible) {
+    text-decoration: underline;
+  }
 }
 
 @media (max-width: 760px) {
