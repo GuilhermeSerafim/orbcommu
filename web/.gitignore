@@ -1,0 +1,6 @@
+supabase/.branches/
+supabase/.temp/
+tsconfig.tsbuildinfo
+.env
+.env.*
+!.env.example
