@@ -54,9 +54,24 @@ for (const preferencia of ["no-preference", "reduce"] as const) {
 
       for (const aba of ["etapas", "origens"] as const) {
         if (aba === "origens") {
-          await grafico.getByRole("tab", { name: "Por divulgação" }).press("Enter")
+          const inicioPainel = await painel.evaluate(el => el.getBoundingClientRect().left)
+          const movimento = await painel.evaluateHandle(el => {
+            let deslizou = false
+            const faixa = el.parentElement!
+            function registrar(evento: TransitionEvent) {
+              if (evento.target === faixa && evento.propertyName === "transform") deslizou = true
+            }
+            faixa.addEventListener("transitionrun", registrar)
+            return () => {
+              faixa.removeEventListener("transitionrun", registrar)
+              return deslizou
+            }
+          })
+          await grafico.getByRole("tab", { name: "Etapas da fila" }).press("ArrowRight")
+          await expect(grafico.getByRole("tab", { name: "Por divulgação" })).toBeFocused()
           await expect(painel.getByText(/^(Bio do evento|QR do encontro)$/)).toHaveText(["QR do encontro", "Bio do evento"])
-          await expect(painel).toHaveCSS("opacity", "1")
+          await expect.poll(() => painel.evaluate(el => el.getBoundingClientRect().left)).toBeCloseTo(inicioPainel, 0)
+          expect(await movimento.evaluate(terminar => terminar())).toBe(preferencia === "no-preference")
         }
         const amostragem = await observar(painel, aba)
         await grafico.getByRole("button", { name: aba === "etapas" ? "30 dias" : "7 dias" }).press("Enter")

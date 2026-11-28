@@ -24,9 +24,11 @@
 .leitura b { color: white; }
 .grafico { min-width: 0; padding: clamp(18px, 2.4vw, 28px); }
 .cabecalhoGrafico { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.abas { display: inline-flex; align-self: stretch; align-items: center; gap: 14px; }
-.abas button { min-height: 40px; padding: 0 1px; border-bottom: 2px solid transparent; font: 650 15px/1.2 var(--corpo); color: var(--cinza); }
-.abas button[data-state="active"] { color: var(--violeta); border-color: currentColor; }
+.abas { position: relative; display: inline-grid; grid-template-columns: repeat(2, 1fr); }
+.abas button { min-height: 44px; padding-inline: 8px; font: 650 15px/1.2 var(--corpo); color: var(--cinza); }
+.abas button[data-state="active"] { color: var(--violeta); }
+.abas::after { content: ""; position: absolute; left: 0; bottom: 0; width: 50%; height: 2px; border-radius: 2px; background: var(--violeta); pointer-events: none; }
+.resultadosAbas[data-aba="origens"] .abas::after { transform: translateX(100%); }
 .tituloOrigens { padding-top: 4px; color: var(--tinta); font-size: 13px; font-weight: 650; }
 .origens { position: relative; display: grid; gap: 8px; margin-block: 7px 2px; }
 .origem { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 3px 10px; align-items: baseline; font-size: 13px; }
@@ -40,13 +42,13 @@
 .periodos button[aria-pressed="true"] { color: #40328a; background: #e7e1f9; font-weight: 750; }
 .periodos button[data-pendente="true"] { cursor: progress; }
 .periodos button[data-pendente="true"]::after { content: ""; position: absolute; inset: auto 8px 3px; height: 2px; background: currentColor; border-radius: 2px; }
-.visualizacoes { display: grid; grid-template-columns: minmax(0, 1fr); margin-top: 14px; }
-.visualizacao { grid-area: 1 / 1; min-width: 0; }
-.visualizacao[data-state="inactive"] { opacity: 0; visibility: hidden; pointer-events: none; }
+.visualizacoes { overflow: clip; margin-top: 14px; }
+.paineis { display: grid; grid-template-columns: 100% 100%; }
+.paineis > [role="tabpanel"] { min-width: 0; outline-offset: -2px; }
+.resultadosAbas[data-aba="origens"] .paineis { transform: translateX(-100%); }
 @media (prefers-reduced-motion: no-preference) {
-  .visualizacao { transition: opacity 160ms ease-out; }
-  .visualizacao[data-state="inactive"] { transition: opacity 90ms ease-in, visibility 0s linear 90ms; }
-  .abas button { transition: color 150ms ease-out, border-color 150ms ease-out; }
+  .paineis, .abas::after { transition: transform 220ms cubic-bezier(.22, .68, .16, 1); }
+  .abas button { transition: color 140ms ease-out; }
   .periodos button[data-pendente="true"]::after { animation: esperaPeriodo 900ms ease-in-out 220ms infinite alternate both; }
   @keyframes esperaPeriodo { from { opacity: 0; } to { opacity: .75; } }
 }
@@ -72,8 +74,7 @@
   .cabecalhoCartao svg:last-child { display: none; }
   .legenda { font-size: 12px; }
   .grafico { padding: 15px 12px; }
-  .abas { gap: 8px; }
-  .abas button { font-size: 13px; }
+  .abas button { padding-inline: 4px; font-size: 13px; }
   .periodos button { padding-inline: 6px; min-width: 44px; }
 }
 @media (max-width: 360px) {

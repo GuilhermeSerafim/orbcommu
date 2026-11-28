@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react"
 import { ArrowUpRight, ClipboardList, Clock3, ScanEye, Send } from "lucide-react"
 import { animate, AnimatePresence, LayoutGroup, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react"
 import { Tabs } from "radix-ui"
@@ -92,6 +92,27 @@ function BarraOrigem({ fracao, reduzirMovimento }: { fracao: number; reduzirMovi
   return <span className={estilos.trilho} aria-hidden="true"><motion.i style={{ scaleX: reduzirMovimento ? fracao : largura }} /></span>
 }
 
+function AbasResultados({ periodos, etapas, children, atualizandoPeriodo }: {
+  periodos: ReactNode; etapas: ReactNode; children: ReactNode; atualizandoPeriodo: boolean
+}) {
+  const [aba, definirAba] = useState("etapas")
+  return <Tabs.Root value={aba} onValueChange={definirAba} data-aba={aba} className={estilos.resultadosAbas}>
+    <div className={estilos.cabecalhoGrafico}>
+      <Tabs.List className={estilos.abas} aria-label="Gráfico de resultados">
+        <Tabs.Trigger value="etapas">Etapas da fila</Tabs.Trigger>
+        <Tabs.Trigger value="origens">Por divulgação</Tabs.Trigger>
+      </Tabs.List>
+      {periodos}
+    </div>
+    <div className={estilos.visualizacoes} aria-busy={atualizandoPeriodo}>
+      <div className={estilos.paineis}>
+        <Tabs.Content value="etapas" forceMount inert={aba !== "etapas"} aria-hidden={aba !== "etapas"}>{etapas}</Tabs.Content>
+        <Tabs.Content value="origens" forceMount inert={aba !== "origens"} aria-hidden={aba !== "origens"}>{children}</Tabs.Content>
+      </div>
+    </div>
+  </Tabs.Root>
+}
+
 export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
   api: string
   revisao: number
@@ -99,7 +120,6 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
   selecionar: (filtro: FiltroFila["situacao"]) => void
 }) {
   const [dias, definirDias] = useState<7 | 30>(7)
-  const [aba, definirAba] = useState("etapas")
   const [resumo, definirResumo] = useState<ResumoFila | null>(null)
   const [erro, definirErro] = useState(false)
   const [consulta, reconsultar] = useState(0)
@@ -191,26 +211,15 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
       </section>
       <section className={estilos.grafico} aria-labelledby="titulo-etapas">
         <h3 id="titulo-etapas" className="sr-only">Resultados dos pedidos</h3>
-        <Tabs.Root value={aba} onValueChange={definirAba}>
-        <div className={estilos.cabecalhoGrafico}>
-          <Tabs.List className={estilos.abas} aria-label="Gráfico de resultados">
-            <Tabs.Trigger value="etapas">Etapas da fila</Tabs.Trigger>
-            <Tabs.Trigger value="origens">Por divulgação</Tabs.Trigger>
-          </Tabs.List>
+        <AbasResultados atualizandoPeriodo={atualizandoPeriodo} periodos={
           <div className={estilos.periodos} role="group" aria-label="Período de recebimento">
             {([7, 30] as const).map(n => <Button type="button" size="sm" variant="ghost" key={n}
               aria-pressed={dias === n} data-pendente={dias === n && atualizandoPeriodo} onClick={() => selecionarPeriodo(n)}>{n} dias</Button>)}
-          </div>
-        </div>
-        <div className={estilos.visualizacoes} aria-busy={atualizandoPeriodo}>
-        <Tabs.Content value="etapas" forceMount inert={aba !== "etapas"} aria-hidden={aba !== "etapas"} className={estilos.visualizacao}>
-        {funil ? <>
-          <div aria-hidden="true"><GraficoEtapas etapas={etapas} maximo={resumo?.escala?.pedidos ?? funil.recebidos}
-            reduzirMovimento={Boolean(menosMovimento)} /></div>
-          <dl className="sr-only">{etapas.map(etapa => <div key={etapa.nome}><dt>{etapa.nome}</dt><dd>{etapa.valor}</dd></div>)}</dl>
-        </> : <div className={estilos.barras} />}
-        </Tabs.Content>
-        <Tabs.Content value="origens" forceMount inert={aba !== "origens"} aria-hidden={aba !== "origens"} className={estilos.visualizacao}>
+          </div>} etapas={funil ? <>
+            <div aria-hidden="true"><GraficoEtapas etapas={etapas} maximo={resumo?.escala?.pedidos ?? funil.recebidos}
+              reduzirMovimento={Boolean(menosMovimento)} /></div>
+            <dl className="sr-only">{etapas.map(etapa => <div key={etapa.nome}><dt>{etapa.nome}</dt><dd>{etapa.valor}</dd></div>)}</dl>
+          </> : <div className={estilos.barras} />}>
           {!funil ? <div className={estilos.barras} /> : !resumo?.divulgacoes.length ?
             <p className={estilos.vazio}>As origens aparecem com o primeiro pedido do período.</p> : <>
             <p className={estilos.tituloOrigens}>Entradas confirmadas por origem</p>
@@ -227,9 +236,7 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
                 </motion.div>)}
               </AnimatePresence>
             </div></>}
-        </Tabs.Content>
-        </div>
-        </Tabs.Root>
+        </AbasResultados>
       </section>
     </Card>
   </div>
