@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { FiltroFila, ItemFila, PaginaFila } from "../../lib/fila"
+import { SeloSituacao } from "./selo-situacao"
 import { AcoesDoPedido } from "./acoes-do-pedido"
 import { useAbaWhatsApp } from "./aba-whatsapp"
 
@@ -121,7 +122,7 @@ export default function Listagem({ podeOperar, situacoes }: {
           <div className="pessoa"><strong>{item.nome}</strong><span>{item.telefone.replace(/^55(\d{2})(\d{4,5})(\d{4})$/, "+55 ($1) $2-$3")}</span>
             {item.motivacao && <p className="motivacao">{item.motivacao}</p>}</div>
           <div className="origem"><span>{item.origem}</span><time dateTime={item.recebidoEm}>{horario.format(new Date(item.recebidoEm))}</time></div>
-          <span className="situacao" tabIndex={-1}>{item.situacao}</span>
+          <SeloSituacao situacao={item.situacao} />
           {(item.situacao === "Convite enviado" || item.situacao === "Prazo encerrado")
             ? <div className="historico-vistoria" aria-live="polite">Enviado por {item.enviadoPorNome}</div>
             : (item.conversadoEm || item.aprovadoEm || item.encerradoPorNome || item.enviadoEm) && <div className="historico-vistoria" aria-live="polite">

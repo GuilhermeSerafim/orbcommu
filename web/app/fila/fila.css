@@ -26,8 +26,11 @@
 .pessoa span, .origem time, .paginacao [aria-live] { font-variant-numeric: tabular-nums; }
 .origem { font-size: 15px; }
 .motivacao { margin-top: 3px; white-space: pre-line; }
-.situacao { display: inline-flex; align-items: center; gap: 7px; width: fit-content; border-radius: 100px; padding: 4px 10px; background: #fce9ce; color: #6d4218; font-size: 13px; font-weight: 650; }
-.situacao::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #99611e; }
+.situacao { display: inline-flex; align-items: center; gap: 6px; width: fit-content; max-width: 100%; border-radius: 100px; padding: 4px 10px; background: var(--papel); color: var(--cinza); font-size: 13px; font-weight: 650; }
+.situacao svg { flex: none; }
+.situacao[data-tom="atencao"] { background: #fce9ce; color: #6d4218; }
+.situacao[data-tom="andamento"] { background: var(--lavanda); color: var(--violeta); }
+.situacao[data-tom="confirmada"] { background: #e3f3ea; color: #1f6147; }
 .historico-vistoria, .acoes-pedido { grid-column: 1 / -1; }
 .historico-vistoria { display: grid; gap: 3px; color: var(--cinza); font-size: 13px; }
 .historico-vistoria time { font-variant-numeric: tabular-nums; }
