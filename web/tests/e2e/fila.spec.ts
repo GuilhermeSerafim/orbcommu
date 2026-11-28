@@ -100,6 +100,86 @@ test("os indicadores abrem a fila correspondente e comparam a mesma coorte por o
   } finally { await contas.limpar() }
 })
 
+test("mantém a leitura e a altura do gráfico ao trocar as abas e aguardar outro período", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  const contas = await criarOperadores()
+  let responder!: () => void
+  const espera = new Promise<void>(resolve => { responder = resolve })
+  await page.route("**/api/fila/resumo?*", async rota => {
+    const mes = new URL(rota.request().url()).searchParams.get("dias") === "30"
+    if (mes) await espera
+    const confirmadas = mes ? [6, 5, 4, 2, 1] : [2, 1, 1, 1, 0]
+    await rota.fulfill({ json: {
+      dias: mes ? 30 : 7,
+      atuais: { paraAnalisar: 3, aguardandoVaga: 2, chamadaIniciada: 1, aConferir: 1, esperaMaisAntigaMs: 7200000 },
+      funil: mes ? { recebidos: 45, aprovados: 33, convitesEnviados: 28, entradasConfirmadas: 18 }
+        : { recebidos: 20, aprovados: 11, convitesEnviados: 9, entradasConfirmadas: 5 },
+      divulgacoes: confirmadas.map((entradasConfirmadas, i) => ({ nome: "Canal " + (i + 1), pedidos: mes ? 9 : 4, entradasConfirmadas })),
+      atualizarEmMs: null,
+    } })
+  })
+  try {
+    await fazerLogin(page, contas.leitora)
+    const leitura = page.getByRole("region", { name: "Quantos pedidos viraram entrada?" })
+    const grafico = page.getByRole("region", { name: "Resultados dos pedidos" })
+    const etapas = grafico.getByRole("tab", { name: "Etapas da fila" })
+    const origens = grafico.getByRole("tab", { name: "Por divulgação" })
+    const painel = grafico.getByRole("tabpanel")
+    const tituloLista = page.getByRole("heading", { name: "Pedidos da fila" })
+    const posicaoLista = () => tituloLista.evaluate(el => el.getBoundingClientRect().top + window.scrollY)
+    const alturaGrafico = () => grafico.evaluate(el => el.getBoundingClientRect().height)
+    await expect(leitura).toContainText("25%")
+    await expect(painel.locator("dd")).toHaveText(["20", "11", "9", "5"])
+    await page.evaluate(() => document.fonts.ready)
+    const alturaInicial = await alturaGrafico()
+    const topoInicial = await posicaoLista()
+    await origens.click()
+    await expect(painel.getByText(/^Canal \d+$/)).toHaveCount(5)
+    expect.soft(Math.abs(await alturaGrafico() - alturaInicial)).toBeLessThanOrEqual(1)
+    expect.soft(Math.abs(await posicaoLista() - topoInicial)).toBeLessThanOrEqual(1)
+    await expect.soft(grafico.getByText(/Pedidos recebidos nos últimos \d+ dias/i)).toHaveCount(0, { timeout: 1000 })
+
+    const requisicao = page.waitForRequest(req => req.url().endsWith("/api/fila/resumo?dias=30"))
+    await grafico.getByRole("button", { name: "30 dias" }).click()
+    await requisicao
+    await expect.soft(leitura).toContainText("25%", { timeout: 1000 })
+    await expect.soft(painel.getByText("2 de 4 pedidos")).toBeVisible({ timeout: 1000 })
+    await etapas.click()
+    await expect.soft(painel.locator("dd")).toHaveText(["20", "11", "9", "5"], { timeout: 1000 })
+    await expect.soft(painel.locator("svg text").filter({ hasText: /^20$/ })).toBeVisible({ timeout: 1000 })
+
+    // Amostra as mudanças do percentual exibido para detectar contagem animada mesmo com o movimento reduzido.
+    const monitor = await leitura.evaluateHandle((el: HTMLElement) => {
+      const valores = new Set<string>()
+      const registrar = () => {
+        for (const percentual of el.innerText.match(/\d+\s*%/g) ?? []) valores.add(percentual.replace(/\s/g, ""))
+      }
+      const observador = new MutationObserver(registrar)
+      observador.observe(el, { childList: true, subtree: true, characterData: true })
+      return { valores, observador }
+    })
+    responder()
+    await expect(leitura).toContainText("18 de 45")
+    await expect(leitura).toContainText("40%")
+    await expect(painel.locator("dd")).toHaveText(["45", "33", "28", "18"])
+    const percentuais = await monitor.evaluate(async ({ valores, observador }) => {
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+      observador.disconnect()
+      return [...valores]
+    })
+    expect(percentuais).toContain("40%")
+    expect(percentuais.filter(valor => valor !== "25%" && valor !== "40%")).toEqual([])
+    await origens.click()
+    await expect(painel.getByText("6 de 9 pedidos")).toBeVisible()
+    await expect(painel.getByText(/^Canal \d+$/)).toHaveCount(5)
+    expect.soft(Math.abs(await alturaGrafico() - alturaInicial)).toBeLessThanOrEqual(1)
+    expect.soft(Math.abs(await posicaoLista() - topoInicial)).toBeLessThanOrEqual(1)
+  } finally {
+    responder()
+    await contas.limpar()
+  }
+})
+
 test("descarta resposta atrasada e limpa a fila ao perder o acesso", async ({ page }) => {
   const contas = await criarOperadores()
   let liberar!: () => void

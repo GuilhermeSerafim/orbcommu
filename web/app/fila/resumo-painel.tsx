@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useState } from "react"
 import { ArrowUpRight, ClipboardList, Clock3, ScanEye, Send } from "lucide-react"
-import { LayoutGroup, motion, useReducedMotion } from "motion/react"
+import { animate, LayoutGroup, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react"
 import { Tabs } from "radix-ui"
 import { Bar, BarChart, LabelList, XAxis, YAxis } from "recharts"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,21 @@ function espera(ms: number) {
 
 const config = { valor: { label: "Pedidos", color: "#6856cb" } }
 
+function PercentualEntrada({ valor, reduzirMovimento }: { valor: number; reduzirMovimento: boolean }) {
+  const exibido = useMotionValue(valor)
+  const texto = useTransform(exibido, numero => Math.round(numero) + "%")
+  useLayoutEffect(() => {
+    if (reduzirMovimento) {
+      exibido.jump(valor)
+      return
+    }
+    if (exibido.get() === valor) return
+    const transicao = animate(exibido, valor, { duration: .22, ease: "easeOut" })
+    return () => transicao.stop()
+  }, [valor, reduzirMovimento, exibido])
+  return reduzirMovimento ? <>{valor}%</> : <motion.span>{texto}</motion.span>
+}
+
 export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
   api: string
   revisao: number
@@ -36,6 +51,7 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
   selecionar: (filtro: FiltroFila["situacao"]) => void
 }) {
   const [dias, definirDias] = useState<7 | 30>(7)
+  const [aba, definirAba] = useState("etapas")
   const [resumo, definirResumo] = useState<ResumoFila | null>(null)
   const [erro, definirErro] = useState(false)
   const [consulta, reconsultar] = useState(0)
@@ -67,7 +83,9 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
   }, [api, dias, revisao, consulta])
 
   const atuais = resumo?.atuais
-  const funil = resumo?.dias === dias ? resumo.funil : null
+  const funil = resumo?.funil
+  const atualizandoPeriodo = resumo != null && resumo.dias !== dias
+  const percentual = funil?.recebidos ? Math.round(100 * funil.entradasConfirmadas / funil.recebidos) : null
   const etapas = funil ? [
     { nome: "Recebidos", valor: funil.recebidos, fill: "#cbc2ee" },
     { nome: "Aprovados", valor: funil.aprovados, fill: "#a99adb" },
@@ -103,15 +121,18 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
       </LayoutGroup>
     </section>
     <Card className={estilos.resultado}>
-      <section className={estilos.leitura} aria-labelledby="titulo-conversao">
+      <section className={estilos.leitura} aria-labelledby="titulo-conversao" aria-busy={atualizandoPeriodo}>
         <h2 id="titulo-conversao">Quantos pedidos viraram entrada?</h2>
-        <strong className={estilos.percentual}>{funil?.recebidos ? Math.round(100 * funil.entradasConfirmadas / funil.recebidos) + "%" : "—"}</strong>
-        <p aria-live="polite">{!funil ? "Carregando resultados…" : !funil.recebidos ? "Nenhum pedido recebido no período." :
-          <><b>{funil.entradasConfirmadas} de {funil.recebidos}</b> {funil.recebidos === 1 ? "pedido com entrada confirmada." : "pedidos com entrada confirmada."}</>}</p>
+        <strong className={estilos.percentual} aria-hidden="true">
+          {percentual == null ? "—" : <PercentualEntrada valor={percentual} reduzirMovimento={Boolean(menosMovimento)} />}
+        </strong>
+        <p aria-live="polite" aria-atomic="true">{!funil ? "Carregando resultados…" : !funil.recebidos ? "Nenhum pedido recebido no período." :
+          <><b>{funil.entradasConfirmadas} de {funil.recebidos}</b> {funil.recebidos === 1 ? "pedido com entrada confirmada." : "pedidos com entrada confirmada."}
+            <span className="sr-only"> {percentual}% em {resumo?.dias} dias.</span></>}</p>
       </section>
       <section className={estilos.grafico} aria-labelledby="titulo-etapas">
         <h3 id="titulo-etapas" className="sr-only">Resultados dos pedidos</h3>
-        <Tabs.Root defaultValue="etapas">
+        <Tabs.Root value={aba} onValueChange={definirAba}>
         <div className={estilos.cabecalhoGrafico}>
           <Tabs.List className={estilos.abas} aria-label="Gráfico de resultados">
             <Tabs.Trigger value="etapas">Etapas da fila</Tabs.Trigger>
@@ -119,11 +140,11 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
           </Tabs.List>
           <div className={estilos.periodos} role="group" aria-label="Período de recebimento">
             {([7, 30] as const).map(n => <Button type="button" size="sm" variant="ghost" key={n}
-              aria-pressed={dias === n} onClick={() => definirDias(n)}>{n} dias</Button>)}
+              aria-pressed={dias === n} data-pendente={dias === n && atualizandoPeriodo} onClick={() => definirDias(n)}>{n} dias</Button>)}
           </div>
         </div>
-        <p className={estilos.periodo}>Pedidos recebidos nos últimos {dias} dias</p>
-        <Tabs.Content value="etapas">
+        <div className={estilos.visualizacoes} aria-busy={atualizandoPeriodo}>
+        <Tabs.Content value="etapas" forceMount inert={aba !== "etapas"} aria-hidden={aba !== "etapas"} className={estilos.visualizacao}>
         {funil ? <>
           <div aria-hidden="true"><ChartContainer config={config} className={estilos.barras}>
             <BarChart layout="vertical" data={etapas} barSize={13} margin={{ left: 0, right: 38, top: 3, bottom: 0 }} accessibilityLayer={false}>
@@ -138,7 +159,7 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
           <dl className="sr-only">{etapas.map(etapa => <div key={etapa.nome}><dt>{etapa.nome}</dt><dd>{etapa.valor}</dd></div>)}</dl>
         </> : <div className={estilos.barras} />}
         </Tabs.Content>
-        <Tabs.Content value="origens">
+        <Tabs.Content value="origens" forceMount inert={aba !== "origens"} aria-hidden={aba !== "origens"} className={estilos.visualizacao}>
           {!funil ? <div className={estilos.barras} /> : !resumo?.divulgacoes.length ?
             <p className={estilos.vazio}>As origens aparecem com o primeiro pedido do período.</p> : <>
             <p className={estilos.tituloOrigens}>Entradas confirmadas por origem</p>
@@ -150,6 +171,7 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
               </div>)}
             </div></>}
         </Tabs.Content>
+        </div>
         </Tabs.Root>
       </section>
     </Card>
