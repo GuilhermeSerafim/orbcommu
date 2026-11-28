@@ -53,9 +53,8 @@ function barraComValor({ x, y, width, height, fill, value }: BarShapeProps) {
   </g>
 }
 
-function NumeroAnimado({ valor, reduzirMovimento, sufixo = "" }: { valor: number; reduzirMovimento: boolean; sufixo?: string }) {
+function useValorAnimado(valor: number, reduzirMovimento: boolean) {
   const exibido = useMotionValue(valor)
-  const texto = useTransform(exibido, numero => Math.round(numero) + sufixo)
   useLayoutEffect(() => {
     if (reduzirMovimento) {
       exibido.jump(valor)
@@ -65,7 +64,18 @@ function NumeroAnimado({ valor, reduzirMovimento, sufixo = "" }: { valor: number
     const transicao = animate(exibido, valor, { duration: duracaoBarras, ease: "easeOut" })
     return () => transicao.stop()
   }, [valor, reduzirMovimento, exibido])
+  return exibido
+}
+
+function NumeroAnimado({ valor, reduzirMovimento, sufixo = "" }: { valor: number; reduzirMovimento: boolean; sufixo?: string }) {
+  const exibido = useValorAnimado(valor, reduzirMovimento)
+  const texto = useTransform(exibido, numero => Math.round(numero) + sufixo)
   return reduzirMovimento ? <>{valor}{sufixo}</> : <motion.span>{texto}</motion.span>
+}
+
+function BarraOrigem({ fracao, reduzirMovimento }: { fracao: number; reduzirMovimento: boolean }) {
+  const largura = useValorAnimado(fracao, reduzirMovimento)
+  return <span className={estilos.trilho} aria-hidden="true"><motion.i style={{ scaleX: reduzirMovimento ? fracao : largura }} /></span>
 }
 
 export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
@@ -194,7 +204,8 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
                   <span>{origem.nome}</span>
                   <span><b><NumeroAnimado valor={origem.entradasConfirmadas} reduzirMovimento={Boolean(menosMovimento)} /></b> de{" "}
                     <NumeroAnimado valor={origem.pedidos} reduzirMovimento={Boolean(menosMovimento)} /> {origem.pedidos === 1 ? "pedido" : "pedidos"}</span>
-                  <span className={estilos.trilho} aria-hidden="true"><i style={{ transform: `scaleX(${origem.entradasConfirmadas / Math.max(1, resumo.escala?.entradasPorOrigem ?? resumo.divulgacoes[0].entradasConfirmadas)})` }} /></span>
+                  <BarraOrigem fracao={origem.entradasConfirmadas / Math.max(1, resumo.escala?.entradasPorOrigem ?? resumo.divulgacoes[0].entradasConfirmadas)}
+                    reduzirMovimento={Boolean(menosMovimento)} />
                 </motion.div>)}
               </AnimatePresence>
             </div></>}
