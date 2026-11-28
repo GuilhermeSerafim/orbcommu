@@ -105,6 +105,14 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
   const [consulta, reconsultar] = useState(0)
   const [destaque, destacar] = useState<string | null>(null)
   const menosMovimento = useReducedMotion()
+  const recentes = useMemo(() => new Map<ResumoFila["dias"], { dados: ResumoFila; validade: number }>(), [api, revisao])
+
+  function selecionarPeriodo(periodo: ResumoFila["dias"]) {
+    if (periodo === dias) return
+    const recente = recentes.get(periodo)
+    if (recente && performance.now() < recente.validade) definirResumo(recente.dados)
+    definirDias(periodo)
+  }
 
   useEffect(() => {
     const controlador = new AbortController()
@@ -115,12 +123,15 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
         if (!resposta.ok) throw new Error("Resumo indisponível")
         const dados: ResumoFila = await resposta.json()
         if (controlador.signal.aborted) return
+        const intervalo = Math.max(250, Math.min(60_000, dados.atualizarEmMs ?? 60_000))
+        recentes.set(dias, { dados, validade: performance.now() + intervalo })
         definirErro(false)
         definirResumo(dados)
         // Atualiza também o tempo de espera e a virada do dia com a tela aberta.
-        proxima = setTimeout(carregar, Math.max(250, Math.min(60_000, dados.atualizarEmMs ?? 60_000)))
+        proxima = setTimeout(carregar, intervalo)
       } catch {
         if (!controlador.signal.aborted) {
+          recentes.clear()
           definirResumo(null)
           definirErro(true)
         }
@@ -128,7 +139,7 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
     }
     void carregar()
     return () => { controlador.abort(); clearTimeout(proxima) }
-  }, [api, dias, revisao, consulta])
+  }, [api, dias, revisao, consulta, recentes])
 
   const atuais = resumo?.atuais
   const funil = resumo?.funil
@@ -188,7 +199,7 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
           </Tabs.List>
           <div className={estilos.periodos} role="group" aria-label="Período de recebimento">
             {([7, 30] as const).map(n => <Button type="button" size="sm" variant="ghost" key={n}
-              aria-pressed={dias === n} data-pendente={dias === n && atualizandoPeriodo} onClick={() => definirDias(n)}>{n} dias</Button>)}
+              aria-pressed={dias === n} data-pendente={dias === n && atualizandoPeriodo} onClick={() => selecionarPeriodo(n)}>{n} dias</Button>)}
           </div>
         </div>
         <div className={estilos.visualizacoes} aria-busy={atualizandoPeriodo}>
