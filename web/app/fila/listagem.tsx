@@ -6,14 +6,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { FiltroFila, ItemFila, PaginaFila } from "../../lib/fila"
 import { SeloSituacao } from "./selo-situacao"
+import { HistoricoPedido } from "./historico-pedido"
 import { AcoesDoPedido } from "./acoes-do-pedido"
 import { useAbaWhatsApp } from "./aba-whatsapp"
 import ResumoPainel from "./resumo-painel"
 
 const inicial: FiltroFila = { busca: "", situacao: "Todos", pagina: 1, tamanho: 5 }
 const horario = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" })
-
-const hora = new Intl.DateTimeFormat("pt-BR", { timeStyle: "short", timeZone: "America/Sao_Paulo" })
 
 function temAcoes(item: ItemFila) {
   return ["Para analisar", "Aguardando vaga", "Chamada iniciada", "Convite enviado", "A conferir"].includes(item.situacao) && !item.encerradoEm
@@ -137,19 +136,11 @@ export default function Listagem({ podeOperar, situacoes, api = "/api/fila", con
           <div className="pessoa"><strong>{item.nome}</strong><span>{item.telefone.replace(/^55(\d{2})(\d{4,5})(\d{4})$/, "+55 ($1) $2-$3")}</span>
             {item.motivacao && <p className="motivacao">{item.motivacao}</p>}</div>
           <div className="origem"><span>{item.origem}</span><time dateTime={item.recebidoEm}>{horario.format(new Date(item.recebidoEm))}</time></div>
-          <SeloSituacao situacao={item.situacao} />
-          {(item.situacao === "Convite enviado" || item.situacao === "Prazo encerrado")
-            ? <div className="historico-vistoria" aria-live="polite">Enviado por {item.enviadoPorNome}</div>
-            : (item.conversadoEm || item.aprovadoEm || item.encerradoPorNome || item.enviadoEm) && <div className="historico-vistoria" aria-live="polite">
-            {item.conversadoEm && <p>{item.conversadoPorNome} abriu o WhatsApp às{" "}
-              <time dateTime={item.conversadoEm} title={horario.format(new Date(item.conversadoEm))}>{hora.format(new Date(item.conversadoEm))}</time></p>}
-            {item.aprovadoEm && <p>{item.aprovadoPorNome} aprovou em{" "}
-              <time dateTime={item.aprovadoEm}>{horario.format(new Date(item.aprovadoEm))}</time></p>}
-            {item.enviadoEm && <p>Enviado por {item.enviadoPorNome} em{" "}
-              <time dateTime={item.enviadoEm}>{horario.format(new Date(item.enviadoEm))}</time></p>}
-            {item.encerradoEm && item.encerradoPorNome && <p>{item.encerradoPorNome} encerrou o pedido em{" "}
-              <time dateTime={item.encerradoEm}>{horario.format(new Date(item.encerradoEm))}</time></p>}
-          </div>}
+          <div className="estado-pedido"><SeloSituacao situacao={item.situacao} />
+            {(item.situacao === "Convite enviado" || item.situacao === "Prazo encerrado") && item.enviadoPorNome &&
+              <span className="autor-envio">Enviado por {item.enviadoPorNome}</span>}
+          </div>
+          <HistoricoPedido item={item} />
           {podeOperar && temAcoes(item)
             && <AcoesDoPedido id={item.id} situacao={item.situacao} reservaId={item.reservaId} atualizar={atualizar}
               prepararAba={abaWhatsApp.preparar} aoIniciarChamada={() => manterChamadaNaPagina(item.id)} />}
