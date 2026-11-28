@@ -94,7 +94,23 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
     await encerramentoSegunda.focus()
     await expect(encerramentoSegunda).toBeFocused()
     await page.bringToFront()
-    await linha.getByRole("button", { name: "Encerrar pedido" }).click()
+    const encerrar = linha.getByRole("button", { name: "Encerrar pedido", exact: true })
+    const acoes = linha.getByRole("group", { name: "Ações do pedido" })
+    for (const largura of [1440, 320, 390]) {
+      await page.setViewportSize({ width: largura, height: 844 })
+      await expect(encerrar).toBeVisible()
+      await expect(encerrar).toHaveCSS("border-top-width", "1px")
+      const caixa = await encerrar.boundingBox()
+      const grupo = await acoes.boundingBox()
+      expect(caixa!.height).toBeGreaterThanOrEqual(44)
+      if (largura < 600) expect(caixa!.width).toBeCloseTo(grupo!.width, 0)
+      else expect(caixa!.width).toBeLessThan(grupo!.width)
+    }
+    await linha.getByRole("button", { name: "Aprovar" }).focus()
+    await page.keyboard.press("Tab")
+    await expect(encerrar).toBeFocused()
+    await expect(encerrar).toHaveCSS("outline-style", "solid")
+    await page.keyboard.press("Enter")
     await expect(linha).toContainText("Encerrado na vistoria")
     await segunda.bringToFront()
     await segunda.evaluate(() => window.dispatchEvent(new Event("focus")))
@@ -112,6 +128,7 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
       const consulta = leitora.getByRole("listitem")
       await expect(consulta).toContainText("Para analisar")
       await expect(consulta.getByRole("group", { name: "Ações do pedido" })).toHaveCount(0)
+      await expect(consulta.getByRole("button", { name: "Encerrar pedido" })).toHaveCount(0)
       await conferirHistorico(leitora, pendente.pedido.nome, "Pedido recebido")
     } finally { await pendente.limpar() }
   } finally {
