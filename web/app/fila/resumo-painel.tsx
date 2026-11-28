@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { ArrowUpRight, ClipboardList, Clock3, ScanEye, Send } from "lucide-react"
 import { animate, AnimatePresence, LayoutGroup, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react"
 import { Tabs } from "radix-ui"
-import { Bar, BarChart, Rectangle, XAxis, YAxis, type BarProps, type BarShapeProps } from "recharts"
+import { Bar, BarChart, Rectangle, XAxis, YAxis, type BarShapeProps } from "recharts"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChartContainer } from "@/components/ui/chart"
@@ -31,19 +31,6 @@ const config = { valor: { label: "Pedidos", color: "#6856cb" } }
 
 const duracaoBarras = .3
 
-// A etiqueta acompanha a ponta da barra durante toda a troca de período.
-const interpolarEtapas: NonNullable<BarProps["animationInterpolateFn"]> = (itens, progresso) =>
-  (itens ?? []).flatMap(item => {
-    if (item.status === "removed") return []
-    if (item.status === "added" || progresso === 1) return [item.next]
-    const { prev, next } = item
-    return [{
-      ...next,
-      width: prev.width + (next.width - prev.width) * progresso,
-      value: Number(prev.value) + (Number(next.value) - Number(prev.value)) * progresso,
-    }]
-  })
-
 function barraComValor({ x, y, width, height, fill, value }: BarShapeProps) {
   return <g>
     <Rectangle x={x} y={y} width={width} height={height} radius={[0, 3, 3, 0]} fill={fill} />
@@ -51,6 +38,38 @@ function barraComValor({ x, y, width, height, fill, value }: BarShapeProps) {
       {Math.round(Number(value))}
     </text>
   </g>
+}
+
+type Etapa = { nome: string; valor: number; fill: string }
+
+function GraficoEtapas({ etapas, maximo, reduzirMovimento }: { etapas: Etapa[]; maximo: number; reduzirMovimento: boolean }) {
+  const [exibidas, mostrar] = useState(etapas)
+  const quadroAtual = useRef(etapas)
+  useLayoutEffect(() => {
+    const inicio = quadroAtual.current
+    if (etapas.every((etapa, i) => etapa.valor === inicio[i].valor)) return
+    function atualizar(progresso: number) {
+      const quadro = progresso === 1 ? etapas : etapas.map((etapa, i) => ({
+        ...etapa, valor: inicio[i].valor + (etapa.valor - inicio[i].valor) * progresso,
+      }))
+      quadroAtual.current = quadro
+      mostrar(quadro)
+    }
+    if (reduzirMovimento) {
+      atualizar(1)
+      return
+    }
+    const transicao = animate(0, 1, { duration: duracaoBarras, ease: "easeOut", onUpdate: atualizar })
+    return () => transicao.stop()
+  }, [etapas, reduzirMovimento])
+  return <ChartContainer config={config} className={estilos.barras}>
+    <BarChart layout="vertical" data={reduzirMovimento ? etapas : exibidas} barSize={13} margin={{ left: 0, right: 38, top: 3, bottom: 0 }} accessibilityLayer={false}>
+      <XAxis type="number" hide domain={[0, Math.max(1, maximo)]} />
+      <YAxis type="category" dataKey="nome" axisLine={false} tickLine={false} width={140} interval={0}
+        tick={({ x, y, payload }) => <text x={Number(x) - 6} y={y} dy=".35em" textAnchor="end" fill="#4b465b" fontSize={12}>{payload.value}</text>} />
+      <Bar dataKey="valor" shape={barraComValor} isAnimationActive={false} />
+    </BarChart>
+  </ChartContainer>
 }
 
 function useValorAnimado(valor: number, reduzirMovimento: boolean) {
@@ -180,15 +199,8 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
         <div className={estilos.visualizacoes} aria-busy={atualizandoPeriodo}>
         <Tabs.Content value="etapas" forceMount inert={aba !== "etapas"} aria-hidden={aba !== "etapas"} className={estilos.visualizacao}>
         {funil ? <>
-          <div aria-hidden="true"><ChartContainer config={config} className={estilos.barras}>
-            <BarChart layout="vertical" data={etapas} barSize={13} margin={{ left: 0, right: 38, top: 3, bottom: 0 }} accessibilityLayer={false}>
-              <XAxis type="number" hide domain={[0, Math.max(1, resumo?.escala?.pedidos ?? funil.recebidos)]} />
-              <YAxis type="category" dataKey="nome" axisLine={false} tickLine={false} width={140} interval={0}
-                tick={({ x, y, payload }) => <text x={Number(x) - 6} y={y} dy=".35em" textAnchor="end" fill="#4b465b" fontSize={12}>{payload.value}</text>} />
-              <Bar dataKey="valor" shape={barraComValor} isAnimationActive={!menosMovimento}
-                animationBegin={0} animationDuration={duracaoBarras * 1000} animationEasing="ease-out" animationInterpolateFn={interpolarEtapas} />
-            </BarChart>
-          </ChartContainer></div>
+          <div aria-hidden="true"><GraficoEtapas etapas={etapas} maximo={resumo?.escala?.pedidos ?? funil.recebidos}
+            reduzirMovimento={Boolean(menosMovimento)} /></div>
           <dl className="sr-only">{etapas.map(etapa => <div key={etapa.nome}><dt>{etapa.nome}</dt><dd>{etapa.valor}</dd></div>)}</dl>
         </> : <div className={estilos.barras} />}
         </Tabs.Content>
