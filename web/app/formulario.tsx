@@ -11,7 +11,7 @@ import type { FilaPublica } from "@/lib/filas-publicas"
 
 type Campos = Partial<Record<keyof PedidoValido, string>>
 
-export default function Formulario({ fila, divulgacao }: Readonly<{ fila: Omit<FilaPublica, "cartaz">; divulgacao?: string }>) {
+export default function Formulario({ fila, divulgacao }: Readonly<{ fila: Pick<FilaPublica, "slug" | "titulo" | "destino">; divulgacao?: string }>) {
   const [campos, setCampos] = useState<Campos>({})
   const [pronto, setPronto] = useState(false)
   const [enviando, setEnviando] = useState(false)

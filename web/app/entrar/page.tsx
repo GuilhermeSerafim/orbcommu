@@ -4,8 +4,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { entrar } from "./actions"
+import { metadadosDeCompartilhamento } from "@/lib/compartilhamento"
 
-export const metadata = { title: "Entrar · OrbCommu" }
+export const metadata = metadadosDeCompartilhamento({
+  caminho: "/entrar", titulo: "Entrar · OrbCommu",
+  descricao: "Acesse o painel da sua comunidade com sua conta de equipe.",
+})
 
 export default async function Login({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
   const { erro } = await searchParams

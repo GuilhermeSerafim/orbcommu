@@ -1,20 +1,41 @@
 import { notFound } from "next/navigation"
+import { cache } from "react"
 import { EntradaLayout } from "@/components/comunidade"
+import { metadadosDeCompartilhamento } from "@/lib/compartilhamento"
 import { obterDivulgacao } from "@/lib/divulgacoes"
-import { buscarFilaPublica } from "@/lib/filas-publicas"
+import { buscarFilaPublica, linkDeParticipacao } from "@/lib/filas-publicas"
 import { mostrarDia } from "@/lib/periodo-divulgacao"
 import Formulario from "../../../formulario"
 import Abertura from "./abertura"
 
 export const dynamic = "force-dynamic"
-export const metadata = { title: "Divulgação · OrbCommu", robots: { index: false } }
+type Props = { params: Promise<{ slug: string; edicao: string }> }
 
-export default async function PaginaDaEdicao({ params }: Readonly<{ params: Promise<{ slug: string; edicao: string }> }>) {
-  const { slug, edicao } = await params
+const carregarEdicao = cache(async (slug: string, edicao: string) => {
   const fila = buscarFilaPublica(slug)
   if (!fila) notFound()
   const campanha = await obterDivulgacao(slug, edicao)
   if (!campanha) notFound()
+  return { fila, campanha }
+})
+
+export async function generateMetadata({ params }: Props) {
+  const { slug, edicao } = await params
+  const { fila, campanha } = await carregarEdicao(slug, edicao)
+  return {
+    ...metadadosDeCompartilhamento({
+      caminho: `${linkDeParticipacao(fila)}/${campanha.id}`,
+      titulo: `${campanha.nome} · OrbCommu`,
+      descricao: `Consulte esta divulgação e a disponibilidade para pedir entrada ${fila.destino}.`,
+      imagem: fila.imagemDePrevia,
+    }),
+    robots: { index: false },
+  }
+}
+
+export default async function PaginaDaEdicao({ params }: Props) {
+  const { slug, edicao } = await params
+  const { fila, campanha } = await carregarEdicao(slug, edicao)
   return <EntradaLayout fila={fila}>
     <p className="nome-evento">{campanha.nome}</p>
     {campanha.estado === "Aberta" ? <>

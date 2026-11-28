@@ -27,6 +27,10 @@ test("da divulgação ao pedido e aos resultados, com acesso por perfil", async 
     await page.getByRole("link", { name: "Baixar QR" }).click()
     expect((await download).suggestedFilename()).toMatch(/\.png$/)
     await usarCasoPedido(async caso => {
+      const previa = await visitante.request.get(link, { headers: { "User-Agent": "Twitterbot/1.0" } })
+      const cabecalho = (await previa.text()).split("</head>")[0]
+      expect(cabecalho).toContain(`property="og:title" content="${nomeEvento} · OrbCommu"`)
+      expect(cabecalho).toContain(`property="og:url" content="https://orbcommu.vercel.app${new URL(link).pathname}"`)
       await visitante.goto(link)
       await visitante.getByLabel("Como você quer ser chamado?").fill(caso.pedido.nome)
       await visitante.getByLabel("WhatsApp com DDD").fill(caso.pedido.telefone)
