@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useState } from "react"
 import { ArrowUpRight, ClipboardList, Clock3, ScanEye, Send } from "lucide-react"
-import { animate, LayoutGroup, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react"
+import { animate, AnimatePresence, LayoutGroup, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react"
 import { Tabs } from "radix-ui"
-import { Bar, BarChart, LabelList, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, Rectangle, XAxis, YAxis, type BarProps, type BarShapeProps } from "recharts"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChartContainer } from "@/components/ui/chart"
@@ -29,19 +29,43 @@ function espera(ms: number) {
 
 const config = { valor: { label: "Pedidos", color: "#6856cb" } }
 
-function PercentualEntrada({ valor, reduzirMovimento }: { valor: number; reduzirMovimento: boolean }) {
+const duracaoBarras = .3
+
+// A etiqueta acompanha a ponta da barra durante toda a troca de período.
+const interpolarEtapas: NonNullable<BarProps["animationInterpolateFn"]> = (itens, progresso) =>
+  (itens ?? []).flatMap(item => {
+    if (item.status === "removed") return []
+    if (item.status === "added" || progresso === 1) return [item.next]
+    const { prev, next } = item
+    return [{
+      ...next,
+      width: prev.width + (next.width - prev.width) * progresso,
+      value: Number(prev.value) + (Number(next.value) - Number(prev.value)) * progresso,
+    }]
+  })
+
+function barraComValor({ x, y, width, height, fill, value }: BarShapeProps) {
+  return <g>
+    <Rectangle x={x} y={y} width={width} height={height} radius={[0, 3, 3, 0]} fill={fill} />
+    <text x={x + width + 5} y={y + height / 2} dy=".35em" fill="#302844" fontSize={13} fontWeight={700}>
+      {Math.round(Number(value))}
+    </text>
+  </g>
+}
+
+function NumeroAnimado({ valor, reduzirMovimento, sufixo = "" }: { valor: number; reduzirMovimento: boolean; sufixo?: string }) {
   const exibido = useMotionValue(valor)
-  const texto = useTransform(exibido, numero => Math.round(numero) + "%")
+  const texto = useTransform(exibido, numero => Math.round(numero) + sufixo)
   useLayoutEffect(() => {
     if (reduzirMovimento) {
       exibido.jump(valor)
       return
     }
     if (exibido.get() === valor) return
-    const transicao = animate(exibido, valor, { duration: .22, ease: "easeOut" })
+    const transicao = animate(exibido, valor, { duration: duracaoBarras, ease: "easeOut" })
     return () => transicao.stop()
   }, [valor, reduzirMovimento, exibido])
-  return reduzirMovimento ? <>{valor}%</> : <motion.span>{texto}</motion.span>
+  return reduzirMovimento ? <>{valor}{sufixo}</> : <motion.span>{texto}</motion.span>
 }
 
 export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
@@ -86,12 +110,12 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
   const funil = resumo?.funil
   const atualizandoPeriodo = resumo != null && resumo.dias !== dias
   const percentual = funil?.recebidos ? Math.round(100 * funil.entradasConfirmadas / funil.recebidos) : null
-  const etapas = funil ? [
+  const etapas = useMemo(() => funil ? [
     { nome: "Recebidos", valor: funil.recebidos, fill: "#cbc2ee" },
     { nome: "Aprovados", valor: funil.aprovados, fill: "#a99adb" },
     { nome: "Convites enviados", valor: funil.convitesEnviados, fill: "#8473ca" },
     { nome: "Entradas confirmadas", valor: funil.entradasConfirmadas, fill: "#5543b6" },
-  ] : []
+  ] : [], [funil])
   if (erro) return <div className={estilos.falha} role="status">Não foi possível carregar os indicadores.
     <Button variant="outline" onClick={() => reconsultar(n => n + 1)}>Tentar carregar indicadores</Button></div>
 
@@ -124,7 +148,7 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
       <section className={estilos.leitura} aria-labelledby="titulo-conversao" aria-busy={atualizandoPeriodo}>
         <h2 id="titulo-conversao">Quantos pedidos viraram entrada?</h2>
         <strong className={estilos.percentual} aria-hidden="true">
-          {percentual == null ? "—" : <PercentualEntrada valor={percentual} reduzirMovimento={Boolean(menosMovimento)} />}
+          {percentual == null ? "—" : <NumeroAnimado valor={percentual} sufixo="%" reduzirMovimento={Boolean(menosMovimento)} />}
         </strong>
         <p aria-live="polite" aria-atomic="true">{!funil ? "Carregando resultados…" : !funil.recebidos ? "Nenhum pedido recebido no período." :
           <><b>{funil.entradasConfirmadas} de {funil.recebidos}</b> {funil.recebidos === 1 ? "pedido com entrada confirmada." : "pedidos com entrada confirmada."}
@@ -148,12 +172,11 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
         {funil ? <>
           <div aria-hidden="true"><ChartContainer config={config} className={estilos.barras}>
             <BarChart layout="vertical" data={etapas} barSize={13} margin={{ left: 0, right: 38, top: 3, bottom: 0 }} accessibilityLayer={false}>
-              <XAxis type="number" hide domain={[0, Math.max(1, funil.recebidos)]} />
+              <XAxis type="number" hide domain={[0, Math.max(1, resumo?.escala?.pedidos ?? funil.recebidos)]} />
               <YAxis type="category" dataKey="nome" axisLine={false} tickLine={false} width={140} interval={0}
                 tick={({ x, y, payload }) => <text x={Number(x) - 6} y={y} dy=".35em" textAnchor="end" fill="#4b465b" fontSize={12}>{payload.value}</text>} />
-              <Bar dataKey="valor" radius={[0, 3, 3, 0]} isAnimationActive={false}>
-                <LabelList dataKey="valor" position="right" fill="#302844" fontSize={13} fontWeight={700} />
-              </Bar>
+              <Bar dataKey="valor" shape={barraComValor} isAnimationActive={!menosMovimento}
+                animationBegin={0} animationDuration={duracaoBarras * 1000} animationEasing="ease-out" animationInterpolateFn={interpolarEtapas} />
             </BarChart>
           </ChartContainer></div>
           <dl className="sr-only">{etapas.map(etapa => <div key={etapa.nome}><dt>{etapa.nome}</dt><dd>{etapa.valor}</dd></div>)}</dl>
@@ -164,11 +187,16 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
             <p className={estilos.vazio}>As origens aparecem com o primeiro pedido do período.</p> : <>
             <p className={estilos.tituloOrigens}>Entradas confirmadas por origem</p>
             <div className={estilos.origens}>
-              {resumo.divulgacoes.slice(0, 5).map(origem => <div className={estilos.origem} key={origem.nome}>
-                <span>{origem.nome}</span>
-                <span><b>{origem.entradasConfirmadas}</b> de {origem.pedidos} {origem.pedidos === 1 ? "pedido" : "pedidos"}</span>
-                <span className={estilos.trilho} aria-hidden="true"><i style={{ width: (100 * origem.entradasConfirmadas / Math.max(1, resumo.divulgacoes[0].entradasConfirmadas)) + "%" }} /></span>
-              </div>)}
+              <AnimatePresence initial={false} mode="popLayout">
+                {resumo.divulgacoes.slice(0, 5).map(origem => <motion.div className={estilos.origem} key={origem.nome}
+                  layout={menosMovimento ? false : "position"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  transition={{ duration: menosMovimento ? 0 : duracaoBarras, ease: "easeOut" }}>
+                  <span>{origem.nome}</span>
+                  <span><b><NumeroAnimado valor={origem.entradasConfirmadas} reduzirMovimento={Boolean(menosMovimento)} /></b> de{" "}
+                    <NumeroAnimado valor={origem.pedidos} reduzirMovimento={Boolean(menosMovimento)} /> {origem.pedidos === 1 ? "pedido" : "pedidos"}</span>
+                  <span className={estilos.trilho} aria-hidden="true"><i style={{ transform: `scaleX(${origem.entradasConfirmadas / Math.max(1, resumo.escala?.entradasPorOrigem ?? resumo.divulgacoes[0].entradasConfirmadas)})` }} /></span>
+                </motion.div>)}
+              </AnimatePresence>
             </div></>}
         </Tabs.Content>
         </div>

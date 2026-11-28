@@ -111,6 +111,7 @@ test("mantém a leitura e a altura do gráfico ao trocar as abas e aguardar outr
     const confirmadas = mes ? [6, 5, 4, 2, 1] : [2, 1, 1, 1, 0]
     await rota.fulfill({ json: {
       dias: mes ? 30 : 7,
+      escala: { pedidos: 45, entradasPorOrigem: 6 },
       atuais: { paraAnalisar: 3, aguardandoVaga: 2, chamadaIniciada: 1, aConferir: 1, esperaMaisAntigaMs: 7200000 },
       funil: mes ? { recebidos: 45, aprovados: 33, convitesEnviados: 28, entradasConfirmadas: 18 }
         : { recebidos: 20, aprovados: 11, convitesEnviados: 9, entradasConfirmadas: 5 },
