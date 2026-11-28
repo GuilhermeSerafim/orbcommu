@@ -72,6 +72,34 @@ test("busca a partir da página dois", async ({ page }) => {
   } finally { await contas.limpar() }
 })
 
+test("os indicadores abrem a fila correspondente e comparam a mesma coorte por origem", async ({ page }) => {
+  const contas = await criarOperadores()
+  try {
+    await semear("Jo")
+    await fazerLogin(page, contas.leitora)
+    const pendencias = page.getByRole("region", { name: "Pendências da fila" })
+    await pendencias.getByRole("button", { name: /^Para analisar, \d+/ }).click()
+    await expect(page.getByLabel("Situação", { exact: true })).toHaveValue("Para analisar")
+    await expect(page.getByRole("heading", { name: "Pedidos da fila" })).toBeFocused()
+    await page.getByLabel("Pesquisar").fill(marcador)
+    await expect(page.getByRole("listitem")).toContainText("Jo")
+
+    const grafico = page.getByRole("region", { name: "Resultados dos pedidos" })
+    const resposta = page.waitForResponse(resp => resp.url().endsWith("/api/fila/resumo?dias=30") && resp.ok())
+    await grafico.getByRole("button", { name: "30 dias" }).click()
+    await resposta
+    await grafico.getByRole("tab", { name: "Por divulgação" }).click()
+    await expect(grafico.getByRole("tabpanel")).toContainText("Entradas confirmadas por origem")
+    await grafico.getByRole("tab", { name: "Etapas da fila" }).click()
+    const rotulo = grafico.locator("svg text").filter({ hasText: /^Entradas confirmadas$/ })
+    await expect(rotulo).toBeVisible()
+    await page.evaluate(() => document.fonts.ready)
+    const margemEsquerda = await rotulo.evaluate(texto =>
+      texto.getBoundingClientRect().left - texto.closest("svg")!.getBoundingClientRect().left)
+    expect(margemEsquerda).toBeGreaterThanOrEqual(0)
+  } finally { await contas.limpar() }
+})
+
 test("descarta resposta atrasada e limpa a fila ao perder o acesso", async ({ page }) => {
   const contas = await criarOperadores()
   let liberar!: () => void
