@@ -9,7 +9,7 @@ function observar(painel: Locator, aba: "etapas" | "origens") {
     let frame = 0
     function medir() {
       if (aba === "etapas") {
-        const barra = elemento.querySelectorAll(".recharts-bar-rectangle path")[3]
+        const barra = elemento.querySelector('[data-etapa="Entradas confirmadas"] rect')
         if (barra) amostras.push(barra.getBoundingClientRect().width)
       } else {
         const nome = Array.from(elemento.querySelectorAll("span")).find(no => no.textContent === "QR do encontro")
@@ -65,7 +65,7 @@ for (const preferencia of ["no-preference", "reduce"] as const) {
         const inicio = aba === "etapas" ? 4 / 50 : 1
         const fim = aba === "etapas" ? 24 / 50 : 1 / 16
         const medirMaximo = () => aba === "etapas"
-          ? painel.locator(".recharts-bar-rectangle path").first().evaluate(barra => barra.getBoundingClientRect().width) : 1
+          ? painel.locator('[data-etapa="Recebidos"] rect').evaluate(barra => barra.getBoundingClientRect().width) : 1
         await expect.poll(async () => {
           const ultima = await amostragem.evaluate(({ amostras }) => amostras.at(-1) ?? 0)
           return ultima / await medirMaximo()

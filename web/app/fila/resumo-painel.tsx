@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useState } from "react"
 import { ArrowUpRight, ClipboardList, Clock3, ScanEye, Send } from "lucide-react"
 import { animate, AnimatePresence, LayoutGroup, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react"
 import { Tabs } from "radix-ui"
-import { Bar, BarChart, Rectangle, XAxis, YAxis, type BarShapeProps } from "recharts"
+import { BarChart, usePlotArea, XAxis, YAxis } from "recharts"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChartContainer } from "@/components/ui/chart"
@@ -31,43 +31,38 @@ const config = { valor: { label: "Pedidos", color: "#6856cb" } }
 
 const duracaoBarras = .3
 
-function barraComValor({ x, y, width, height, fill, value }: BarShapeProps) {
-  return <g>
-    <Rectangle x={x} y={y} width={width} height={height} radius={[0, 3, 3, 0]} fill={fill} />
-    <text x={x + width + 5} y={y + height / 2} dy=".35em" fill="#302844" fontSize={13} fontWeight={700}>
-      {Math.round(Number(value))}
-    </text>
+type Etapa = { nome: string; valor: number; fill: string }
+
+type DadosEtapas = { etapas: Etapa[]; maximo: number; reduzirMovimento: boolean }
+
+function BarraEtapa({ etapa, x, y, unidade, reduzirMovimento }: {
+  etapa: Etapa; x: number; y: number; unidade: number; reduzirMovimento: boolean
+}) {
+  const valor = useValorAnimado(etapa.valor, reduzirMovimento)
+  const largura = useTransform(() => valor.get() * unidade)
+  const ponta = useTransform(() => x + 5 + valor.get() * unidade)
+  const texto = useTransform(valor, n => String(Math.round(n)))
+  return <g data-etapa={etapa.nome}>
+    <motion.rect x={x} y={y - 6.5} width={largura} height={13} rx={3} fill={etapa.fill} />
+    <motion.text x={ponta} y={y} dy=".35em" fill="#302844" fontSize={13} fontWeight={700}>{texto}</motion.text>
   </g>
 }
 
-type Etapa = { nome: string; valor: number; fill: string }
+function BarrasEtapas({ etapas, maximo, reduzirMovimento }: DadosEtapas) {
+  const area = usePlotArea()
+  if (!area || area.width <= 0) return null
+  const alturaLinha = area.height / etapas.length
+  return <g>{etapas.map((etapa, i) => <BarraEtapa key={etapa.nome} etapa={etapa} x={area.x}
+    y={area.y + (i + .5) * alturaLinha} unidade={area.width / Math.max(1, maximo)} reduzirMovimento={reduzirMovimento} />)}</g>
+}
 
-function GraficoEtapas({ etapas, maximo, reduzirMovimento }: { etapas: Etapa[]; maximo: number; reduzirMovimento: boolean }) {
-  const [exibidas, mostrar] = useState(etapas)
-  const quadroAtual = useRef(etapas)
-  useLayoutEffect(() => {
-    const inicio = quadroAtual.current
-    if (etapas.every((etapa, i) => etapa.valor === inicio[i].valor)) return
-    function atualizar(progresso: number) {
-      const quadro = progresso === 1 ? etapas : etapas.map((etapa, i) => ({
-        ...etapa, valor: inicio[i].valor + (etapa.valor - inicio[i].valor) * progresso,
-      }))
-      quadroAtual.current = quadro
-      mostrar(quadro)
-    }
-    if (reduzirMovimento) {
-      atualizar(1)
-      return
-    }
-    const transicao = animate(0, 1, { duration: duracaoBarras, ease: "easeOut", onUpdate: atualizar })
-    return () => transicao.stop()
-  }, [etapas, reduzirMovimento])
+function GraficoEtapas({ etapas, maximo, reduzirMovimento }: DadosEtapas) {
   return <ChartContainer config={config} className={estilos.barras}>
-    <BarChart layout="vertical" data={reduzirMovimento ? etapas : exibidas} barSize={13} margin={{ left: 0, right: 38, top: 3, bottom: 0 }} accessibilityLayer={false}>
+    <BarChart layout="vertical" data={etapas} margin={{ left: 0, right: 38, top: 3, bottom: 0 }} accessibilityLayer={false}>
       <XAxis type="number" hide domain={[0, Math.max(1, maximo)]} />
-      <YAxis type="category" dataKey="nome" axisLine={false} tickLine={false} width={140} interval={0}
+      <YAxis type="category" dataKey="nome" scale="band" axisLine={false} tickLine={false} width={140} interval={0}
         tick={({ x, y, payload }) => <text x={Number(x) - 6} y={y} dy=".35em" textAnchor="end" fill="#4b465b" fontSize={12}>{payload.value}</text>} />
-      <Bar dataKey="valor" shape={barraComValor} isAnimationActive={false} />
+      <BarrasEtapas etapas={etapas} maximo={maximo} reduzirMovimento={reduzirMovimento} />
     </BarChart>
   </ChartContainer>
 }
