@@ -68,6 +68,8 @@
   .estado-pedido { grid-row: 1; grid-column: 2; justify-items: end; max-width: 145px; }
   .situacao { font-size: 12px; }
   .abrir-historico { grid-row: 2; grid-column: 2; }
+  .acoes-pedido:has(.encerrar-pedido) { row-gap: 8px; }
+  .acoes-pedido .encerrar-pedido { flex-basis: 100%; }
   .paginacao { padding-inline: 9px; gap: 3px; }
   .paginacao label { font-size: 12px; }
 }

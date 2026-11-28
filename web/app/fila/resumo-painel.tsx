@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react"
 import { ArrowUpRight, ClipboardList, Clock3, ScanEye, Send } from "lucide-react"
-import { animate, LayoutGroup, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react"
+import { animate, AnimatePresence, LayoutGroup, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react"
 import { Tabs } from "radix-ui"
-import { Bar, BarChart, LabelList, XAxis, YAxis } from "recharts"
+import { BarChart, usePlotArea, XAxis, YAxis } from "recharts"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ChartContainer } from "@/components/ui/chart"
@@ -29,19 +29,88 @@ function espera(ms: number) {
 
 const config = { valor: { label: "Pedidos", color: "#6856cb" } }
 
-function PercentualEntrada({ valor, reduzirMovimento }: { valor: number; reduzirMovimento: boolean }) {
+const duracaoBarras = .3
+
+type Etapa = { nome: string; valor: number; fill: string }
+
+type DadosEtapas = { etapas: Etapa[]; maximo: number; reduzirMovimento: boolean }
+
+function BarraEtapa({ etapa, x, y, unidade, reduzirMovimento }: {
+  etapa: Etapa; x: number; y: number; unidade: number; reduzirMovimento: boolean
+}) {
+  const valor = useValorAnimado(etapa.valor, reduzirMovimento)
+  const largura = useTransform(() => valor.get() * unidade)
+  const ponta = useTransform(() => x + 5 + valor.get() * unidade)
+  const texto = useTransform(valor, n => String(Math.round(n)))
+  return <g data-etapa={etapa.nome}>
+    <motion.rect x={x} y={y - 6.5} width={largura} height={13} rx={3} fill={etapa.fill} />
+    <motion.text x={ponta} y={y} dy=".35em" fill="#302844" fontSize={13} fontWeight={700}>{texto}</motion.text>
+  </g>
+}
+
+function BarrasEtapas({ etapas, maximo, reduzirMovimento }: DadosEtapas) {
+  const area = usePlotArea()
+  if (!area || area.width <= 0) return null
+  const alturaLinha = area.height / etapas.length
+  return <g>{etapas.map((etapa, i) => <BarraEtapa key={etapa.nome} etapa={etapa} x={area.x}
+    y={area.y + (i + .5) * alturaLinha} unidade={area.width / Math.max(1, maximo)} reduzirMovimento={reduzirMovimento} />)}</g>
+}
+
+function GraficoEtapas({ etapas, maximo, reduzirMovimento }: DadosEtapas) {
+  return <ChartContainer config={config} className={estilos.barras}>
+    <BarChart layout="vertical" data={etapas} margin={{ left: 0, right: 38, top: 3, bottom: 0 }} accessibilityLayer={false}>
+      <XAxis type="number" hide domain={[0, Math.max(1, maximo)]} />
+      <YAxis type="category" dataKey="nome" scale="band" axisLine={false} tickLine={false} width={140} interval={0}
+        tick={({ x, y, payload }) => <text x={Number(x) - 6} y={y} dy=".35em" textAnchor="end" fill="#4b465b" fontSize={12}>{payload.value}</text>} />
+      <BarrasEtapas etapas={etapas} maximo={maximo} reduzirMovimento={reduzirMovimento} />
+    </BarChart>
+  </ChartContainer>
+}
+
+function useValorAnimado(valor: number, reduzirMovimento: boolean) {
   const exibido = useMotionValue(valor)
-  const texto = useTransform(exibido, numero => Math.round(numero) + "%")
   useLayoutEffect(() => {
     if (reduzirMovimento) {
       exibido.jump(valor)
       return
     }
     if (exibido.get() === valor) return
-    const transicao = animate(exibido, valor, { duration: .22, ease: "easeOut" })
+    const transicao = animate(exibido, valor, { duration: duracaoBarras, ease: "easeOut" })
     return () => transicao.stop()
   }, [valor, reduzirMovimento, exibido])
-  return reduzirMovimento ? <>{valor}%</> : <motion.span>{texto}</motion.span>
+  return exibido
+}
+
+function NumeroAnimado({ valor, reduzirMovimento, sufixo = "" }: { valor: number; reduzirMovimento: boolean; sufixo?: string }) {
+  const exibido = useValorAnimado(valor, reduzirMovimento)
+  const texto = useTransform(exibido, numero => Math.round(numero) + sufixo)
+  return reduzirMovimento ? <>{valor}{sufixo}</> : <motion.span>{texto}</motion.span>
+}
+
+function BarraOrigem({ fracao, reduzirMovimento }: { fracao: number; reduzirMovimento: boolean }) {
+  const largura = useValorAnimado(fracao, reduzirMovimento)
+  return <span className={estilos.trilho} aria-hidden="true"><motion.i style={{ scaleX: reduzirMovimento ? fracao : largura }} /></span>
+}
+
+function AbasResultados({ periodos, etapas, children, atualizandoPeriodo }: {
+  periodos: ReactNode; etapas: ReactNode; children: ReactNode; atualizandoPeriodo: boolean
+}) {
+  const [aba, definirAba] = useState("etapas")
+  return <Tabs.Root value={aba} onValueChange={definirAba} data-aba={aba} className={estilos.resultadosAbas}>
+    <div className={estilos.cabecalhoGrafico}>
+      <Tabs.List className={estilos.abas} aria-label="Gráfico de resultados">
+        <Tabs.Trigger value="etapas">Etapas da fila</Tabs.Trigger>
+        <Tabs.Trigger value="origens">Por divulgação</Tabs.Trigger>
+      </Tabs.List>
+      {periodos}
+    </div>
+    <div className={estilos.visualizacoes} aria-busy={atualizandoPeriodo}>
+      <div className={estilos.paineis}>
+        <Tabs.Content value="etapas" forceMount inert={aba !== "etapas"} aria-hidden={aba !== "etapas"}>{etapas}</Tabs.Content>
+        <Tabs.Content value="origens" forceMount inert={aba !== "origens"} aria-hidden={aba !== "origens"}>{children}</Tabs.Content>
+      </div>
+    </div>
+  </Tabs.Root>
 }
 
 export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
@@ -51,12 +120,19 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
   selecionar: (filtro: FiltroFila["situacao"]) => void
 }) {
   const [dias, definirDias] = useState<7 | 30>(7)
-  const [aba, definirAba] = useState("etapas")
   const [resumo, definirResumo] = useState<ResumoFila | null>(null)
   const [erro, definirErro] = useState(false)
   const [consulta, reconsultar] = useState(0)
   const [destaque, destacar] = useState<string | null>(null)
   const menosMovimento = useReducedMotion()
+  const recentes = useMemo(() => new Map<ResumoFila["dias"], { dados: ResumoFila; validade: number }>(), [api, revisao])
+
+  function selecionarPeriodo(periodo: ResumoFila["dias"]) {
+    if (periodo === dias) return
+    const recente = recentes.get(periodo)
+    if (recente && performance.now() < recente.validade) definirResumo(recente.dados)
+    definirDias(periodo)
+  }
 
   useEffect(() => {
     const controlador = new AbortController()
@@ -67,12 +143,15 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
         if (!resposta.ok) throw new Error("Resumo indisponível")
         const dados: ResumoFila = await resposta.json()
         if (controlador.signal.aborted) return
+        const intervalo = Math.max(250, Math.min(60_000, dados.atualizarEmMs ?? 60_000))
+        recentes.set(dias, { dados, validade: performance.now() + intervalo })
         definirErro(false)
         definirResumo(dados)
         // Atualiza também o tempo de espera e a virada do dia com a tela aberta.
-        proxima = setTimeout(carregar, Math.max(250, Math.min(60_000, dados.atualizarEmMs ?? 60_000)))
+        proxima = setTimeout(carregar, intervalo)
       } catch {
         if (!controlador.signal.aborted) {
+          recentes.clear()
           definirResumo(null)
           definirErro(true)
         }
@@ -80,18 +159,18 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
     }
     void carregar()
     return () => { controlador.abort(); clearTimeout(proxima) }
-  }, [api, dias, revisao, consulta])
+  }, [api, dias, revisao, consulta, recentes])
 
   const atuais = resumo?.atuais
   const funil = resumo?.funil
   const atualizandoPeriodo = resumo != null && resumo.dias !== dias
   const percentual = funil?.recebidos ? Math.round(100 * funil.entradasConfirmadas / funil.recebidos) : null
-  const etapas = funil ? [
+  const etapas = useMemo(() => funil ? [
     { nome: "Recebidos", valor: funil.recebidos, fill: "#cbc2ee" },
     { nome: "Aprovados", valor: funil.aprovados, fill: "#a99adb" },
     { nome: "Convites enviados", valor: funil.convitesEnviados, fill: "#8473ca" },
     { nome: "Entradas confirmadas", valor: funil.entradasConfirmadas, fill: "#5543b6" },
-  ] : []
+  ] : [], [funil])
   if (erro) return <div className={estilos.falha} role="status">Não foi possível carregar os indicadores.
     <Button variant="outline" onClick={() => reconsultar(n => n + 1)}>Tentar carregar indicadores</Button></div>
 
@@ -124,7 +203,7 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
       <section className={estilos.leitura} aria-labelledby="titulo-conversao" aria-busy={atualizandoPeriodo}>
         <h2 id="titulo-conversao">Quantos pedidos viraram entrada?</h2>
         <strong className={estilos.percentual} aria-hidden="true">
-          {percentual == null ? "—" : <PercentualEntrada valor={percentual} reduzirMovimento={Boolean(menosMovimento)} />}
+          {percentual == null ? "—" : <NumeroAnimado valor={percentual} sufixo="%" reduzirMovimento={Boolean(menosMovimento)} />}
         </strong>
         <p aria-live="polite" aria-atomic="true">{!funil ? "Carregando resultados…" : !funil.recebidos ? "Nenhum pedido recebido no período." :
           <><b>{funil.entradasConfirmadas} de {funil.recebidos}</b> {funil.recebidos === 1 ? "pedido com entrada confirmada." : "pedidos com entrada confirmada."}
@@ -132,47 +211,32 @@ export default function ResumoPainel({ api, revisao, situacao, selecionar }: {
       </section>
       <section className={estilos.grafico} aria-labelledby="titulo-etapas">
         <h3 id="titulo-etapas" className="sr-only">Resultados dos pedidos</h3>
-        <Tabs.Root value={aba} onValueChange={definirAba}>
-        <div className={estilos.cabecalhoGrafico}>
-          <Tabs.List className={estilos.abas} aria-label="Gráfico de resultados">
-            <Tabs.Trigger value="etapas">Etapas da fila</Tabs.Trigger>
-            <Tabs.Trigger value="origens">Por divulgação</Tabs.Trigger>
-          </Tabs.List>
+        <AbasResultados atualizandoPeriodo={atualizandoPeriodo} periodos={
           <div className={estilos.periodos} role="group" aria-label="Período de recebimento">
             {([7, 30] as const).map(n => <Button type="button" size="sm" variant="ghost" key={n}
-              aria-pressed={dias === n} data-pendente={dias === n && atualizandoPeriodo} onClick={() => definirDias(n)}>{n} dias</Button>)}
-          </div>
-        </div>
-        <div className={estilos.visualizacoes} aria-busy={atualizandoPeriodo}>
-        <Tabs.Content value="etapas" forceMount inert={aba !== "etapas"} aria-hidden={aba !== "etapas"} className={estilos.visualizacao}>
-        {funil ? <>
-          <div aria-hidden="true"><ChartContainer config={config} className={estilos.barras}>
-            <BarChart layout="vertical" data={etapas} barSize={13} margin={{ left: 0, right: 38, top: 3, bottom: 0 }} accessibilityLayer={false}>
-              <XAxis type="number" hide domain={[0, Math.max(1, funil.recebidos)]} />
-              <YAxis type="category" dataKey="nome" axisLine={false} tickLine={false} width={140} interval={0}
-                tick={({ x, y, payload }) => <text x={Number(x) - 6} y={y} dy=".35em" textAnchor="end" fill="#4b465b" fontSize={12}>{payload.value}</text>} />
-              <Bar dataKey="valor" radius={[0, 3, 3, 0]} isAnimationActive={false}>
-                <LabelList dataKey="valor" position="right" fill="#302844" fontSize={13} fontWeight={700} />
-              </Bar>
-            </BarChart>
-          </ChartContainer></div>
-          <dl className="sr-only">{etapas.map(etapa => <div key={etapa.nome}><dt>{etapa.nome}</dt><dd>{etapa.valor}</dd></div>)}</dl>
-        </> : <div className={estilos.barras} />}
-        </Tabs.Content>
-        <Tabs.Content value="origens" forceMount inert={aba !== "origens"} aria-hidden={aba !== "origens"} className={estilos.visualizacao}>
+              aria-pressed={dias === n} data-pendente={dias === n && atualizandoPeriodo} onClick={() => selecionarPeriodo(n)}>{n} dias</Button>)}
+          </div>} etapas={funil ? <>
+            <div aria-hidden="true"><GraficoEtapas etapas={etapas} maximo={resumo?.escala?.pedidos ?? funil.recebidos}
+              reduzirMovimento={Boolean(menosMovimento)} /></div>
+            <dl className="sr-only">{etapas.map(etapa => <div key={etapa.nome}><dt>{etapa.nome}</dt><dd>{etapa.valor}</dd></div>)}</dl>
+          </> : <div className={estilos.barras} />}>
           {!funil ? <div className={estilos.barras} /> : !resumo?.divulgacoes.length ?
             <p className={estilos.vazio}>As origens aparecem com o primeiro pedido do período.</p> : <>
             <p className={estilos.tituloOrigens}>Entradas confirmadas por origem</p>
             <div className={estilos.origens}>
-              {resumo.divulgacoes.slice(0, 5).map(origem => <div className={estilos.origem} key={origem.nome}>
-                <span>{origem.nome}</span>
-                <span><b>{origem.entradasConfirmadas}</b> de {origem.pedidos} {origem.pedidos === 1 ? "pedido" : "pedidos"}</span>
-                <span className={estilos.trilho} aria-hidden="true"><i style={{ width: (100 * origem.entradasConfirmadas / Math.max(1, resumo.divulgacoes[0].entradasConfirmadas)) + "%" }} /></span>
-              </div>)}
+              <AnimatePresence initial={false} mode="popLayout">
+                {resumo.divulgacoes.slice(0, 5).map(origem => <motion.div className={estilos.origem} key={origem.nome}
+                  layout={menosMovimento ? false : "position"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  transition={{ duration: menosMovimento ? 0 : duracaoBarras, ease: "easeOut" }}>
+                  <span>{origem.nome}</span>
+                  <span><b><NumeroAnimado valor={origem.entradasConfirmadas} reduzirMovimento={Boolean(menosMovimento)} /></b> de{" "}
+                    <NumeroAnimado valor={origem.pedidos} reduzirMovimento={Boolean(menosMovimento)} /> {origem.pedidos === 1 ? "pedido" : "pedidos"}</span>
+                  <BarraOrigem fracao={origem.entradasConfirmadas / Math.max(1, resumo.escala?.entradasPorOrigem ?? resumo.divulgacoes[0].entradasConfirmadas)}
+                    reduzirMovimento={Boolean(menosMovimento)} />
+                </motion.div>)}
+              </AnimatePresence>
             </div></>}
-        </Tabs.Content>
-        </div>
-        </Tabs.Root>
+        </AbasResultados>
       </section>
     </Card>
   </div>

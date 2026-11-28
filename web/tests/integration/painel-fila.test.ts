@@ -41,6 +41,7 @@ it("separa pendências atuais e coortes de recebimento no calendário de São Pa
     dias: 7,
     atuais: { paraAnalisar: 0, aguardandoVaga: 0, chamadaIniciada: 0, aConferir: 0, esperaMaisAntigaMs: null },
     funil: { recebidos: 0, aprovados: 0, convitesEnviados: 0, entradasConfirmadas: 0 },
+    escala: { pedidos: 0, entradasPorOrigem: 0 },
     divulgacoes: [],
     atualizarEmMs: null,
   })
@@ -64,6 +65,8 @@ it("separa pendências atuais e coortes de recebimento no calendário de São Pa
        ($1, '7', 'Entrada confirmada', agora - interval '3 days', agora - interval '3 days', agora - interval '3 days', agora),
        ($1, '8', 'Prazo encerrado', inicio30, agora - interval '2 days', agora - interval '2 days', agora),
        ($1, '9', 'Entrada confirmada', inicio30 - interval '1 second', agora - interval '2 days', agora - interval '2 days', agora),
+       ($1, '10', 'Entrada confirmada', inicio30, inicio30, inicio30, agora),
+       ($1, '11', 'Entrada confirmada', inicio30, inicio30, inicio30, agora),
        ($2::text, '1', 'Para analisar', agora, null, null, null)
      ) as exemplos(comunidade, telefone, situacao, recebido, aprovado, enviado, encerrado)`,
     [comunidade, outraComunidade],
@@ -86,5 +89,7 @@ it("separa pendências atuais e coortes de recebimento no calendário de São Pa
   const trinta = await (await GET(requisicao("?dias=30"))).json()
   expect(trinta.dias).toBe(30)
   expect(trinta.atuais.aConferir).toBe(sete.atuais.aConferir)
-  expect(trinta.funil).toEqual({ recebidos: 7, aprovados: 6, convitesEnviados: 4, entradasConfirmadas: 1 })
+  expect(trinta.funil).toEqual({ recebidos: 9, aprovados: 8, convitesEnviados: 6, entradasConfirmadas: 3 })
+  expect(trinta.escala).toEqual({ pedidos: 9, entradasPorOrigem: 2 })
+  expect(sete.escala).toEqual(trinta.escala)
 })

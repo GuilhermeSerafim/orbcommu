@@ -78,12 +78,7 @@ export function listarExemplos(filtro: FiltroFila): PaginaFila {
   }
 }
 
-export function resumirExemplos(dias: ResumoFila["dias"]): ResumoFila {
-  const agora = Date.now()
-  const hoje = calendario.format(agora)
-  const inicio = new Date(Date.parse(hoje + "T00:00:00Z") - (dias - 1) * dia).toISOString().slice(0, 10)
-  const coorte = pedidos.filter(item => calendario.format(new Date(item.recebidoEm)) >= inicio)
-  const analise = pedidos.filter(item => item.situacao === "Para analisar")
+function agruparPorOrigem(coorte: ItemFila[]) {
   const porOrigem = new Map<string, { nome: string; pedidos: number; entradasConfirmadas: number }>()
   for (const item of coorte) {
     const origem = porOrigem.get(item.origem) ?? { nome: item.origem, pedidos: 0, entradasConfirmadas: 0 }
@@ -91,6 +86,21 @@ export function resumirExemplos(dias: ResumoFila["dias"]): ResumoFila {
     if (item.situacao === "Entrada confirmada") origem.entradasConfirmadas++
     porOrigem.set(item.origem, origem)
   }
+  return Array.from(porOrigem.values()).sort((a, b) => b.entradasConfirmadas - a.entradasConfirmadas ||
+    b.pedidos - a.pedidos || a.nome.localeCompare(b.nome, "pt-BR"))
+}
+
+export function resumirExemplos(dias: ResumoFila["dias"]): ResumoFila {
+  const agora = Date.now()
+  const hoje = calendario.format(agora)
+  function recebidosEm(n: number) {
+    const inicio = new Date(Date.parse(hoje + "T00:00:00Z") - (n - 1) * dia).toISOString().slice(0, 10)
+    return pedidos.filter(item => calendario.format(new Date(item.recebidoEm)) >= inicio)
+  }
+  const mes = recebidosEm(30)
+  const coorte = dias === 30 ? mes : recebidosEm(dias)
+  const divulgacoesDoMes = agruparPorOrigem(mes)
+  const analise = pedidos.filter(item => item.situacao === "Para analisar")
   return {
     dias,
     atuais: {
@@ -106,8 +116,8 @@ export function resumirExemplos(dias: ResumoFila["dias"]): ResumoFila {
       convitesEnviados: coorte.filter(item => item.enviadoEm).length,
       entradasConfirmadas: coorte.filter(item => item.situacao === "Entrada confirmada").length,
     },
-    divulgacoes: Array.from(porOrigem.values()).sort((a, b) => b.entradasConfirmadas - a.entradasConfirmadas ||
-      b.pedidos - a.pedidos || a.nome.localeCompare(b.nome, "pt-BR")),
+    escala: { pedidos: mes.length, entradasPorOrigem: divulgacoesDoMes[0]?.entradasConfirmadas ?? 0 },
+    divulgacoes: dias === 30 ? divulgacoesDoMes : agruparPorOrigem(coorte),
     atualizarEmMs: proximaConferencia(pedidos, agora),
   }
 }

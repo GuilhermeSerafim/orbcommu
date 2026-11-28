@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
+import { CircleX } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { AcaoPedido, ResultadoAcao } from "../../lib/operacao"
 import { agirNoPedido } from "./acoes"
@@ -77,7 +78,10 @@ export function AcoesDoPedido({ id, situacao, reservaId, aoIniciarChamada, atual
     {situacao === "Para analisar" && <>
       <Button variant="outline" type="button" aria-disabled={pendente} onClick={e => void agir("conversar", e.currentTarget)}>Conversar no WhatsApp</Button>
       <Button type="button" aria-disabled={pendente} onClick={e => void agir("aprovar", e.currentTarget)}>Aprovar</Button>
-      <Button variant="ghost" type="button" aria-disabled={pendente} onClick={e => void agir("encerrar", e.currentTarget)}>Encerrar pedido</Button>
+      <Button variant="outline" className="encerrar-pedido border-destructive bg-white text-destructive hover:bg-destructive/10 hover:text-destructive"
+        type="button" aria-disabled={pendente} onClick={e => void agir("encerrar", e.currentTarget)}>
+        <CircleX aria-hidden="true" />Encerrar pedido
+      </Button>
     </>}
     {situacao === "Aguardando vaga" &&
       <Button type="button" aria-disabled={pendente} onClick={e => void agir("chamar", e.currentTarget)}>Chamar</Button>}
