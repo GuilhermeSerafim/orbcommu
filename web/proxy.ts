@@ -17,4 +17,4 @@ export async function proxy(request: NextRequest) {
   return resposta
 }
 
-export const config = { matcher: ["/entrar", "/fila/:path*", "/api/fila"] }
+export const config = { matcher: ["/entrar/:path*", "/fila/:path*", "/api/fila"] }

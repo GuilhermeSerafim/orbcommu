@@ -11,9 +11,9 @@ import "./divulgacoes.css"
 export const metadata = { title: "Divulgações · OrbCommu" }
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
-  await acessoDivulgacoes()
+  const acesso = await acessoDivulgacoes()
   return <>
     <Cabecalho><form action={sair}><Button variant="ghost" className="header-action"><LogOut /> Sair</Button></form></Cabecalho>
-    <main className="painel divulgacoes"><NavegacaoEquipe atual="divulgacoes" />{children}</main>
+    <main className="painel divulgacoes"><NavegacaoEquipe atual="divulgacoes" superadmin={acesso.superadmin} />{children}</main>
   </>
 }

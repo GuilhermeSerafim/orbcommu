@@ -1,0 +1,55 @@
+import { randomUUID } from "node:crypto"
+import { expect } from "@playwright/test"
+import { test } from "../support/playwright"
+import { banco } from "../support/banco"
+import { criarOperadores, fazerLogin } from "../support/operadores"
+
+test("a senha temporária exige troca, e só o superadmin pode redefinir outra conta", async ({ browser, page }) => {
+  test.setTimeout(90_000)
+  const contas = await criarOperadores()
+  const admin = await browser.newPage()
+  const primeiro = await browser.newPage()
+  try {
+    await banco.query("update orbcommu.operadores set superadmin=true where usuario_id=$1", [contas.primeira.id])
+    await banco.query("update orbcommu.operadores set versao_senha_aceita=null where usuario_id=$1", [contas.segunda.id])
+    await fazerLogin(primeiro, contas.segunda)
+    await expect(primeiro.getByRole("heading", { name: "Defina sua senha" })).toBeVisible()
+    expect((await primeiro.request.get("/api/fila")).status()).toBe(403)
+    await primeiro.goto("/fila/divulgacoes")
+    await expect(primeiro).toHaveURL(/definir-senha$/)
+    const pessoal = randomUUID()
+    await primeiro.getByLabel("Nova senha", { exact: true }).fill(pessoal)
+    await primeiro.getByLabel("Confirmar nova senha").fill(pessoal)
+    await primeiro.getByRole("button", { name: "Salvar senha e entrar" }).click()
+    await expect(primeiro.getByRole("heading", { name: "Fila de entrada" })).toBeVisible()
+    await primeiro.goto("/fila/equipe")
+    await expect(primeiro).toHaveURL(/\/fila$/)
+    await fazerLogin(admin, contas.primeira)
+    await admin.getByRole("link", { name: "Equipe", exact: true }).click()
+    const membro = admin.getByRole("region", { name: contas.segunda.email })
+    await membro.getByRole("button", { name: "Redefinir senha" }).click()
+    await membro.getByRole("button", { name: "Gerar senha temporária" }).click()
+    const temporaria = await membro.locator("code").innerText()
+    expect([401, 403]).toContain((await primeiro.request.get("/api/fila")).status())
+    await fazerLogin(page, { ...contas.segunda, senha: pessoal })
+    await expect(page.locator("main").getByRole("alert")).toBeVisible()
+    await fazerLogin(page, { ...contas.segunda, senha: temporaria })
+    await expect(page.getByRole("heading", { name: "Defina sua senha" })).toBeVisible()
+    await page.getByLabel("Nova senha", { exact: true }).fill(temporaria)
+    await page.getByLabel("Confirmar nova senha").fill(temporaria)
+    await page.getByRole("button", { name: "Salvar senha e entrar" }).click()
+    await expect(page.locator("main").getByRole("alert")).toContainText("diferente da temporária")
+    const nova = randomUUID()
+    await page.getByLabel("Nova senha", { exact: true }).fill(nova)
+    await page.getByLabel("Confirmar nova senha").fill(nova)
+    await page.getByRole("button", { name: "Salvar senha e entrar" }).click()
+    await expect(page.getByRole("heading", { name: "Fila de entrada" })).toBeVisible()
+    expect([401, 403]).toContain((await primeiro.request.get("/api/fila")).status())
+    await page.getByRole("button", { name: "Sair" }).click()
+    await fazerLogin(page, { ...contas.segunda, senha: nova })
+    await expect(page.getByRole("heading", { name: "Fila de entrada" })).toBeVisible()
+  } finally {
+    await Promise.all([admin.close(), primeiro.close()])
+    await contas.limpar()
+  }
+})
