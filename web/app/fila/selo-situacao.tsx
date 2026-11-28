@@ -20,6 +20,6 @@ const selos = new Map<string, [LucideIcon, Tom]>([
 export function SeloSituacao({ situacao }: { situacao: string }) {
   const [Icone, tom] = selos.get(situacao) ?? [Circle, "neutro"]
   return <span className="situacao" data-tom={tom} tabIndex={-1}>
-    <Icone size={16} aria-hidden="true" /><span>{situacao}</span>
+    <Icone size={16} aria-hidden="true" />{situacao}
   </span>
 }
