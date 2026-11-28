@@ -124,8 +124,10 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
     const pendente = criarCasoPedido()
     try {
       await banco.query("insert into orbcommu.pedidos (comunidade,nome,telefone,origem,situacao) values ('meet-up-tech-sp',$1,$2,'Link geral','Para analisar')", [pendente.pedido.nome, pendente.pedido.telefone])
+      const pedidos = leitora.getByRole("list", { name: "Pedidos em ordem de chegada" })
+      await expect(pedidos).toBeVisible()
       await leitora.getByLabel("Pesquisar").fill(pendente.pedido.nome)
-      const consulta = leitora.getByRole("listitem")
+      const consulta = pedidos.getByRole("listitem").filter({ hasText: pendente.pedido.nome })
       await expect(consulta).toContainText("Para analisar")
       await expect(consulta.getByRole("group", { name: "Ações do pedido" })).toHaveCount(0)
       await expect(consulta.getByRole("button", { name: "Encerrar pedido" })).toHaveCount(0)
