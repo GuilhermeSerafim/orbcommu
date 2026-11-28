@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
-import { clienteAuth } from "../../lib/cliente-auth"
+import { clienteAuth, MINIMO_CARACTERES_SENHA } from "../../lib/cliente-auth"
 import { obterAcesso } from "../../lib/acesso"
 import { getPool } from "../../lib/db"
 
@@ -39,7 +39,7 @@ export async function definirSenha(dados: FormData): Promise<void> {
   if (acesso.tipo !== "definir_senha") redirect("/fila")
   const rota = "/entrar/definir-senha"
   const senha = dados.get("senha")
-  if (typeof senha !== "string" || senha.length < 12 || Buffer.byteLength(senha) > 72) redirect(rota + "?erro=tamanho")
+  if (typeof senha !== "string" || Array.from(senha).length < MINIMO_CARACTERES_SENHA || Buffer.byteLength(senha) > 72) redirect(rota + "?erro=tamanho")
   if (senha !== dados.get("confirmacao")) redirect(rota + "?erro=confirmacao")
   const { auth } = await clienteDaAcao()
   const conexao = await getPool().connect()

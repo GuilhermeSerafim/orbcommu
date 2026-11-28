@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { obterAcesso } from "@/lib/acesso"
+import { MINIMO_CARACTERES_SENHA } from "@/lib/cliente-auth"
 import { definirSenha, sair } from "../actions"
 
 export const metadata = { title: "Definir senha · OrbCommu" }
@@ -11,7 +12,7 @@ export const metadata = { title: "Definir senha · OrbCommu" }
 const mensagens: Record<string, string> = {
   confirmacao: "As senhas precisam ser iguais.",
   repetida: "Escolha uma senha diferente da temporária.",
-  tamanho: "Use ao menos 12 caracteres e até 72 bytes.",
+  tamanho: `Use ao menos ${MINIMO_CARACTERES_SENHA} caracteres e até 72 bytes.`,
   alteracao: "Não foi possível salvar a senha. Tente novamente.",
 }
 
@@ -27,10 +28,10 @@ export default async function DefinirSenha({ searchParams }: { searchParams: Pro
       <p>Escolha uma senha pessoal para acessar o painel.</p>
       <form action={definirSenha} className="formulario">
         <div className="campo"><Label htmlFor="senha">Nova senha</Label>
-          <Input id="senha" name="senha" type="password" autoComplete="new-password" minLength={12} required aria-describedby="dica-senha" />
-          <small id="dica-senha">Use pelo menos 12 caracteres.</small></div>
+          <Input id="senha" name="senha" type="password" autoComplete="new-password" minLength={MINIMO_CARACTERES_SENHA} required aria-describedby="dica-senha" />
+          <small id="dica-senha">Use pelo menos {MINIMO_CARACTERES_SENHA} caracteres.</small></div>
         <div className="campo"><Label htmlFor="confirmacao">Confirmar nova senha</Label>
-          <Input id="confirmacao" name="confirmacao" type="password" autoComplete="new-password" minLength={12} required /></div>
+          <Input id="confirmacao" name="confirmacao" type="password" autoComplete="new-password" minLength={MINIMO_CARACTERES_SENHA} required /></div>
         {erro && mensagens[erro] && <p className="aviso-erro" role="alert">{mensagens[erro]}</p>}
         <Button type="submit" className="acao-principal">Salvar senha e entrar</Button>
       </form>

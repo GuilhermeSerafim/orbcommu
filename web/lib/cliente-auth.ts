@@ -1,5 +1,7 @@
 import { createServerClient, type CookieMethodsServer } from "@supabase/ssr"
 
+export const MINIMO_CARACTERES_SENHA = 6
+
 export function clienteAuth(cookies: CookieMethodsServer) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const origem = new URL(process.env.RENDER_EXTERNAL_URL || supabaseUrl)
