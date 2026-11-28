@@ -8,6 +8,7 @@ import type { FiltroFila, ItemFila, PaginaFila } from "../../lib/fila"
 import { SeloSituacao } from "./selo-situacao"
 import { AcoesDoPedido } from "./acoes-do-pedido"
 import { useAbaWhatsApp } from "./aba-whatsapp"
+import ResumoPainel from "./resumo-painel"
 
 const inicial: FiltroFila = { busca: "", situacao: "Todos", pagina: 1, tamanho: 5 }
 const horario = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" })
@@ -18,15 +19,19 @@ function temAcoes(item: ItemFila) {
   return ["Para analisar", "Aguardando vaga", "Chamada iniciada", "Convite enviado", "A conferir"].includes(item.situacao) && !item.encerradoEm
 }
 
-export default function Listagem({ podeOperar, situacoes }: {
+export default function Listagem({ podeOperar, situacoes, api = "/api/fila", configuracao }: {
   podeOperar: boolean
   situacoes: readonly FiltroFila["situacao"][]
+  api?: string
+  configuracao?: React.ReactNode
 }) {
   const [filtro, setFiltro] = useState(inicial)
   const [resultado, setResultado] = useState<{ filtro: FiltroFila; dados?: PaginaFila; erro?: string }>()
   const [revisao, setRevisao] = useState(0)
+  const [acessoRecusado, recusarAcesso] = useState(false)
   const chamadasNaPagina = useRef<string[]>([])
   const busca = useRef<HTMLInputElement>(null)
+  const tituloPedidos = useRef<HTMLHeadingElement>(null)
   const abaWhatsApp = useAbaWhatsApp()
   const atualizar = useCallback(() => setRevisao(atual => atual + 1), [])
   useEffect(() => {
@@ -48,8 +53,9 @@ export default function Listagem({ podeOperar, situacoes }: {
       const chamadas = chamadasNaPagina.current
       for (const id of chamadas) parametros.append("chamada", id)
       try {
-        const res = await fetch("/api/fila?" + parametros, { cache: "no-store", signal: controlador.signal })
+        const res = await fetch(api + "?" + parametros, { cache: "no-store", signal: controlador.signal })
         if (!res.ok) {
+          if (!controlador.signal.aborted && (res.status === 401 || res.status === 403)) recusarAcesso(true)
           if (!controlador.signal.aborted) setResultado({ filtro, erro: [401,403].includes(res.status)
             ? "Esta sessão não tem acesso à fila." : "Não foi possível carregar a fila." })
           return
@@ -57,6 +63,7 @@ export default function Listagem({ podeOperar, situacoes }: {
         const dados: PaginaFila = await res.json()
         const ultima = Math.max(1, Math.ceil(dados.total / filtro.tamanho))
         if (controlador.signal.aborted || chamadas !== chamadasNaPagina.current) return
+        recusarAcesso(false)
         if (dados.atualizarEmMs != null) prazo = setTimeout(atualizar, Math.min(dados.atualizarEmMs, 2_147_483_647))
         const foco = document.activeElement
         const linhaFocada = foco?.closest<HTMLElement>("li[data-pedido-id]")
@@ -80,7 +87,7 @@ export default function Listagem({ podeOperar, situacoes }: {
       controlador.abort()
       clearTimeout(prazo)
     }
-  }, [filtro, revisao, atualizar])
+  }, [api, filtro, revisao, atualizar])
   const resposta = resultado?.filtro === filtro ? resultado : undefined
   const dados = resposta?.dados
   function alterar(campos: Partial<FiltroFila>) {
@@ -93,7 +100,15 @@ export default function Listagem({ podeOperar, situacoes }: {
       .filter(item => item.id === id || chamadasNaPagina.current.includes(item.id))
       .map(item => item.id)
   }
-  return <section className="lista-painel" aria-label="Consulta de pedidos">
+  return <>
+    {!acessoRecusado && <ResumoPainel api={api} revisao={revisao} situacao={filtro.situacao} selecionar={situacao => {
+      alterar({ situacao, busca: "" })
+      tituloPedidos.current?.focus({ preventScroll: true })
+      tituloPedidos.current?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" })
+    }} />}
+    <div className="cabecalho-pedidos"><h2 tabIndex={-1} ref={tituloPedidos}>Pedidos da fila</h2>
+      {configuracao}</div>
+    <section id="pedidos-da-fila" className="lista-painel" aria-label="Consulta de pedidos">
     {/* A aba externa tem como opener um quadro vazio sem permissão para executar scripts. */}
     {podeOperar && <iframe ref={abaWhatsApp.origem} title="Abertura do WhatsApp" hidden
       sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" />}
@@ -154,5 +169,5 @@ export default function Listagem({ podeOperar, situacoes }: {
       <Button variant="ghost" size="icon" aria-label="Próxima página" disabled={!dados || filtro.pagina * filtro.tamanho >= dados.total} onClick={() => alterar({ pagina: filtro.pagina + 1 })}><ChevronRight aria-hidden="true" /></Button>
       </div>
     </nav>
-  </section>
+  </section></>
 }

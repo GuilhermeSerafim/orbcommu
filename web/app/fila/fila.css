@@ -74,3 +74,8 @@
 .configuracao-grupo-campo input { flex: 1 1 280px; }
 .configuracao-grupo-campo input, .configuracao-grupo-campo button { min-height: 44px; }
 .configuracao-grupo [role="status"] { color: var(--cinza); font-size: 14px; }
+.cabecalho-pedidos { display: flex; align-items: start; justify-content: space-between; flex-wrap: wrap; gap: 10px 20px; margin-bottom: 12px; }
+.cabecalho-pedidos h2 { font: 700 26px/1.3 var(--titulo); letter-spacing: -.04em; scroll-margin-top: 16px; }
+.cabecalho-pedidos .configuracao-grupo { margin: 0; padding-inline: 12px; }
+.cabecalho-pedidos .configuracao-grupo summary { padding-block: 9px; font-size: 14px; }
+.cabecalho-pedidos .configuracao-grupo[open] { flex-basis: 100%; }

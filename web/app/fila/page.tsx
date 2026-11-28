@@ -32,8 +32,8 @@ export default async function Fila({ searchParams }: { searchParams: Promise<{ p
               <span className="comunidade-id">Meet Up Tech SP</span>
               <h1>Fila de entrada</h1>
             </header>
-            {acesso.perfil === "operacao" && <LinkDoGrupo convite={await consultarConvite(acesso)} />}
-            <Listagem key={acesso.usuarioId} podeOperar={acesso.perfil === "operacao"} situacoes={situacoesFila} />
+            <Listagem key={acesso.usuarioId} podeOperar={acesso.perfil === "operacao"} situacoes={situacoesFila}
+              configuracao={acesso.perfil === "operacao" && <LinkDoGrupo convite={await consultarConvite(acesso)} />} />
           </>}
     </main>
   </>
