@@ -110,7 +110,7 @@ export function Rodape() {
     <footer className={estilos.rodape}>
       <div className={estilos.larguraFechamento}>
         <p>Criado por <a href="https://guiler.vercel.app/">Guiler</a></p>
-        <p>Todos os direitos reservados.</p>
+        <p>© Todos os direitos reservados.</p>
       </div>
     </footer>
   )

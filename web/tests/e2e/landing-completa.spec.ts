@@ -113,7 +113,7 @@ test("rodapé credita Guiler e apresenta os direitos reservados", async ({ page 
   const rodape = page.getByRole("contentinfo")
   await expect(rodape.locator("a")).toHaveCount(1)
   await expect(rodape).toContainText("Criado por Guiler")
-  await expect(rodape).toContainText("Todos os direitos reservados.")
+  await expect(rodape).toContainText("© Todos os direitos reservados.")
   const autor = rodape.getByRole("link", { name: "Guiler", exact: true })
   await expect(autor).toBeVisible()
   await expect(autor).toHaveAttribute("href", "https://guiler.vercel.app/")
