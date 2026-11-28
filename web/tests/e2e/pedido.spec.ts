@@ -9,6 +9,21 @@ test("o endereço antigo dos organizadores redireciona para a landing", async ({
   expect((await request.get("/organizadores", { maxRedirects: 0 })).headers().location).toBe("/")
 })
 
+test("os links públicos entregam as imagens de compartilhamento no HTML inicial", async ({ request }) => {
+  for (const [rota, imagem] of [["/", "orbcommu"], ["/participar/meet-up-tech-sp", "meet-up-tech-sp"]]) {
+    const resposta = await request.get(rota, { headers: { "User-Agent": "WhatsApp/2.24" } })
+    const cabecalho = (await resposta.text()).split("</head>")[0]
+    const caminho = `/compartilhar/${imagem}.jpg`
+    const url = `https://orbcommu.vercel.app${caminho}`
+    expect(cabecalho).toContain(`property="og:image" content="${url}"`)
+    expect(cabecalho).toContain(`name="twitter:image" content="${url}"`)
+    expect(cabecalho).toContain('name="twitter:card" content="summary_large_image"')
+    const foto = await request.get(caminho)
+    expect(foto.status()).toBe(200)
+    expect(foto.headers()["content-type"]).toContain("image/jpeg")
+  }
+})
+
 test("o link público abre o formulário da comunidade", async ({ page }) => {
   await page.goto("/participar/meet-up-tech-sp")
   await expect(page.getByRole("heading", { name: "Pedir entrada na Meet Up Tech SP" })).toBeVisible()
