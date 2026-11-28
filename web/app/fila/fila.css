@@ -16,7 +16,7 @@
 .selecao select { width: 100%; appearance: none; padding: 0 34px 0 12px; }
 .selecao svg { right: 12px; }
 .pedidos { list-style: none; margin: 0; padding: 0; }
-.lista-colunas, .pedidos li { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(109px, .5fr); gap: 20px; padding-inline: clamp(18px, 3vw, 32px); }
+.lista-colunas, .pedidos li { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(124px, .65fr) 96px; gap: 20px; padding-inline: clamp(18px, 3vw, 32px); }
 .lista-colunas { background: var(--lavanda); color: var(--cinza); font-size: 12px; font-weight: 650; padding-block: 11px; }
 .pedidos li { align-items: start; padding-block: 17px; border-bottom: 1px solid var(--linha); }
 .pedidos li:last-child { border: 0; }
@@ -31,10 +31,18 @@
 .situacao[data-tom="atencao"] { background: #fce9ce; color: #6d4218; }
 .situacao[data-tom="andamento"] { background: var(--lavanda); color: var(--violeta); }
 .situacao[data-tom="confirmada"] { background: #e3f3ea; color: #1f6147; }
-.historico-vistoria, .acoes-pedido { grid-column: 1 / -1; }
-.historico-vistoria { display: grid; gap: 3px; color: var(--cinza); font-size: 13px; }
-.historico-vistoria time { font-variant-numeric: tabular-nums; }
-.acoes-pedido { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.estado-pedido { display: grid; gap: 4px; }
+.autor-envio { color: var(--cinza); font-size: 13px; }
+.abrir-historico { justify-self: end; min-height: 44px; color: var(--cinza); }
+.historico-pedido { overflow-wrap: anywhere; background: var(--superficie); border-color: var(--linha); }
+.historico-pedido h2 { padding-right: 36px; font: 700 22px/1.25 var(--titulo); }
+.historico-pedido > p, .dia-historico time, .dia-historico li span { color: var(--cinza); font-size: 14px; }
+.dia-historico { margin-top: 20px; }
+.dia-historico h3 { padding-bottom: 6px; border-bottom: 1px solid var(--linha); font-weight: 650; }
+.dia-historico li { display: flex; gap: 16px; padding-top: 10px; align-items: baseline; }
+.dia-historico time { flex: none; font-variant-numeric: tabular-nums; }
+.dia-historico li strong, .dia-historico li span { display: block; }
+.acoes-pedido { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
 .acoes-pedido button { min-height: 44px; }
 .acoes-pedido button[aria-disabled="true"] { opacity: .55; cursor: wait; }
 .acoes-pedido :focus, .situacao:focus { outline: 2px solid var(--foco); outline-offset: 2px; }
@@ -56,8 +64,10 @@
   .lista-colunas { display: none; }
   .pedidos li { grid-template-columns: minmax(0, 1fr) auto; gap: 11px 10px; padding: 16px; }
   .pessoa { grid-column: 1; }
-  .origem { grid-row: 2; grid-column: 1 / -1; display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px 10px; }
-  .situacao { grid-row: 1; grid-column: 2; font-size: 12px; }
+  .origem { grid-row: 2; grid-column: 1; display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px 10px; }
+  .estado-pedido { grid-row: 1; grid-column: 2; justify-items: end; max-width: 145px; }
+  .situacao { font-size: 12px; }
+  .abrir-historico { grid-row: 2; grid-column: 2; }
   .paginacao { padding-inline: 9px; gap: 3px; }
   .paginacao label { font-size: 12px; }
 }

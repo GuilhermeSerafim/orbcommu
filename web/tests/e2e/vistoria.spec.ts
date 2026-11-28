@@ -1,4 +1,4 @@
-import { devices, expect } from "@playwright/test"
+import { devices, expect, type Page } from "@playwright/test"
 import { test } from "../support/playwright"
 import { banco } from "../support/banco"
 import { comFixtureConvite } from "../support/convite"
@@ -6,6 +6,20 @@ import { criarOperadores, fazerLogin } from "../support/operadores"
 import { criarCasoPedido } from "../support/pedidos"
 
 test.use({ userAgent: devices["Pixel 7"].userAgent })
+
+async function conferirHistorico(page: Page, nome: string, acao: string, autor?: string) {
+  const titulo = `Histórico de ${nome}`
+  const abrir = page.getByRole("button", { name: titulo, exact: true })
+  await abrir.click()
+  const dialogo = page.getByRole("dialog", { name: titulo, exact: true })
+  const registro = dialogo.getByRole("listitem").filter({ has: page.getByText(acao, { exact: true }) })
+  await expect(registro.locator("time")).toHaveText(/^\d{2}:\d{2}$/)
+  if (autor) await expect(registro.getByText(autor, { exact: true })).toBeVisible()
+  await expect(dialogo.getByRole("listitem").last()).toContainText("Pedido recebido")
+  await page.keyboard.press("Escape")
+  await expect(dialogo).toHaveCount(0)
+  await expect(abrir).toBeFocused()
+}
 
 test("compartilha conversa, aprovação e encerramento entre contas", async ({ page, browser }) => {
   test.setTimeout(90_000)
@@ -34,12 +48,13 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
     await expect(conversa).toHaveURL("https://wa.me/" + ana.pedido.telefone)
     await conversa.close()
     await expect(conversar).toBeFocused()
-    await expect(linha).toContainText(/Marina abriu o WhatsApp às \d{2}:\d{2}/)
+    await expect(linha).not.toContainText("Marina")
+    await conferirHistorico(page, ana.pedido.nome, "Conversa aberta no WhatsApp", "Marina")
 
     const buscaSegunda = segunda.getByLabel("Pesquisar")
     await buscaSegunda.fill(ana.pedido.nome)
     const linhaSegunda = segunda.getByRole("listitem")
-    await expect(linhaSegunda).toContainText("Marina abriu o WhatsApp")
+    await conferirHistorico(segunda, ana.pedido.nome, "Conversa aberta no WhatsApp", "Marina")
     await segunda.bringToFront()
     const aprovacaoSegunda = linhaSegunda.getByRole("button", { name: "Aprovar" })
     await aprovacaoSegunda.focus()
@@ -50,8 +65,8 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
     await segunda.bringToFront()
     await segunda.evaluate(() => window.dispatchEvent(new Event("focus")))
     await expect(linhaSegunda).toContainText("Aguardando vaga")
-    await expect(linhaSegunda).toContainText("Marina aprovou")
     await expect(linhaSegunda.getByText("Aguardando vaga", { exact: true })).toBeFocused()
+    await conferirHistorico(segunda, ana.pedido.nome, "Pedido aprovado", "Marina")
     await expect(buscaSegunda).toHaveValue(ana.pedido.nome)
 
     await page.getByLabel("Pesquisar").fill(bia.pedido.nome)
@@ -69,7 +84,7 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
     })
     await linha.getByRole("button", { name: "Conversar no WhatsApp" }).click()
     await expect(linha.getByRole("link", { name: "Abrir a conversa" })).toHaveAttribute("href", "https://wa.me/" + bia.pedido.telefone)
-    await expect(linha).toContainText("Marina abriu o WhatsApp")
+    await conferirHistorico(page, bia.pedido.nome, "Conversa aberta no WhatsApp", "Marina")
     await expect(linha.getByRole("alert")).toHaveCount(0)
 
     await buscaSegunda.fill(bia.pedido.nome)
@@ -87,7 +102,7 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
     await expect(buscaSegunda).toBeFocused()
     await page.getByLabel("Situação").selectOption("Finalizados")
     await expect(linha).toContainText("Encerrado na vistoria")
-    await expect(linha).toContainText("Marina encerrou o pedido")
+    await conferirHistorico(page, bia.pedido.nome, "Pedido encerrado", "Marina")
 
     await fazerLogin(leitora, contas.leitora)
     const pendente = criarCasoPedido()
@@ -96,7 +111,8 @@ test("compartilha conversa, aprovação e encerramento entre contas", async ({ p
       await leitora.getByLabel("Pesquisar").fill(pendente.pedido.nome)
       const consulta = leitora.getByRole("listitem")
       await expect(consulta).toContainText("Para analisar")
-      await expect(consulta.getByRole("button")).toHaveCount(0)
+      await expect(consulta.getByRole("group", { name: "Ações do pedido" })).toHaveCount(0)
+      await conferirHistorico(leitora, pendente.pedido.nome, "Pedido recebido")
     } finally { await pendente.limpar() }
   } finally {
     await Promise.all([ana.limpar(), bia.limpar(), segunda.close(), leitora.close()])
